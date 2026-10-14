@@ -29,6 +29,14 @@ return [
 		// Public live object page (opaque path token)
 		['name' => 'publicPage#live', 'url' => '/live/{token}', 'verb' => 'GET', 'requirements' => ['token' => '[A-Za-z0-9_-]{40,}']],
 
+		// Ops board + live map pages (session)
+		['name' => 'page#ops', 'url' => '/ops', 'verb' => 'GET'],
+		['name' => 'page#opsSite', 'url' => '/ops/{siteId}', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
+
+		// Client portal — separate route space (client-group gate, 404 else)
+		['name' => 'portal#index', 'url' => '/portal', 'verb' => 'GET'],
+		['name' => 'portal#site', 'url' => '/portal/sites/{siteId}', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
+
 		// ── Web JSON API (session + CSRF) ────────────────────────────────
 		['name' => 'api#listSites', 'url' => '/api/sites', 'verb' => 'GET'],
 		['name' => 'api#createSite', 'url' => '/api/sites', 'verb' => 'POST'],
@@ -86,6 +94,7 @@ return [
 		['name' => 'api#generateReport', 'url' => '/api/sites/{siteId}/reports', 'verb' => 'POST', 'requirements' => ['siteId' => '\d+']],
 		['name' => 'api#listReports', 'url' => '/api/sites/{siteId}/reports', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
 		['name' => 'api#downloadReport', 'url' => '/api/reports/{id}/download', 'verb' => 'GET', 'requirements' => ['id' => '\d+']],
+		['name' => 'api#setReportClientVisible', 'url' => '/api/reports/{id}/client-visible', 'verb' => 'PUT', 'requirements' => ['id' => '\d+']],
 		['name' => 'api#claimBundle', 'url' => '/api/sites/{siteId}/claim-bundle', 'verb' => 'POST', 'requirements' => ['siteId' => '\d+']],
 		['name' => 'api#listSchedules', 'url' => '/api/sites/{siteId}/report-schedules', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
 		['name' => 'api#upsertSchedule', 'url' => '/api/sites/{siteId}/report-schedules', 'verb' => 'PUT', 'requirements' => ['siteId' => '\d+']],
@@ -115,10 +124,51 @@ return [
 		['name' => 'api#takeKey', 'url' => '/api/keys/{id}/take', 'verb' => 'POST', 'requirements' => ['id' => '\d+']],
 		['name' => 'api#returnKey', 'url' => '/api/keys/{id}/return', 'verb' => 'POST', 'requirements' => ['id' => '\d+']],
 
+		// ── Parity API (session + CSRF) ──────────────────────────────────
+		['name' => 'opsApi#opsBoard', 'url' => '/api/ops', 'verb' => 'GET'],
+		['name' => 'opsApi#opsMap', 'url' => '/api/ops/{siteId}/map', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'opsApi#roundTrail', 'url' => '/api/rounds/{id}/trail', 'verb' => 'GET', 'requirements' => ['id' => '\d+']],
+		['name' => 'opsApi#listGeofences', 'url' => '/api/sites/{siteId}/geofences', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'opsApi#createGeofence', 'url' => '/api/sites/{siteId}/geofences', 'verb' => 'POST', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'opsApi#updateGeofence', 'url' => '/api/geofences/{id}', 'verb' => 'PUT', 'requirements' => ['id' => '\d+']],
+		['name' => 'opsApi#deleteGeofence', 'url' => '/api/geofences/{id}', 'verb' => 'DELETE', 'requirements' => ['id' => '\d+']],
+		['name' => 'opsApi#listTasks', 'url' => '/api/sites/{siteId}/tasks', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'opsApi#createTask', 'url' => '/api/sites/{siteId}/tasks', 'verb' => 'POST', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'opsApi#updateTask', 'url' => '/api/tasks/{id}', 'verb' => 'PUT', 'requirements' => ['id' => '\d+']],
+		['name' => 'opsApi#completeTask', 'url' => '/api/tasks/{id}/complete', 'verb' => 'POST', 'requirements' => ['id' => '\d+']],
+		['name' => 'opsApi#listLogbook', 'url' => '/api/sites/{siteId}/logbook', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'opsApi#createLogbook', 'url' => '/api/sites/{siteId}/logbook', 'verb' => 'POST', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'opsApi#updateLogbook', 'url' => '/api/logbook/{id}', 'verb' => 'PUT', 'requirements' => ['id' => '\d+']],
+		['name' => 'opsApi#ackLogbook', 'url' => '/api/logbook/{id}/ack', 'verb' => 'POST', 'requirements' => ['id' => '\d+']],
+		['name' => 'opsApi#siteKpis', 'url' => '/api/sites/{siteId}/kpis', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'opsApi#listAlerts', 'url' => '/api/sites/{siteId}/alerts', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'opsApi#ackAlert', 'url' => '/api/alerts/{id}/ack', 'verb' => 'POST', 'requirements' => ['id' => '\d+']],
+		['name' => 'opsApi#resolveAlert', 'url' => '/api/alerts/{id}/resolve', 'verb' => 'POST', 'requirements' => ['id' => '\d+']],
+		['name' => 'opsApi#listWebhooks', 'url' => '/api/admin/webhooks', 'verb' => 'GET'],
+		['name' => 'opsApi#createWebhook', 'url' => '/api/admin/webhooks', 'verb' => 'POST'],
+		['name' => 'opsApi#rotateWebhookSecret', 'url' => '/api/admin/webhooks/{id}/rotate', 'verb' => 'POST', 'requirements' => ['id' => '\d+']],
+		['name' => 'opsApi#deleteWebhook', 'url' => '/api/admin/webhooks/{id}', 'verb' => 'DELETE', 'requirements' => ['id' => '\d+']],
+		['name' => 'opsApi#webhookDeliveries', 'url' => '/api/admin/webhooks/{id}/deliveries', 'verb' => 'GET', 'requirements' => ['id' => '\d+']],
+		['name' => 'opsApi#getEscalationLegs', 'url' => '/api/sites/{siteId}/escalation', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'opsApi#setEscalationLegs', 'url' => '/api/sites/{siteId}/escalation', 'verb' => 'PUT', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'opsApi#saveTileUrl', 'url' => '/api/admin/tile-url', 'verb' => 'POST'],
+		['name' => 'opsApi#listClientGrants', 'url' => '/api/sites/{siteId}/client-grants', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'opsApi#grantClient', 'url' => '/api/sites/{siteId}/client-grants', 'verb' => 'POST', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'opsApi#revokeClient', 'url' => '/api/sites/{siteId}/client-grants/{uid}', 'verb' => 'DELETE', 'requirements' => ['siteId' => '\d+', 'uid' => '[^/]+']],
+
+		// ── Portal JSON (client-group gate — uniform 404 for staff) ─────
+		['name' => 'portal#sites', 'url' => '/api/portal/sites', 'verb' => 'GET'],
+		['name' => 'portal#overview', 'url' => '/api/portal/sites/{siteId}/overview', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'portal#incidents', 'url' => '/api/portal/sites/{siteId}/incidents', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'portal#kpis', 'url' => '/api/portal/sites/{siteId}/kpis', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'portal#reports', 'url' => '/api/portal/sites/{siteId}/reports', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'portal#downloadReport', 'url' => '/api/portal/reports/{id}/download', 'verb' => 'GET', 'requirements' => ['id' => '\d+']],
+
 		// ── Companion API (app-password session) ─────────────────────────
 		['name' => 'companion#entitlement', 'url' => '/api/companion/entitlement', 'verb' => 'GET'],
 		['name' => 'companion#rounds', 'url' => '/api/companion/rounds', 'verb' => 'GET'],
 		['name' => 'companion#resolveToken', 'url' => '/api/companion/tokens/resolve', 'verb' => 'POST'],
+		['name' => 'companion#confirmTagless', 'url' => '/api/companion/confirm', 'verb' => 'POST'],
 		['name' => 'companion#submitEvents', 'url' => '/api/companion/events', 'verb' => 'POST'],
 		['name' => 'companion#createIncident', 'url' => '/api/companion/incidents', 'verb' => 'POST'],
 		['name' => 'companion#uploadPhoto', 'url' => '/api/companion/photos', 'verb' => 'POST'],
@@ -131,5 +181,12 @@ return [
 		['name' => 'companion#stationKeys', 'url' => '/api/companion/station/keys', 'verb' => 'GET'],
 		['name' => 'companion#stationKeyAction', 'url' => '/api/companion/station/keys/action', 'verb' => 'POST'],
 		['name' => 'companion#pairStation', 'url' => '/api/companion/stations/pair', 'verb' => 'POST'],
+		['name' => 'companion#heartbeat', 'url' => '/api/companion/heartbeat', 'verb' => 'POST'],
+		['name' => 'companion#alarm', 'url' => '/api/companion/alarm', 'verb' => 'POST'],
+		['name' => 'companion#positionConsent', 'url' => '/api/companion/positions/consent', 'verb' => 'POST'],
+		['name' => 'companion#workerTasks', 'url' => '/api/companion/tasks', 'verb' => 'GET'],
+		['name' => 'companion#completeWorkerTask', 'url' => '/api/companion/tasks/{id}/complete', 'verb' => 'POST', 'requirements' => ['id' => '\d+']],
+		['name' => 'companion#workerLogbook', 'url' => '/api/companion/sites/{siteId}/logbook', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
+		['name' => 'companion#ackWorkerLogbook', 'url' => '/api/companion/logbook/{id}/ack', 'verb' => 'POST', 'requirements' => ['id' => '\d+']],
 	],
 ];

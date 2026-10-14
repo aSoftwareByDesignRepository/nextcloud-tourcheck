@@ -45,20 +45,30 @@ final class UninstallDropTables implements IRepairStep
 	 * Kept in sync by the DB-standards linter.
 	 */
 	public const TABLES = [
+		'tck_alert',
+		'tck_alert_delivery',
 		'tck_anchor',
 		'tck_checkpoint',
+		'tck_client_grant',
 		'tck_corrective',
 		'tck_cp_token',
+		'tck_escalation_leg',
 		'tck_event',
+		'tck_geofence',
+		'tck_geofence_state',
 		'tck_incident',
 		'tck_journal',
 		'tck_key',
 		'tck_key_log',
 		'tck_license_state',
 		'tck_live_link',
+		'tck_logbook',
+		'tck_logbook_ack',
+		'tck_mandown_state',
 		'tck_notif',
 		'tck_plan',
 		'tck_position',
+		'tck_position_consent',
 		'tck_report_dlv',
 		'tck_report_sched',
 		'tck_round',
@@ -67,7 +77,11 @@ final class UninstallDropTables implements IRepairStep
 		'tck_site_member',
 		'tck_station',
 		'tck_station_mbr',
+		'tck_task',
 		'tck_template',
+		'tck_webhook',
+		'tck_webhook_delivery',
+		'tck_worker_qual',
 	];
 
 	public function __construct(

@@ -15,7 +15,7 @@ import { login } from './helpers/auth.js'
  */
 const CREDS = { username: 'tck_atlas', password: 'TckAtlas2026!' }
 const WIDTHS = [320, 375, 414, 768, 1024, 1280]
-const PAGES = ['/', '/rounds', '/journal', '/sites/1']
+const PAGES = ['/', '/rounds', '/journal', '/sites/1', '/ops']
 
 test.beforeEach(async ({ page }) => {
 	await login(page, CREDS)

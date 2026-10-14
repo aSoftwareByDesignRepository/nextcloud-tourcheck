@@ -49,6 +49,18 @@ final class Constants
 	public const METHOD_STATION = 'station';
 	public const METHOD_ATTEST = 'attested';
 	public const METHOD_MANUAL = 'manual';
+	public const METHOD_GPS = 'gps';   // geofence-radius confirm (no tag)
+	public const METHOD_BLE = 'ble';   // beacon-proximity confirm
+
+	// Alert types (tck_alert.type)
+	public const ALERT_MANDOWN = 'mandown';
+	public const ALERT_SOS = 'sos';
+	public const ALERT_COVERAGE = 'coverage_gap';
+	public const ALERT_ZONE = 'zone_violation';
+
+	public const ALERT_STATES = ['fired', 'escalating', 'acked', 'resolved', 'resolved_false_alarm'];
+
+	public const GROUP_CLIENT = 'tourcheck_client'; // read-only portal role (Q1: NC accounts)
 
 	// Round statuses — status derived, never client-set (single writer: recompute)
 	public const ROUND_SCHEDULED = 'scheduled';
@@ -74,6 +86,9 @@ final class Constants
 	public const CONFIG_BRAND_NAME = 'brand_name';
 	public const CONFIG_BRAND_COLOR = 'brand_color';
 	public const CONFIG_LAST_CRON_RUN = 'last_cron_run_at';
+	public const CONFIG_TILE_URL = 'map_tile_url';              // empty = schematic fallback (Q2)
+	public const CONFIG_SLA_HIT_PCT = 'sla_hit_target_pct';     // default 95
+	public const CONFIG_SLA_PUNCT_MIN = 'sla_punctuality_min';  // default 15
 
 	public const ANCHOR_EVERY_N = 200; // journal entries between anchors
 }

@@ -24,6 +24,10 @@ class EnsureTourCheckSchema implements IRepairStep
 		'tck_anchor', 'tck_report_sched', 'tck_report_dlv', 'tck_site_member',
 		'tck_template', 'tck_live_link', 'tck_notif', 'tck_license_state',
 		'tck_key', 'tck_key_log',
+		'tck_geofence', 'tck_geofence_state', 'tck_alert', 'tck_alert_delivery',
+		'tck_escalation_leg', 'tck_task', 'tck_logbook', 'tck_logbook_ack',
+		'tck_client_grant', 'tck_worker_qual', 'tck_position_consent',
+		'tck_mandown_state', 'tck_webhook', 'tck_webhook_delivery',
 	];
 
 	public function __construct(

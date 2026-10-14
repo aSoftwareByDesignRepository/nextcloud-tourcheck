@@ -144,6 +144,35 @@ class SettingsService
 		$this->config->setAppValue(Constants::APP_ID, Constants::CONFIG_BRAND_COLOR, $color);
 	}
 
+	/**
+	 * Map tile URL — EMPTY BY DEFAULT (Q2 decision): an external tile provider
+	 * only becomes active when an admin explicitly opts in. Fresh installs
+	 * render the schematic site fallback and leak nothing third-party.
+	 */
+	public function getTileUrl(): string
+	{
+		$u = trim($this->config->getAppValue(Constants::APP_ID, Constants::CONFIG_TILE_URL, ''));
+		// only https template URLs are acceptable — the browser injects {z}/{x}/{y}
+		return preg_match('#^https://[^\s]+\{z\}#i', $u) === 1 ? $u : '';
+	}
+
+	public function setTileUrl(string $url): void
+	{
+		$this->config->setAppValue(Constants::APP_ID, Constants::CONFIG_TILE_URL, trim($url));
+	}
+
+	public function getSlaHitTargetPct(): int
+	{
+		$n = (int)$this->config->getAppValue(Constants::APP_ID, Constants::CONFIG_SLA_HIT_PCT, '95');
+		return max(1, min(100, $n));
+	}
+
+	public function getSlaPunctualityMin(): int
+	{
+		$n = (int)$this->config->getAppValue(Constants::APP_ID, Constants::CONFIG_SLA_PUNCT_MIN, '15');
+		return max(0, min(240, $n));
+	}
+
 	public function markCronRun(\DateTimeInterface $at): void
 	{
 		$this->config->setAppValue(Constants::APP_ID, Constants::CONFIG_LAST_CRON_RUN, $at->format(\DateTimeInterface::ATOM));

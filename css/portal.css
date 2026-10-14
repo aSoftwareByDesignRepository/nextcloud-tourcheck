@@ -1,0 +1,7 @@
+/* Client portal — standalone aggregate view for tourcheck_client members.
+ * Loads with tck.css + tck-tokens.css; only portal-scoped layout lives here. */
+
+.tck-portal { min-height: 100%; background: var(--color-main-background); }
+.tck-portal .tck-shell { padding-top: var(--tck-space-5); }
+.tck-portal main { display: flex; flex-direction: column; gap: var(--tck-space-6); padding: var(--tck-space-4) var(--tck-space-5) var(--tck-space-7); }
+.tck-portal .tck-breadcrumb ol { display: flex; gap: var(--tck-space-2); list-style: none; margin: 0 0 var(--tck-space-3); padding: 0; font-size: var(--tck-fs-sm); }

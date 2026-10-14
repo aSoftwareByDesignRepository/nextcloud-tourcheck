@@ -1,0 +1,109 @@
+/*
+ * Operations surface — live map, alert strip, site board, tasks, logbook, KPIs.
+ * Token-driven; colours are never the only cue (severity cards carry a badge
+ * with text, alerts carry a type label). Loaded only on the ops page.
+ */
+
+/* ── Live map ─────────────────────────────────────────────────────────── */
+.tck-map {
+	width: 100%;
+	height: 420px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--tck-radius-md);
+	background: var(--tck-bg-soft, var(--color-background-hover));
+	overflow: hidden;
+}
+.tck-map .leaflet-container { font: inherit; }
+
+/* ── Site board ───────────────────────────────────────────────────────── */
+.tck-ops-board {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
+	gap: var(--tck-space-4);
+}
+.tck-ops-card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tck-space-2);
+	padding: var(--tck-space-4);
+	border: 1px solid var(--color-border);
+	border-inline-start: 4px solid var(--color-border);
+	border-radius: var(--tck-radius-md);
+	background: var(--tck-bg-card, var(--color-main-background));
+}
+.tck-ops-card--attention { border-inline-start-color: var(--color-warning); }
+.tck-ops-card--critical { border-inline-start-color: var(--color-error); }
+.tck-ops-card__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--tck-space-3);
+}
+.tck-ops-card__head h3 { margin: 0; font-size: var(--tck-fs-lg); }
+.tck-ops-card__foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--tck-space-3);
+	margin-top: auto;
+	font-size: var(--tck-fs-sm);
+	color: var(--color-text-maxcontrast);
+}
+.tck-ops-rounds { list-style: none; margin: 0; padding: 0; }
+.tck-ops-round {
+	display: flex;
+	align-items: center;
+	gap: var(--tck-space-2);
+	padding: var(--tck-space-1) 0;
+	font-size: var(--tck-fs-sm);
+	font-variant-numeric: var(--tck-tab-num);
+	flex-wrap: wrap;
+}
+
+/* ── Alert strip ──────────────────────────────────────────────────────── */
+.tck-ops-alerts { display: flex; flex-direction: column; gap: var(--tck-space-2); }
+.tck-alert-card {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--tck-space-3);
+	padding: var(--tck-space-3) var(--tck-space-4);
+	border: 1px solid var(--color-border);
+	border-inline-start: 4px solid var(--color-warning);
+	border-radius: var(--tck-radius-md);
+	background: var(--tck-bg-card, var(--color-main-background));
+	flex-wrap: wrap;
+}
+.tck-alert-card--critical { border-inline-start-color: var(--color-error); }
+.tck-alert-card__main { display: flex; flex-direction: column; gap: var(--tck-space-1); min-width: 0; }
+.tck-alert-card__meta { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
+.tck-alert-card__actions { display: flex; gap: var(--tck-space-2); flex-wrap: wrap; }
+
+/* ── Geofence list ────────────────────────────────────────────────────── */
+.tck-ops-gflist { display: flex; flex-direction: column; gap: var(--tck-space-1); margin-top: var(--tck-space-3); }
+.tck-ops-gfrow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--tck-space-3);
+	padding: var(--tck-space-2) var(--tck-space-3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--tck-radius-sm);
+	font-size: var(--tck-fs-sm);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+	.tck-map { height: 320px; }
+	.tck-alert-card { flex-direction: column; align-items: stretch; }
+	.tck-alert-card__actions { justify-content: flex-start; }
+}
+
+/* ── Leaflet chrome a11y ────────────────────────────────────────────── */
+/* Leaflet's own attribution link (#0078a8) fails WCAG 2.1 AA (3.26:1 on
+   the grey control bg). Pin it to the theme's max-contrast text color. */
+.tck-map .leaflet-control-attribution,
+.tck-map .leaflet-control-attribution a {
+	color: var(--color-text-maxcontrast);
+	background: var(--color-main-background);
+}

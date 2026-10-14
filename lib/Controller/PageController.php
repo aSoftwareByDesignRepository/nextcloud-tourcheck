@@ -81,6 +81,10 @@ class PageController extends Controller
 			['id' => 'incidents', 'label' => $this->l->t('Incidents'), 'icon' => 'flag', 'group' => 'evidence', 'href' => $this->urlGenerator->linkToRoute($r . 'incidents')],
 			['id' => 'reports', 'label' => $this->l->t('Reports'), 'icon' => 'file-text', 'group' => 'evidence', 'href' => $this->urlGenerator->linkToRoute($r . 'reports')],
 		];
+		// Operations board is a supervisor surface — workers never see it.
+		if ($this->acl->canSupervise($this->acl->requireUid()) || $this->acl->isAppAdmin()) {
+			$nav[] = ['id' => 'ops', 'label' => $this->l->t('Operations'), 'icon' => 'map-pin', 'group' => 'work', 'href' => $this->urlGenerator->linkToRoute($r . 'ops'), 'match' => ['opsSite']];
+		}
 		if ($this->acl->isAppAdmin() || $this->acl->canPlan($this->acl->requireUid())) {
 			$nav[] = ['id' => 'settings', 'label' => $this->l->t('Settings'), 'icon' => 'settings', 'group' => 'admin', 'href' => $this->urlGenerator->linkToRoute($r . 'settingsIndex')];
 		}
@@ -446,6 +450,41 @@ class PageController extends Controller
 		]);
 	}
 
+	/**
+	 * Operations board + live map (F2/F5). Supervisor-only — the shell's
+	 * uniform-404 keeps workers from learning the page exists.
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function ops(): Response
+	{
+		try {
+			$this->acl->assertAppAccess();
+			$uid = $this->acl->requireUid();
+			if (!$this->acl->canSupervise($uid) && !$this->acl->isAppAdmin()) {
+				throw new NotFoundException();
+			}
+		} catch (NotFoundException) {
+			$r = new TemplateResponse('core', '404', [], 'guest');
+			$r->setStatus(Http::STATUS_NOT_FOUND);
+			return $r;
+		}
+		Util::addStyle(Constants::APP_ID, 'vendor/leaflet/leaflet');
+		Util::addScript(Constants::APP_ID, 'vendor/leaflet/leaflet');
+		Util::addStyle(Constants::APP_ID, 'ops');
+		Util::addScript(Constants::APP_ID, 'ops');
+		return $this->shell('ops', [
+			'canManage' => $this->acl->isAppAdmin() || $this->acl->canPlan($uid),
+		]);
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function opsSite(int $siteId): Response
+	{
+		return $this->ops();
+	}
+
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function journal(): Response
@@ -515,6 +554,8 @@ class PageController extends Controller
 					'id' => (int)$d->getId(),
 					'name' => $d->getKind() . ' · ' . $d->getPeriod(),
 					'periodLabel' => $d->getCreatedAt() ? $this->fmt($d->getCreatedAt()) : '',
+					'audience' => (string)$d->getAudience(),
+					'clientVisible' => (bool)$d->getClientVisible(),
 				];
 			}
 			foreach ($this->reports->listSchedules($scope['currentSiteId']) as $s) {

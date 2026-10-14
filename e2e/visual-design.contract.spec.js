@@ -21,14 +21,18 @@ const { assertVisualDesign, captureViewMatrix } = require('../../_shared/e2e/atl
 const CREDS = { username: 'tck_atlas', password: 'TckAtlas2026!' }
 const MARK = `VD ${Date.now()}`
 
-async function reqToken(page) {
+async function reqToken(/** @type {import('@playwright/test').Page} */ page) {
 	return page.evaluate(() =>
-		(window.OC && window.OC.requestToken)
+		((/** @type {any} */ (window).OC && /** @type {any} */ (window).OC.requestToken)
 		|| document.querySelector('head[data-requesttoken]')?.getAttribute('data-requesttoken')
-		|| '')
+		|| ''))
 }
 
-async function api(page, method, path, data) {
+async function api(
+	/** @type {import('@playwright/test').Page} */ page,
+	/** @type {string} */ method,
+	/** @type {string} */ path,
+	/** @type {Record<string, unknown> | undefined} */ data) {
 	const token = await reqToken(page)
 	const res = await page.request.fetch(`/index.php/apps/tourcheck${path}`, {
 		method,
@@ -187,7 +191,8 @@ test('mobile card transform: journal table stacks with row labels at 375px', asy
 		const td = t.querySelector('tbody td[data-cell]')
 		if (!td) { return false }
 		const before = getComputedStyle(td, '::before').content
-		return before !== 'none' && before !== '""' && getComputedStyle(t.querySelector('tbody')).display === 'block'
+		const tbody = t.querySelector('tbody')
+		return before !== 'none' && before !== '""' && tbody !== null && getComputedStyle(tbody).display === 'block'
 	})
 	expect(stacked, 'journal table must render labelled card rows at phone width').toBe(true)
 	const hscroll = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)
@@ -198,11 +203,11 @@ test('view matrix: screenshots of every page at 320/768/1280', async ({ page }) 
 	test.setTimeout(180_000)
 	const written = await captureViewMatrix(page, {
 		basePath: '/index.php/apps/tourcheck',
-		routes: ['/dashboard', '/sites', '/rounds', '/incidents', '/journal', '/reports', '/settings'],
+		routes: ['/dashboard', '/sites', '/rounds', '/incidents', '/journal', '/reports', '/settings', '/ops'],
 		viewports: [{ w: 320, h: 568 }, { w: 768, h: 1024 }, { w: 1280, h: 800 }],
 		settleSelector: '#tck-main-content',
 		outDir: 'test-results/visual-matrix',
 		fullPage: true,
 	})
-	expect(written.length).toBe(7 * 3)
+	expect(written.length).toBe(8 * 3)
 })

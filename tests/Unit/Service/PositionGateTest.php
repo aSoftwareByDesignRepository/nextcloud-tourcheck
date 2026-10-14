@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace OCA\TourCheck\Tests\Unit\Service;
 
 use OCA\TourCheck\Constants;
+use OCA\TourCheck\Db\PositionConsent;
+use OCA\TourCheck\Db\PositionConsentMapper;
 use OCA\TourCheck\Db\PositionEventMapper;
 use OCA\TourCheck\Db\Round;
 use OCA\TourCheck\Db\Site;
 use OCA\TourCheck\Exception\NotFoundException;
 use OCA\TourCheck\Exception\ValidationException;
 use OCA\TourCheck\Service\AccessControlService;
+use OCA\TourCheck\Service\GeofenceService;
 use OCA\TourCheck\Service\PositionService;
 use OCA\TourCheck\Service\RateLimitService;
 use OCA\TourCheck\Service\RoundService;
@@ -33,6 +36,8 @@ use Test\TestCase;
 final class PositionGateTest extends TestCase
 {
 	private PositionEventMapper&MockObject $positions;
+	private PositionConsentMapper&MockObject $consents;
+	private GeofenceService&MockObject $geofences;
 	private RoundService&MockObject $rounds;
 	private SiteService&MockObject $sites;
 	private AccessControlService&MockObject $acl;
@@ -43,6 +48,8 @@ final class PositionGateTest extends TestCase
 	{
 		parent::setUp();
 		$this->positions = $this->createMock(PositionEventMapper::class);
+		$this->consents = $this->createMock(PositionConsentMapper::class);
+		$this->geofences = $this->createMock(GeofenceService::class);
 		$this->rounds = $this->createMock(RoundService::class);
 		$this->sites = $this->createMock(SiteService::class);
 		$this->acl = $this->createMock(AccessControlService::class);
@@ -51,9 +58,18 @@ final class PositionGateTest extends TestCase
 		$settings->method('getPositionRetentionHours')->willReturn(24);
 		$time = $this->createMock(ITimeFactory::class);
 		$time->method('getDateTime')->willReturn(new \DateTime('2026-10-20T12:00:00Z'));
+		$time->method('getTime')->willReturn((new \DateTime('2026-10-20T12:00:00Z'))->getTimestamp());
+
+		// Default: a granted, unrevoked, in-window consent row — consent-gate
+		// tests override this mock per case.
+		$consent = new PositionConsent();
+		$consent->setGrantedAt(new \DateTime('2026-10-20T11:00:00Z'));
+		$this->consents->method('findFor')->willReturn($consent);
 
 		$this->svc = new PositionService(
 			$this->positions,
+			$this->consents,
+			$this->geofences,
 			$this->rounds,
 			$this->sites,
 			$this->acl,

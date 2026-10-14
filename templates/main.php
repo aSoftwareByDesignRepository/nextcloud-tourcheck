@@ -31,6 +31,7 @@ $pageMeta = [
 	'incidents' => ['title' => $l->t('Incidents'), 'help' => $l->t('Findings and corrective actions.'), 'icon' => 'flag'],
 	'reports' => ['title' => $l->t('Reports'), 'help' => $l->t('Scheduled and on-demand evidence.'), 'icon' => 'file-text'],
 	'settings' => ['title' => $l->t('Settings'), 'help' => $l->t('Evidence, retention, branding, stations, access.'), 'icon' => 'settings'],
+	'ops' => ['title' => $l->t('Operations'), 'help' => $l->t('Live map, alerts, tasks and site logbook.'), 'icon' => 'map-pin'],
 ];
 $meta = $pageMeta[$pageId] ?? ['title' => $l->t('TourCheck'), 'help' => '', 'icon' => 'shield-check'];
 $pageTitle = (string)($_['pageTitle'] ?? $meta['title']);

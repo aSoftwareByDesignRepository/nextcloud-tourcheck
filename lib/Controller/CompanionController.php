@@ -61,6 +61,11 @@ class CompanionController extends Controller
 		private readonly \OCA\TourCheck\Integration\PoolVehicleService $poolVehicles,
 		private readonly \OCA\TourCheck\Service\ChainService $chain,
 		private readonly \OCA\TourCheck\Service\KeyService $keyService,
+		private readonly \OCA\TourCheck\Service\ManDownService $manDown,
+		private readonly \OCA\TourCheck\Service\AlertService $alerts,
+		private readonly \OCA\TourCheck\Service\TaskService $tasks,
+		private readonly \OCA\TourCheck\Service\LogbookService $logbook,
+		private readonly \OCA\TourCheck\Service\CheckpointService $checkpoints,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -134,16 +139,28 @@ class CompanionController extends Controller
 			$badge = $this->poolVehicles->badgeFor($uid, new \DateTimeImmutable());
 			$out = [];
 			foreach ($rounds as $r) {
-				$cps = array_map(static fn ($c) => [
-					'id' => (int)$c->getId(),
-					'checkpoint_id' => (int)$c->getCheckpointId(),
-					'name' => $c->getNameSnap(),
-					'earliest' => $c->getEarliest()?->format('c'),
-					'due' => $c->getDue()?->format('c'),
-					'latest' => $c->getLatest()?->format('c'),
-					'status' => $c->getStatus(),
-					'profile' => $c->getProfileJson() !== null ? json_decode((string)$c->getProfileJson(), true) : null,
-				], $this->rounds->checkpointsOf((int)$r->getId()));
+				$cps = array_map(function ($c) {
+					$cp = $this->checkpoints->getAny((int)$c->getCheckpointId());
+					return [
+						'id' => (int)$c->getId(),
+						'checkpoint_id' => (int)$c->getCheckpointId(),
+						'name' => $c->getNameSnap(),
+						'earliest' => $c->getEarliest()?->format('c'),
+						'due' => $c->getDue()?->format('c'),
+						'latest' => $c->getLatest()?->format('c'),
+						'status' => $c->getStatus(),
+						'profile' => $c->getProfileJson() !== null ? json_decode((string)$c->getProfileJson(), true) : null,
+						// Tagless kinds: the client renders a "Confirm here"
+						// flow instead of a scan prompt (F1/F-optional BLE).
+						'cp_kind' => $cp === null ? 'tag' : ($cp->getCpKind() ?? 'tag'),
+						'geo' => $cp !== null && $cp->getGeoLat() !== null ? [
+							'lat' => (float)$cp->getGeoLat(),
+							'lon' => (float)$cp->getGeoLon(),
+							'radius' => (int)($cp->getGeoRadius() ?? 100),
+						] : null,
+						'min_dwell_s' => $cp?->getMinDwellS() === null ? null : (int)$cp->getMinDwellS(),
+					];
+				}, $this->rounds->checkpointsOf((int)$r->getId()));
 				$site = $this->sites->findById((int)$r->getSiteId());
 				$out[] = [
 					'id' => (int)$r->getId(),
@@ -162,6 +179,11 @@ class CompanionController extends Controller
 					// NH-07: interval advertised so the companion can surface
 					// the dead-man expectation honestly (display only).
 					'checkin_interval_min' => $r->getPlanId() !== null && ($plan = $this->plans->find((int)$r->getPlanId())) !== null ? $plan->getCheckinIntervalMin() : null,
+					// F4: device-side pre-alarm config + the worker's own
+					// position-consent state — the app needs both to run its
+					// consent-gated tracking loop and man-down watch.
+					'mandown' => $this->manDown->configFor((int)$r->getSiteId()),
+					'position_consent' => $this->positions->hasConsent($uid, (int)$r->getSiteId()),
 					'checkpoints' => $cps,
 				];
 			}
@@ -477,6 +499,194 @@ class CompanionController extends Controller
 				$b['client_ts'] ?? null,
 			);
 			return $this->ok(['stored' => true], Http::STATUS_CREATED);
+		} catch (\Throwable $e) {
+			return $this->fromThrowable($e);
+		}
+	}
+
+	/**
+	 * Man-down heartbeat (F4) — any "I'm responsive" signal from the
+	 * device resets the inactivity clock. Rate-limited like positions.
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function heartbeat(): JSONResponse
+	{
+		try {
+			$uid = $this->workerUid();
+			$this->license->requireMobileLicense();
+			$b = $this->request->getParams();
+			$this->manDown->heartbeat($this->strictId($b['round_id'] ?? null, 'round_id'), $uid);
+			return $this->ok(['stored' => true]);
+		} catch (\Throwable $e) {
+			return $this->fromThrowable($e);
+		}
+	}
+
+	/**
+	 * Worker alarm — kind=sos (manual) or kind=mandown (device pre-alarm
+	 * expired unanswered). Both converge on an alert; replays dedupe.
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function alarm(): JSONResponse
+	{
+		try {
+			$uid = $this->workerUid();
+			$this->license->requireMobileLicense();
+			$b = $this->request->getParams();
+			$roundId = $this->strictId($b['round_id'] ?? null, 'round_id');
+			$kind = (string)($b['kind'] ?? 'mandown');
+			if ($kind === 'sos') {
+				$round = $this->rounds->findById($roundId);
+				if ($round === null) {
+					throw new NotFoundException();
+				}
+				$this->acl->assertCanViewSite((int)$round->getSiteId());
+				// deterministic id — an SOS retried after an ambiguous
+				// timeout must not double-fire (NN-04 family)
+				$a = $this->alerts->fire(Constants::ALERT_SOS, (int)$round->getSiteId(), $uid, 'critical',
+					['source' => 'manual'],
+					(string)($b['client_event_id'] ?? '') !== '' ? (string)$b['client_event_id'] : sprintf('sos:%d:%s:%s', $roundId, $uid, (new \DateTime())->format('YmdH')),
+					$roundId);
+				return $this->ok(['alertId' => (int)$a->getId()], Http::STATUS_CREATED);
+			}
+			if ($kind !== 'mandown') {
+				throw new ValidationException(Constants::ERR_VALIDATION, 'Unknown alarm kind.', ['kind' => 'invalid']);
+			}
+			$r = $this->manDown->triggerAlarm($roundId, $uid, 'device');
+			return $this->ok($r, isset($r['already']) && $r['already'] ? Http::STATUS_OK : Http::STATUS_CREATED);
+		} catch (\Throwable $e) {
+			return $this->fromThrowable($e);
+		}
+	}
+
+	/** Position consent — grant/revoke; effect is immediate on ingest. */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function positionConsent(): JSONResponse
+	{
+		try {
+			$uid = $this->workerUid();
+			$this->license->requireMobileLicense();
+			$b = $this->request->getParams();
+			$siteId = $this->strictId($b['site_id'] ?? null, 'site_id');
+			// explicit bool parse — form-encoded 'false' is a string
+			$granted = ($b['granted'] ?? null) === '1' || ($b['granted'] ?? null) === 'true' || ($b['granted'] ?? null) === true;
+			if ($granted) {
+				$this->positions->grantConsent($uid, $siteId);
+			} else {
+				$this->positions->revokeConsent($uid, $siteId);
+			}
+			return $this->ok(['consent' => $this->positions->hasConsent($uid, $siteId)]);
+		} catch (\Throwable $e) {
+			return $this->fromThrowable($e);
+		}
+	}
+
+	/** Worker task list — open tasks assigned to me across my sites. */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function workerTasks(): JSONResponse
+	{
+		try {
+			$uid = $this->workerUid();
+			$this->license->requireMobileLicense();
+			return $this->ok(['tasks' => array_map(static fn ($t) => $t->jsonSerialize(), $this->tasks->listMine($uid))]);
+		} catch (\Throwable $e) {
+			return $this->fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function completeWorkerTask(int $id): JSONResponse
+	{
+		try {
+			$uid = $this->workerUid();
+			$this->license->requireMobileLicense();
+			$b = $this->request->getParams();
+			$t = $this->tasks->complete($id, $uid, isset($b['note']) ? (string)$b['note'] : null);
+			return $this->ok($t->jsonSerialize());
+		} catch (\Throwable $e) {
+			return $this->fromThrowable($e);
+		}
+	}
+
+	/** Logbook entries the worker must see/ack at shift start. */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function workerLogbook(int $siteId): JSONResponse
+	{
+		try {
+			$uid = $this->workerUid();
+			$this->license->requireMobileLicense();
+			$rows = $this->logbook->unackedFor($siteId, $uid);
+			return $this->ok(['entries' => array_map(static fn ($l) => $l->jsonSerialize(), $rows)]);
+		} catch (\Throwable $e) {
+			return $this->fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function ackWorkerLogbook(int $id): JSONResponse
+	{
+		try {
+			$uid = $this->workerUid();
+			$this->license->requireMobileLicense();
+			$this->logbook->ack($id, $uid);
+			return $this->ok(['acked' => true]);
+		} catch (\Throwable $e) {
+			return $this->fromThrowable($e);
+		}
+	}
+
+	/**
+	 * Tagless confirm — geo (GPS radius) and beacon (BLE uuid) checkpoints
+	 * carry no physical token, so the client confirms by checkpoint_id and
+	 * the server enforces kind + radius/uuid + qualification rules.
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function confirmTagless(): JSONResponse
+	{
+		try {
+			$uid = $this->workerUid();
+			$this->license->requireMobileLicense();
+			$b = $this->request->getParams();
+			$cpId = $this->strictId($b['checkpoint_id'] ?? null, 'checkpoint_id');
+			$cp = $this->checkpoints->getAny($cpId);
+			if ($cp === null || (int)$cp->getActive() !== 1) {
+				throw new NotFoundException();
+			}
+			$this->acl->assertCanViewSite((int)$cp->getSiteId());
+			$cpKind = $cp->getCpKind() === null ? 'tag' : (string)$cp->getCpKind();
+			if (!in_array($cpKind, ['geo', 'beacon'], true)) {
+				throw new ValidationException(Constants::ERR_VALIDATION, 'This checkpoint needs a physical tag.', ['checkpoint_id' => 'invalid']);
+			}
+			$r = $this->events->ingest([
+				'_checkpoint' => $cp,
+				'client_event_id' => (string)($b['client_event_id'] ?? ''),
+				'client_ts' => $b['client_ts'] ?? null,
+				'method' => $cpKind === 'geo' ? Constants::METHOD_GPS : Constants::METHOD_BLE,
+				'actor_uid' => $uid,
+				'geo' => $b['geo'] ?? null,
+				'beacon_uuid' => $b['beacon_uuid'] ?? null,
+				'values' => $b['values'] ?? null,
+				'note' => $b['note'] ?? null,
+				'auto_incident' => $b['auto_incident'] ?? null,
+				'photo_fileid' => isset($b['photo_fileid']) ? $this->strictId($b['photo_fileid'], 'photo_fileid') : null,
+				'round_id' => isset($b['round_id']) ? $this->strictId($b['round_id'], 'round_id') : null,
+				'ip' => (string)$this->request->getRemoteAddress(),
+			]);
+			return $this->ok([
+				'event' => $r['event']->jsonSerialize(),
+				'replayed' => $r['replayed'],
+				'mismatch' => $r['mismatch'] ?? false,
+				'attached' => $r['attached'],
+				'progress' => $r['progress'],
+			], $r['replayed'] ? Http::STATUS_OK : Http::STATUS_CREATED);
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}

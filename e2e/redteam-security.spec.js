@@ -311,6 +311,12 @@ test.describe('redteam: authorization boundary matrix', () => {
 			expect(door, 'app door must be indistinguishable from absent').toBe(absent.status())
 			await page.goto('/index.php/apps/tourcheck/')
 			await expect(page.locator('body')).not.toContainText(/tourcheck/i)
+			// nav_entry_access_leak: the OCS navigation endpoint (web menu +
+			// mobile clients) must not advertise the app to excluded users.
+			const nav = await req.get('/ocs/v2.php/core/navigation/apps?format=json', {
+				headers: { 'OCS-APIRequest': 'true' },
+			})
+			expect((await nav.json()).ocs.data.map((e) => e.id)).not.toContain('tourcheck')
 		} finally {
 			occ(['config:app:set', 'tourcheck', 'access_mode', '--value=open'])
 		}

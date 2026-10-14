@@ -24,7 +24,7 @@ class EnsureGroups implements IRepairStep
 
 	public function run(IOutput $output): void
 	{
-		foreach ([Constants::GROUP_ADMIN, Constants::GROUP_PLANNER, Constants::GROUP_SUPERVISOR, Constants::GROUP_WORKER] as $gid) {
+		foreach ([Constants::GROUP_ADMIN, Constants::GROUP_PLANNER, Constants::GROUP_SUPERVISOR, Constants::GROUP_WORKER, Constants::GROUP_CLIENT] as $gid) {
 			if (!$this->groupManager->groupExists($gid)) {
 				$this->groupManager->createGroup($gid);
 				$output->info('Created group ' . $gid);

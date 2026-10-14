@@ -7,7 +7,9 @@ namespace OCA\TourCheck\AppInfo;
 use OCP\Lock\ILockingProvider;
 use OCP\Files\IRootFolder;
 use OCP\App\IAppManager;
+use OCA\TourCheck\Service\AccessControlService;
 use OCA\TourCheck\Service\UpgradeBackupService;
+use OCA\TourCheck\Support\NavGate;
 use OCA\TourCheck\Repair\BackupBeforeUpdate;
 use OCA\TourCheck\Repair\EnsureGroups;
 use OCA\TourCheck\Repair\EnsureTemplates;
@@ -106,5 +108,16 @@ class Application extends App implements IBootstrap
 
 	public function boot(IBootContext $context): void
 	{
+		$app = $context->getAppContainer();
+		// Menu entry only for users with app access — in restricted mode the
+		// door is a uniform 404, so the entry must not disclose existence.
+		NavGate::register(
+			$app,
+			'tourcheck.page.index',
+			'app.svg',
+			'TourCheck',
+			10,
+			static fn(string $uid): bool => $app->get(AccessControlService::class)->hasAppAccess($uid),
+		);
 	}
 }

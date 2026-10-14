@@ -84,6 +84,9 @@ Wir verbessern diese App mit Praxis-Rückmeldungen — GitHub Issue (https://git
 		<job>OCA\TourCheck\Cron\ReportScheduleJob</job>
 		<job>OCA\TourCheck\Cron\RetentionPurgeJob</job>
 		<job>OCA\TourCheck\Cron\PositionPurgeJob</job>
+		<job>OCA\TourCheck\Cron\EscalationSweepJob</job>
+		<job>OCA\TourCheck\Cron\ManDownSweepJob</job>
+		<job>OCA\TourCheck\Cron\WebhookDeliveryJob</job>
 	</background-jobs>
 	<repair-steps>
 		<install>
@@ -103,15 +106,9 @@ Wir verbessern diese App mit Praxis-Rückmeldungen — GitHub Issue (https://git
 			<step>OCA\TourCheck\Repair\UninstallDropTables</step>
 		</uninstall>
 	</repair-steps>
-	<navigations>
-		<navigation>
-			<name>TourCheck</name>
-			<route>tourcheck.page.index</route>
-			<icon>app.svg</icon>
-			<order>10</order>
-			<type>link</type>
-		</navigation>
-	</navigations>
+	<!-- No <navigation> here: the menu entry is registered conditionally via
+	     NavGate (hasAppAccess) — a static entry would advertise the app to
+	     excluded users when access_mode=restricted. -->
 	<release>
 		<databases>
 			<database>mysql</database>

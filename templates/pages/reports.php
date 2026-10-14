@@ -24,6 +24,14 @@ $schedules = (array)($_['schedules'] ?? []);
 				<input id="tck-report-period" name="period" type="month" value="<?php p(date('Y-m')); ?>" required>
 				<p class="tck-field-error" id="tck-report-period-error" hidden></p>
 			</div>
+			<div class="tck-field">
+				<label for="tck-report-audience"><?php p($l->t('Audience')); ?></label>
+				<select id="tck-report-audience" name="audience">
+					<option value="internal"><?php p($l->t('Internal')); ?></option>
+					<option value="client"><?php p($l->t('Customer — no worker names')); ?></option>
+				</select>
+				<p class="tck-field-error" id="tck-report-audience-error" hidden></p>
+			</div>
 			<div class="tck-form-actions">
 				<button type="submit" class="tck-btn tck-btn--primary"><?php p($l->t('Generate report')); ?></button>
 				<button type="button" class="tck-btn" data-tck-cancel><?php p($l->t('Cancel')); ?></button>
@@ -68,9 +76,19 @@ $schedules = (array)($_['schedules'] ?? []);
 				<li class="tck-list__row" data-search="<?php p(strtolower((string)$r['name'] . ' ' . (string)$r['periodLabel'])); ?>">
 					<span class="tck-list__main">
 						<span class="tck-list__title"><?php p((string)$r['name']); ?></span>
-						<span class="tck-list__sub"><?php p((string)$r['periodLabel']); ?></span>
+						<span class="tck-list__sub"><?php p((string)$r['periodLabel']); ?><?php if (($r['audience'] ?? 'internal') === 'client'): ?> · <?php p($l->t('Customer copy')); ?><?php endif; ?></span>
 					</span>
-					<a class="tck-btn" href="<?php p($urlGenerator->linkToRoute('tourcheck.api.downloadReport', ['id' => $r['id']])); ?>"><?php p($l->t('Download')); ?></a>
+					<span class="tck-list__aside">
+						<?php if (!empty($_['canManage']) && ($r['audience'] ?? 'internal') === 'client'): ?>
+							<button type="button" class="tck-btn"
+								data-tck-client-visible="<?php p((string)$r['id']); ?>"
+								data-tck-on="<?php p(!empty($r['clientVisible']) ? '1' : '0'); ?>"
+								aria-pressed="<?php p(!empty($r['clientVisible']) ? 'true' : 'false'); ?>">
+								<?php p(!empty($r['clientVisible']) ? $l->t('Shared with customer') : $l->t('Share with customer')); ?>
+							</button>
+						<?php endif; ?>
+						<a class="tck-btn" href="<?php p($urlGenerator->linkToRoute('tourcheck.api.downloadReport', ['id' => $r['id']])); ?>"><?php p($l->t('Download')); ?></a>
+					</span>
 				</li>
 			<?php endforeach; ?>
 		</ul>

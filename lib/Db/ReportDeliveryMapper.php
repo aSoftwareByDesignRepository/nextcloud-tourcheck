@@ -44,6 +44,18 @@ class ReportDeliveryMapper extends QBMapper
 	}
 
 	/** @return list<ReportDelivery> */
+	/** Portal read side — only deliveries explicitly marked client-visible. */
+	public function findClientVisible(int $siteId, int $limit = 24): array
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')->from($this->getTableName())
+			->where($qb->expr()->eq('site_id', $qb->createNamedParameter($siteId)))
+			->andWhere($qb->expr()->eq('client_visible', $qb->createNamedParameter(1)))
+			->orderBy('id', 'DESC')
+			->setMaxResults($limit);
+		return $this->findEntities($qb);
+	}
+
 	public function findForSite(int $siteId, int $limit): array
 	{
 		$qb = $this->db->getQueryBuilder();

@@ -920,6 +920,27 @@
 		});
 	}
 
+	/* --- reports: per-delivery client-portal share toggle --- */
+	document.querySelectorAll('[data-tck-client-visible]').forEach(function (btn) {
+		btn.addEventListener('click', function () {
+			if (btn.disabled) { return; }
+			btn.disabled = true;
+			var next = btn.getAttribute('data-tck-on') !== '1';
+			api('PUT', '/api/reports/' + btn.getAttribute('data-tck-client-visible') + '/client-visible', { client_visible: next })
+				.then(function (json) {
+					btn.disabled = false;
+					if (!json.success) {
+						toast('err', json.message || t('Request failed.'));
+						return;
+					}
+					btn.setAttribute('data-tck-on', next ? '1' : '0');
+					btn.setAttribute('aria-pressed', next ? 'true' : 'false');
+					btn.textContent = next ? t('Shared with customer') : t('Share with customer');
+					toast('ok', next ? t('Report is now visible in the client portal.') : t('Report hidden from the client portal.'));
+				});
+		});
+	});
+
 	/* --- reports: scheduled deliveries (MH-15) --- */
 	var schedForm = document.querySelector('[data-tck-schedule-form]');
 	var newSchedBtn = document.querySelector('[data-tck-new-schedule]');

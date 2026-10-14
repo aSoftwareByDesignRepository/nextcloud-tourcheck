@@ -50,7 +50,7 @@ class CheckpointService
 	/**
 	 * Create + issue a QR token in one transaction. Returns
 	 * [checkpoint, rawToken] — the raw token is shown once for printing.
-	 * @return array{0: Checkpoint, 1: string}
+	 * @return array{0: Checkpoint, 1: ?string} — null token for tagless kinds
 	 */
 	public function create(int $siteId, array $data): array
 	{
@@ -72,6 +72,24 @@ class CheckpointService
 		}
 		$profile = $this->validateProfile($data['profile'] ?? null);
 
+		// Checkpoint kind: tag (QR/NFC/manual — default), geo (tagless GPS
+		// radius), beacon (BLE uuid claim). Geo/beacon mint NO token.
+		$cpKind = in_array($data['cp_kind'] ?? 'tag', ['tag', 'geo', 'beacon'], true) ? (string)$data['cp_kind'] : 'tag';
+		if ($cpKind === 'geo' && ($geoLat === null || $geoLon === null)) {
+			throw new ValidationException(Constants::ERR_VALIDATION, 'A GPS checkpoint needs coordinates.', ['geo' => 'required']);
+		}
+		$beaconUuid = null;
+		if ($cpKind === 'beacon') {
+			$beaconUuid = strtolower(trim((string)($data['beacon_uuid'] ?? '')));
+			if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $beaconUuid)) {
+				throw new ValidationException(Constants::ERR_VALIDATION, 'Beacon UUID required (format: 8-4-4-4-12 hex).', ['beacon_uuid' => 'invalid']);
+			}
+		}
+		$reqQual = isset($data['required_qual']) && trim((string)$data['required_qual']) !== ''
+			? mb_substr(trim((string)$data['required_qual']), 0, 64) : null;
+		$minDwell = isset($data['min_dwell_s']) && is_numeric($data['min_dwell_s'])
+			? max(0, min(3600, (int)$data['min_dwell_s'])) : null;
+
 		$now = $this->timeFactory->getDateTime();
 		$this->db->beginTransaction();
 		try {
@@ -84,13 +102,20 @@ class CheckpointService
 			$cp->setGeoLat($geoLat);
 			$cp->setGeoLon($geoLon);
 			$cp->setGeoRadius($geoLat !== null ? ($geoRadius ?? 100) : null);
+			$cp->setCpKind($cpKind);
+			$cp->setBeaconUuid($beaconUuid);
+			$cp->setMinDwellS($minDwell);
+			$cp->setRequiredQual($reqQual);
 			$cp->setActive(1);
 			$cp->setRevision(1);
 			$cp->setCreatedAt($now);
 			$cp->setUpdatedAt($now);
 			$cp = $this->checkpoints->insert($cp);
-			$kind = in_array($data['kind'] ?? 'qr', ['qr', 'nfc', 'manual'], true) ? (string)$data['kind'] : 'qr';
-			$raw = $this->tokens->issue($cp, $kind);
+			$raw = null;
+			if ($cpKind === 'tag') {
+				$kind = in_array($data['kind'] ?? 'qr', ['qr', 'nfc', 'manual'], true) ? (string)$data['kind'] : 'qr';
+				$raw = $this->tokens->issue($cp, $kind);
+			}
 			$this->chain->append($siteId, [
 				'kind' => Constants::KIND_ADMIN,
 				'actorUid' => $uid,
@@ -147,6 +172,28 @@ class CheckpointService
 				$cp->setGeoLat($lat);
 				$cp->setGeoLon($lon);
 				$cp->setGeoRadius($lat !== null ? max(10, min(1000, (int)($data['geo_radius'] ?? $cp->getGeoRadius() ?? 100))) : null);
+			}
+			if (array_key_exists('cp_kind', $data)) {
+				$k = in_array($data['cp_kind'], ['tag', 'geo', 'beacon'], true) ? (string)$data['cp_kind'] : 'tag';
+				$cp->setCpKind($k);
+				// a geo checkpoint cannot lose its coordinates while geo-kind
+				if ($k === 'geo' && ($cp->getGeoLat() === null || $cp->getGeoLon() === null)) {
+					throw new ValidationException(Constants::ERR_VALIDATION, 'A GPS checkpoint needs coordinates.', ['geo' => 'required']);
+				}
+			}
+			if (array_key_exists('beacon_uuid', $data)) {
+				$v = strtolower(trim((string)$data['beacon_uuid']));
+				if ($v !== '' && !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $v)) {
+					throw new ValidationException(Constants::ERR_VALIDATION, 'Invalid beacon UUID.', ['beacon_uuid' => 'invalid']);
+				}
+				$cp->setBeaconUuid($v === '' ? null : $v);
+			}
+			if (array_key_exists('min_dwell_s', $data)) {
+				$cp->setMinDwellS($data['min_dwell_s'] === null || $data['min_dwell_s'] === '' ? null : max(0, min(3600, (int)$data['min_dwell_s'])));
+			}
+			if (array_key_exists('required_qual', $data)) {
+				$v = trim((string)$data['required_qual']);
+				$cp->setRequiredQual($v === '' ? null : mb_substr($v, 0, 64));
 			}
 			$cp->setRevision((int)$cp->getRevision() + 1);
 			$cp->setUpdatedAt($this->timeFactory->getDateTime());

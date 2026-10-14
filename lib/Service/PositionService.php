@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace OCA\TourCheck\Service;
 
 use OCA\TourCheck\Constants;
+use OCA\TourCheck\Db\PositionConsent;
+use OCA\TourCheck\Db\PositionConsentMapper;
 use OCA\TourCheck\Db\PositionEvent;
 use OCA\TourCheck\Db\PositionEventMapper;
 use OCA\TourCheck\Exception\ValidationException;
@@ -20,8 +22,13 @@ use OCP\IDBConnection;
  */
 class PositionService
 {
+	/** Consent is per (uid, site) and valid for 12 h — a daily re-prompt. */
+	public const CONSENT_VALID_S = 43200;
+
 	public function __construct(
 		private readonly PositionEventMapper $positions,
+		private readonly PositionConsentMapper $consents,
+		private readonly GeofenceService $geofences,
 		private readonly RoundService $rounds,
 		private readonly SiteService $sites,
 		private readonly AccessControlService $acl,
@@ -64,6 +71,10 @@ class PositionService
 		if ($role !== Constants::ROLE_WORKER && $round->getStartedBy() !== $uid) {
 			throw new NotFoundException();
 		}
+		// Worker consent — the site opted in is not the worker's consent.
+		// NN: no tracking without an in-window consent row, and a revoke
+		// stops writes immediately (not just "next round").
+		$this->assertConsent($uid, (int)$round->getSiteId());
 		// ≤1 update per 30 s per (round, actor) — breadcrumbs, not telemetry.
 		$this->rateLimit->check('pos', $roundId . '|' . $uid, 1, 30);
 		$now = $this->timeFactory->getDateTime();
@@ -90,6 +101,61 @@ class PositionService
 		}
 		$p->setExpiresAt((new \DateTime())->setTimestamp($now->getTimestamp() + $this->settings->getPositionRetentionHours() * 3600));
 		$this->positions->insert($p);
+		// Geofence evaluation piggy-backs on accepted positions only — a
+		// rejected position must never move boundary state.
+		try {
+			$this->geofences->evaluate($uid, (int)$round->getSiteId(), $roundId, $lat, $lon, $accuracy ?? 0);
+		} catch (\Throwable) {
+			// A geofence bug must not drop the position breadcrumb.
+		}
+	}
+
+	/** Worker grants position consent for a site (companion prompt). */
+	public function grantConsent(string $uid, int $siteId): void
+	{
+		$this->acl->assertCanViewSite($siteId);
+		$now = $this->timeFactory->getDateTime();
+		$c = $this->consents->findFor($uid, $siteId);
+		if ($c === null) {
+			$c = new PositionConsent();
+			$c->setUid($uid);
+			$c->setSiteId($siteId);
+			$c->setGrantedAt($now);
+			$this->consents->insert($c);
+			return;
+		}
+		// Re-grant renews the window; a revoke is undone by explicit action.
+		$c->setGrantedAt($now);
+		$c->setRevokedAt(null);
+		$this->consents->update($c);
+	}
+
+	/** Worker revokes — immediate: no new positions accepted, existing rows still expire on schedule. */
+	public function revokeConsent(string $uid, int $siteId): void
+	{
+		$this->acl->assertCanViewSite($siteId);
+		$c = $this->consents->findFor($uid, $siteId);
+		if ($c !== null && $c->getRevokedAt() === null) {
+			$c->setRevokedAt($this->timeFactory->getDateTime());
+			$this->consents->update($c);
+		}
+	}
+
+	/** True while the worker has a consent grant younger than the window. */
+	public function hasConsent(string $uid, int $siteId): bool
+	{
+		$c = $this->consents->findFor($uid, $siteId);
+		if ($c === null || $c->getRevokedAt() !== null) {
+			return false;
+		}
+		return $c->getGrantedAt()->getTimestamp() > $this->timeFactory->getTime() - self::CONSENT_VALID_S;
+	}
+
+	private function assertConsent(string $uid, int $siteId): void
+	{
+		if (!$this->hasConsent($uid, $siteId)) {
+			throw new ValidationException(Constants::ERR_VALIDATION, 'Position consent required — grant it in the app first.', ['consent' => 'required']);
+		}
 	}
 
 	/**

@@ -160,7 +160,7 @@
    callouts come from the shared view-components layer — do not restyle
    them here (load order lets these rules win, keep it minimal). */
 .tck-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--tck-space-2); }
-.tck-list__row { display: flex; align-items: center; gap: var(--tck-space-3); min-height: var(--tck-touch); padding: var(--tck-space-2) var(--tck-space-3); border: 1px solid var(--color-border); border-radius: var(--tck-radius-md); background: var(--color-main-background); }
+.tck-list__row { display: flex; align-items: center; gap: var(--tck-space-3); flex-wrap: wrap; min-height: var(--tck-touch); padding: var(--tck-space-2) var(--tck-space-3); border: 1px solid var(--color-border); border-radius: var(--tck-radius-md); background: var(--color-main-background); }
 .tck-list__main { flex: 1; display: flex; flex-direction: column; min-width: 0; color: var(--color-main-text); text-decoration: none; }
 .tck-list__title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
 .tck-list__aside { display: flex; align-items: center; gap: var(--tck-space-2); flex-wrap: wrap; }
@@ -898,3 +898,24 @@
 	}
 }
 /* === support-us:tck end === */
+
+/* ── KPI cards (ops + client portal) ──────────────────────────────────── */
+.tck-kpi-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr));
+	gap: var(--tck-space-3);
+}
+.tck-kpi {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tck-space-1);
+	padding: var(--tck-space-4);
+	border: 1px solid var(--color-border);
+	border-radius: var(--tck-radius-md);
+	background: var(--tck-bg-card, var(--color-main-background));
+}
+.tck-kpi__value { font-size: var(--tck-fs-2xl); font-weight: 600; font-variant-numeric: var(--tck-tab-num); line-height: var(--tck-line-tight); }
+.tck-kpi__label { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
+.tck-kpi__sub { font-size: var(--tck-fs-xs); color: var(--color-text-maxcontrast); }
+.tck-kpi-range { display: flex; gap: var(--tck-space-2); align-items: center; flex-wrap: wrap; }
+.tck-kpi-range input[type="date"] { min-height: var(--tck-touch); padding: 0 var(--tck-space-2); border: 1px solid var(--tck-form-border, var(--color-border-maxcontrast)); border-radius: var(--tck-radius-sm); }

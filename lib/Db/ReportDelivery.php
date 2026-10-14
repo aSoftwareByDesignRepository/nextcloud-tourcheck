@@ -15,6 +15,8 @@ class ReportDelivery extends Entity
 	protected $fileId;
 	protected $status;
 	protected $error;
+	protected $clientVisible;
+	protected $audience;
 	protected $createdAt;
 
 	public function __construct()
@@ -23,6 +25,7 @@ class ReportDelivery extends Entity
 		$this->addType('siteId', 'integer');
 		$this->addType('schedId', 'integer');
 		$this->addType('fileId', 'integer');
+		$this->addType('clientVisible', 'boolean');
 		$this->addType('createdAt', 'datetime');
 	}
 
@@ -37,6 +40,8 @@ class ReportDelivery extends Entity
 			'fileId' => (int)$this->fileId,
 			'status' => $this->status,
 			'error' => $this->error,
+			'clientVisible' => (bool)$this->clientVisible,
+			'audience' => (string)$this->audience,
 			'createdAt' => $this->createdAt === null ? null : $this->createdAt->format(\DateTimeInterface::ATOM),
 		];
 	}

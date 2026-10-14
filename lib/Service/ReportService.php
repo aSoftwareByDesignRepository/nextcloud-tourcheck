@@ -414,12 +414,34 @@ class ReportService
 		$dlv->setPeriod($period);
 		$dlv->setKind($kind);
 		$dlv->setStatus('generated');
+		// Client-audience PDFs are redacted by construction — they are the
+		// curated exports the portal may list once a planner marks them.
+		$dlv->setAudience(in_array($audience, ['internal', 'client'], true) ? $audience : 'internal');
+		$dlv->setClientVisible($audience === 'client');
 		$dlv->setCreatedAt($this->timeFactory->getDateTime());
 		$dlv = $this->deliveries->insert($dlv);
 		$file = $this->reportFolder($siteId)->newFile($this->deliveryFileName($dlv), $pdf);
 		$dlv->setFileId((int)$dlv->getId()); // key into appdata filename
 		$dlv = $this->deliveries->update($dlv);
 		return ['delivery' => $dlv, 'path' => 'appdata/reports/site' . $siteId . '/' . $file->getName()];
+	}
+
+	/** Manage-gated per-delivery portal visibility toggle. */
+	public function setClientVisible(int $id, bool $visible): ReportDelivery
+	{
+		$dlv = $this->deliveries->find($id);
+		if ($dlv === null) {
+			throw new NotFoundException();
+		}
+		$this->acl->assertCanManageSite((int)$dlv->getSiteId());
+		// An internal-audience PDF contains worker identities — refuse to
+		// publish it to the portal even if a manager toggles the flag.
+		// Client-audience PDFs are redacted by construction.
+		if ($visible && (string)$dlv->getAudience() !== 'client') {
+			throw new ValidationException(Constants::ERR_VALIDATION, 'Only customer-audience reports can be shared to the client portal.', ['client_visible' => 'internal_audience']);
+		}
+		$dlv->setClientVisible($visible);
+		return $this->deliveries->update($dlv);
 	}
 
 	/** Decoded share-policy audience for a schedule — defaults to internal. */

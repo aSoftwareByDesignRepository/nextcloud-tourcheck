@@ -719,8 +719,25 @@ class ApiController extends Controller
 		try {
 			$b = $this->body();
 			$uid = $this->acl->assertAppAccess();
-			$r = $this->reports->generate($siteId, (string)($b['period'] ?? ''), 'manual', null, $uid);
+			$audience = (string)($b['audience'] ?? 'internal');
+			if (!in_array($audience, ['internal', 'client'], true)) {
+				throw new ValidationException(Constants::ERR_VALIDATION, 'Unknown audience.', ['audience' => 'invalid']);
+			}
+			$r = $this->reports->generate($siteId, (string)($b['period'] ?? ''), 'manual', null, $uid, $audience);
 			return $this->ok(['delivery' => $r['delivery']->jsonSerialize(), 'path' => $r['path']], Http::STATUS_CREATED);
+		} catch (\Throwable $e) {
+			return $this->fromThrowable($e);
+		}
+	}
+
+	/** Per-delivery portal sharing toggle — planner scope, client-audience only. */
+	#[NoAdminRequired]
+	public function setReportClientVisible(int $id): JSONResponse
+	{
+		try {
+			$b = $this->body();
+			$dlv = $this->reports->setClientVisible($id, $this->bodyBool($b, 'client_visible'));
+			return $this->ok($dlv->jsonSerialize());
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}

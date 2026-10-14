@@ -78,6 +78,7 @@ final class DriveSegmentsIntegrationTest extends TestCase
 			$vals[$col] = match ($col) {
 				'name' => 'SegSite-' . mt_rand(),
 				'tz' => 'UTC', 'live_position' => '0',
+				'mandown_pre_s' => '60',
 				'active' => '1', 'revision' => '1',
 				'created_at', 'updated_at' => '2026-10-13 00:00:00',
 				default => null,

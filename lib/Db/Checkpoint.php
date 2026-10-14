@@ -16,6 +16,10 @@ class Checkpoint extends Entity
 	protected $geoLat;
 	protected $geoLon;
 	protected $geoRadius;
+	protected $cpKind;
+	protected $beaconUuid;
+	protected $minDwellS;
+	protected $requiredQual;
 	protected $active;
 	protected $revision;
 	protected $createdAt;
@@ -29,6 +33,7 @@ class Checkpoint extends Entity
 		$this->addType('geoLat', 'float');
 		$this->addType('geoLon', 'float');
 		$this->addType('geoRadius', 'integer');
+		$this->addType('minDwellS', 'integer');
 		$this->addType('active', 'integer');
 		$this->addType('revision', 'integer');
 		$this->addType('createdAt', 'datetime');
@@ -47,6 +52,10 @@ class Checkpoint extends Entity
 			'geoLat' => (float)$this->geoLat,
 			'geoLon' => (float)$this->geoLon,
 			'geoRadius' => (int)$this->geoRadius,
+			'cpKind' => $this->cpKind === null ? 'tag' : $this->cpKind,
+			'beaconUuid' => $this->beaconUuid,
+			'minDwellS' => $this->minDwellS === null ? null : (int)$this->minDwellS,
+			'requiredQual' => $this->requiredQual,
 			'active' => (int)$this->active,
 			'revision' => (int)$this->revision,
 			'createdAt' => $this->createdAt === null ? null : $this->createdAt->format(\DateTimeInterface::ATOM),

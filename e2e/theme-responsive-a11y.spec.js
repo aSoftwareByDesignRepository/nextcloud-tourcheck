@@ -31,6 +31,7 @@ const routes = [
 	{ id: 'incidents', path: '/apps/tourcheck/incidents', ready: '#tck-main-content' },
 	{ id: 'reports', path: '/apps/tourcheck/reports', ready: '#tck-main-content' },
 	{ id: 'settings', path: '/apps/tourcheck/settings', ready: '#tck-main-content' },
+	{ id: 'ops', path: '/apps/tourcheck/ops', ready: '#tck-main-content' },
 ]
 
 const overflowViewports = [
@@ -58,7 +59,7 @@ async function expectNoHorizontalOverflow(page, label) {
 		const doc = document.documentElement
 		const app = document.querySelector('#app-content')
 		const shell = document.querySelector('#app-content-wrapper')
-		const check = (el) => el && el.scrollWidth > el.clientWidth + 1
+		const check = (/** @type {Element | null} */ el) => el && el.scrollWidth > el.clientWidth + 1
 		return {
 			doc: check(doc),
 			app: check(app),
@@ -118,7 +119,7 @@ async function assertDarkNavMatchesThemeTokens(page, theme) {
 		if (!navEl) return null
 		const bodyCs = getComputedStyle(document.body)
 		const navCs = getComputedStyle(navEl)
-		const parseRgb = (v) => {
+		const parseRgb = (/** @type {unknown} */ v) => {
 			const s = String(v).trim()
 			const m = s.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i)
 			if (m) return [Number(m[1]), Number(m[2]), Number(m[3])]
@@ -147,9 +148,9 @@ async function assertDarkNavMatchesThemeTokens(page, theme) {
 			navRgb,
 		}
 	})
-	expect(nav, 'dark theme must render #app-navigation').toBeTruthy()
+	if (!nav) { throw new Error('dark theme must render #app-navigation') }
 	expect(nav.surfaceToken, 'body --color-main-background must resolve').not.toEqual('')
-	expect(nav.navRgb, `nav background must parse (got ${nav.navBg})`).toBeTruthy()
+	if (!nav.navRgb) { throw new Error(`nav background must parse (got ${nav.navBg})`) }
 	const lum = (0.2126 * nav.navRgb[0] + 0.7152 * nav.navRgb[1] + 0.0722 * nav.navRgb[2]) / 255
 	expect(lum, `dark nav must stay dark (lum=${lum}, bg=${nav.navBg})`).toBeLessThan(0.45)
 	if (nav.surfaceRgb) {

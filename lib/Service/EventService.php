@@ -45,6 +45,7 @@ class EventService
 		private readonly ?NotificationService $notifications = null,
 		private readonly ?SiteService $sites = null,
 		private readonly ?TokenAnomalyService $anomaly = null,
+		private readonly ?\OCA\TourCheck\Db\WorkerQualMapper $workerQuals = null,
 	) {
 	}
 
@@ -135,8 +136,59 @@ class EventService
 				$this->journalSignal($siteId, 'method_lie:' . mb_substr(preg_replace('/[^a-z0-9_-]/i', '', $claim), 0, 32) . '_as_' . $method, $in);
 			}
 		}
-		if (!in_array($method, [Constants::METHOD_SCAN_QR, Constants::METHOD_NFC, Constants::METHOD_STATION, Constants::METHOD_ATTEST, Constants::METHOD_MANUAL], true)) {
+		if (!in_array($method, [Constants::METHOD_SCAN_QR, Constants::METHOD_NFC, Constants::METHOD_STATION, Constants::METHOD_ATTEST, Constants::METHOD_MANUAL, Constants::METHOD_GPS, Constants::METHOD_BLE], true)) {
 			throw new ValidationException(Constants::ERR_VALIDATION, 'Unknown capture method.', ['method' => 'invalid']);
+		}
+		// Tagless checkpoint kinds are enforced server-side — the companion
+		// cannot claim 'gps'/'ble' on a tag checkpoint or vice versa.
+		$cpKind = $cp->getCpKind() === null ? 'tag' : (string)$cp->getCpKind();
+		if ($cpKind === 'geo' && $method !== Constants::METHOD_GPS && $method !== Constants::METHOD_MANUAL && $method !== Constants::METHOD_ATTEST) {
+			throw new ValidationException(Constants::ERR_VALIDATION, 'This checkpoint confirms by GPS radius.', ['method' => 'mismatch']);
+		}
+		if ($cpKind === 'beacon' && $method !== Constants::METHOD_BLE && $method !== Constants::METHOD_MANUAL && $method !== Constants::METHOD_ATTEST) {
+			throw new ValidationException(Constants::ERR_VALIDATION, 'This checkpoint confirms by beacon.', ['method' => 'mismatch']);
+		}
+		if ($method === Constants::METHOD_BLE) {
+			// The claimed beacon UUID must match the configured one — BLE
+			// proximity evidence is the uuid+claim pair (the device attests
+			// it was physically near that beacon).
+			$claimed = strtolower(trim((string)($in['beacon_uuid'] ?? '')));
+			$expected = strtolower(trim((string)($cp->getBeaconUuid() ?? '')));
+			if ($expected === '' || $claimed === '' || !hash_equals($expected, $claimed)) {
+				throw new ValidationException(Constants::ERR_VALIDATION, 'Beacon does not match this checkpoint.', ['beacon' => 'mismatch']);
+			}
+		}
+		if ($method === Constants::METHOD_GPS) {
+			// GPS-radius confirm: the position claim is REQUIRED and must land
+			// inside the configured radius (accuracy widens the bound, capped
+			// at 200 m — a worse fix can never confirm a checkpoint).
+			$geo = $in['geo'] ?? null;
+			if (!is_array($geo)) {
+				throw new ValidationException(Constants::ERR_VALIDATION, 'A GPS position is required for this checkpoint.', ['geo' => 'required']);
+			}
+			$gLat = filter_var($geo['lat'] ?? null, FILTER_VALIDATE_FLOAT);
+			$gLon = filter_var($geo['lon'] ?? null, FILTER_VALIDATE_FLOAT);
+			$gAcc = isset($geo['accuracy_m']) && is_numeric($geo['accuracy_m']) ? (int)$geo['accuracy_m'] : 99999;
+			if ($gLat === false || $gLon === false || $gAcc > 200) {
+				throw new ValidationException(Constants::ERR_VALIDATION, 'GPS fix too imprecise — move and retry.', ['geo' => 'accuracy']);
+			}
+			$radius = (int)($cp->getGeoRadius() ?? 100);
+			$dist = \OCA\TourCheck\Support\GeoMath::distance((float)$gLat, (float)$gLon, (float)$cp->getGeoLat(), (float)$cp->getGeoLon());
+			if ($dist > $radius + $gAcc) {
+				throw new ValidationException(Constants::ERR_VALIDATION, 'Too far from the checkpoint.', ['geo' => 'out_of_range']);
+			}
+		}
+		// Qualification gate — a checkpoint may require a valid qual
+		// (§F-optional qualification gating). Applies to session actors only;
+		// station members are vouched by the station binding.
+		$reqQual = trim((string)($cp->getRequiredQual() ?? ''));
+		if ($reqQual !== '' && ($in['actor_uid'] ?? null) !== null && $this->workerQuals !== null) {
+			if (!$this->workerQuals->hasQual((string)$in['actor_uid'], $reqQual, $this->timeFactory->getDateTime())) {
+				$this->journalSignal($siteId, 'qual_missing:' . mb_substr(preg_replace('/[^a-z0-9_-]/i', '', $reqQual), 0, 48), [
+					'actor_uid' => $in['actor_uid'], 'checkpoint_id' => (int)$cp->getId(),
+				]);
+				throw new ValidationException(Constants::ERR_VALIDATION, 'Required qualification missing or expired.', ['qualification' => 'missing']);
+			}
 		}
 		// TH-01: method lies — client claims NFC but token is QR etc.
 		if ($tokenKind === 'qr' && $method === Constants::METHOD_NFC) {
