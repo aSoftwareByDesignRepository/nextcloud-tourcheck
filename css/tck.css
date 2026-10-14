@@ -1,0 +1,869 @@
+/* TourCheck app chrome + components. All values via --tck-* tokens / NC theme vars. */
+
+.tck-app {
+	--tck-touch: 48px;
+	color: var(--color-main-text);
+	background: transparent;
+	min-height: 100%;
+}
+
+/* --- a11y primitives --- */
+.tck-sr-only {
+	position: absolute; width: 1px; height: 1px;
+	padding: 0; margin: -1px; overflow: hidden;
+	clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+.tck-skip-link {
+	position: absolute; top: -100px; left: var(--tck-space-3); z-index: 3000;
+	background: var(--color-primary-element); color: var(--color-primary-element-text);
+	padding: var(--tck-space-2) var(--tck-space-4);
+	border-radius: var(--tck-radius-sm);
+}
+.tck-skip-link:focus { top: var(--tck-space-2); }
+.tck-hidden { display: none !important; }
+
+/* 2–3px primary ring, 2px offset, on every app control + nav (WCAG 2.4.7/1.4.11) */
+.tck-app :is(a, button, input, select, textarea, [tabindex]):focus-visible,
+#app-navigation.tck-nav :is(a, button, [tabindex]):focus-visible {
+	outline: 2px solid var(--color-primary-element);
+	outline-offset: 2px;
+}
+.tck-app :focus:not(:focus-visible), #app-navigation.tck-nav :focus:not(:focus-visible) { outline: none; }
+.tck-app .tck-main:focus-visible { outline: none; } /* programmatic skip target */
+
+/* --- shell --- */
+.tck-shell { display: flex; flex-direction: column; min-height: 100%; }
+/* Constrained shell — the 72rem cap lives on the wrapper (family contract),
+   never on .tck-page-stack: header/main/footer all center together. */
+#app-content.tck-app #app-content-wrapper.tck-shell--constrained,
+.tck-shell--constrained { max-width: var(--tck-shell-max); margin-inline: auto; width: 100%; }
+.tck-main { flex: 1; padding: var(--tck-space-5) var(--tck-space-5) var(--tck-space-7); outline: none; }
+.tck-page-stack { display: flex; flex-direction: column; gap: var(--tck-space-6); width: 100%; }
+
+/* --- page header --- */
+.tck-page-header { padding: var(--tck-space-4) var(--tck-space-5) 0; }
+.tck-breadcrumb ol { display: flex; gap: var(--tck-space-2); list-style: none; margin: 0; padding: 0; font-size: var(--tck-fs-sm); }
+.tck-breadcrumb a { color: var(--color-text-maxcontrast); }
+.tck-breadcrumb__current { color: var(--color-main-text); font-weight: 600; }
+.tck-page-header__main { display: flex; align-items: center; gap: var(--tck-space-4); margin-top: var(--tck-space-3); flex-wrap: wrap; }
+/* Icon well (§2.2): tint-info box, not a bare svg. */
+.tck-page-header__icon {
+	display: grid; place-items: center; flex-shrink: 0;
+	width: var(--tck-space-7); height: var(--tck-space-7);
+	border-radius: var(--tck-radius-md); background: var(--tck-tint-info);
+	color: var(--color-primary-element);
+}
+.tck-page-header__icon svg { width: var(--tck-icon-xl); height: var(--tck-icon-xl); stroke: currentColor; }
+.tck-page-header__text h1 { margin: 0; font-size: var(--tck-fs-2xl); line-height: var(--tck-line-tight); }
+.tck-page-header__lead { margin: var(--tck-space-1) 0 0; color: var(--color-text-maxcontrast); font-size: var(--tck-fs-md); }
+.tck-page-header__actions { margin-inline-start: auto; display: flex; gap: var(--tck-space-2); }
+
+/* Scoped under #app-content.tck-app: bare .tck-* loses to NC core
+ * `#app-content button` min-height/padding rules (id+element beats class)
+ * — the 34px --default-clickable-area override defect (see nav-footer fix). */
+#app-content.tck-app .tck-nav-toggle {
+	display: none; align-items: center; gap: var(--tck-space-2);
+	min-height: var(--tck-touch); padding: 0 var(--tck-space-4);
+	border: 1px solid var(--tck-form-border); border-radius: var(--tck-radius-sm);
+	background: var(--color-main-background); color: var(--color-main-text);
+}
+
+/* --- scope strip --- */
+.tck-scope-strip { display: flex; align-items: center; gap: var(--tck-space-3); margin-top: var(--tck-space-4); padding: var(--tck-space-2) var(--tck-space-3); border: 1px solid var(--color-border); border-radius: var(--tck-radius-md); background: var(--color-background-hover); }
+.tck-scope-strip__label { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
+
+/* --- nav --- */
+.tck-brand {
+	display: flex; align-items: center; gap: var(--tck-space-3);
+	padding: var(--tck-space-3) var(--tck-space-4);
+	font-size: var(--tck-fs-xs); color: var(--color-text-maxcontrast, var(--tck-muted)); line-height: var(--tck-line-base);
+}
+.tck-brand__title { margin: 0; font-size: var(--tck-fs-md); }
+.tck-brand__subtitle { margin: 0; color: var(--color-text-maxcontrast, var(--tck-muted)); font-size: var(--tck-fs-xs); }
+.tck-brand__icon-svg { width: 28px; height: 28px; color: var(--color-primary-element); }
+.tck-nav__list { list-style: none; margin: 0; padding: 0 var(--tck-space-2) var(--tck-space-3); }
+/* Groups are real labelled regions (dutycheck pattern): the title is
+   accessible text, and a divider strip separates role clusters (§2.5). */
+.tck-nav__group:first-of-type { padding-top: var(--tck-space-3); }
+.tck-nav__group-title { margin: 0; padding: var(--tck-space-3) var(--tck-space-3) var(--tck-space-1); font-size: var(--tck-fs-xs); text-transform: uppercase; letter-spacing: .06em; color: var(--color-text-maxcontrast); }
+.tck-nav__divider { border: 0; border-top: 2px solid var(--color-border); margin: var(--tck-space-2) var(--tck-space-4); }
+.tck-nav__link { display: flex; align-items: center; gap: var(--tck-space-3); min-height: var(--tck-touch); padding: 0 var(--tck-space-3); border-radius: var(--tck-radius-sm); color: var(--color-main-text); }
+.tck-nav__link:hover { background: var(--color-background-hover); }
+.tck-nav__item--active > .tck-nav__link { background: var(--tck-tint-info); font-weight: 600; }
+.tck-nav__icon svg { width: var(--tck-icon-md); height: var(--tck-icon-md); stroke: currentColor; }
+.tck-nav__sub { list-style: none; margin: 0; padding: 0 0 0 var(--tck-space-7); }
+.tck-nav__sublink { display: block; min-height: var(--tck-touch); line-height: var(--tck-touch); color: var(--color-main-text); border-radius: var(--tck-radius-sm); padding: 0 var(--tck-space-3); }
+.tck-nav__subitem--active .tck-nav__sublink { font-weight: 600; background: var(--color-primary-light); }
+.tck-nav__footer { padding: var(--tck-space-4); border-top: 1px solid var(--color-border); font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
+
+/* --- buttons / inputs --- */
+/* Same #app-content.tck-app scoping: bare .tck-btn loses min-height/hover to
+ * core `#app-content button(:hover)` → buttons collapsed to 34px (Atlas probe). */
+#app-content.tck-app .tck-btn {
+	display: inline-flex; align-items: center; justify-content: center; gap: var(--tck-space-2);
+	min-height: var(--tck-touch); padding: 0 var(--tck-space-5);
+	border: 1px solid var(--tck-form-border); border-radius: var(--tck-radius-md);
+	background: var(--color-main-background); color: var(--color-main-text);
+	font-size: var(--tck-fs-md); cursor: pointer; text-decoration: none;
+}
+#app-content.tck-app .tck-btn:hover { background: var(--color-background-hover); }
+#app-content.tck-app .tck-btn--primary { background: var(--color-primary-element); border-color: var(--color-primary-element); color: var(--color-primary-element-text); }
+#app-content.tck-app .tck-btn--primary:hover { background: var(--color-primary-element-hover); }
+/* Destructive CTAs: solid --color-element-error fill like the sibling apps —
+   ghost styling under-signalled Remove/Archive/Revoke severity. */
+#app-content.tck-app .tck-btn--danger { background: var(--tck-danger-fill); border-color: var(--tck-danger-fill); color: var(--tck-danger-on-fill); }
+#app-content.tck-app .tck-btn--danger:hover { background: var(--tck-danger-fill-hover); border-color: var(--tck-danger-fill-hover); }
+#app-content.tck-app .tck-btn--xl { min-height: 64px; font-size: var(--tck-fs-lg); padding: 0 var(--tck-space-7); border-radius: var(--tck-radius-lg); }
+#app-content.tck-app .tck-btn:disabled { opacity: .5; cursor: not-allowed; }
+.tck-btn-row { display: flex; gap: var(--tck-space-2); flex-wrap: wrap; }
+
+.tck-field { display: flex; flex-direction: column; gap: var(--tck-space-1); margin-bottom: var(--tck-space-4); max-width: 30rem; }
+.tck-field label { font-weight: 600; font-size: var(--tck-fs-md); }
+.tck-form { margin-top: var(--tck-space-4); }
+.tck-field input[type="text"], .tck-field input[type="url"], .tck-field input[type="number"], .tck-field input[type="password"], .tck-field input[type="date"], .tck-field input[type="email"], .tck-field input[type="search"], .tck-field input[type="tel"], .tck-select {
+	min-height: var(--tck-touch); padding: 0 var(--tck-space-3);
+	border: 1px solid var(--tck-form-border); border-radius: var(--tck-radius-sm);
+	background: var(--color-main-background); color: var(--color-main-text);
+	font-size: var(--tck-fs-md); width: 100%;
+}
+.tck-field input[aria-invalid="true"], .tck-field select[aria-invalid="true"] { border-color: var(--tck-danger-ink); }
+.tck-field-error { color: var(--tck-danger-ink); font-size: var(--tck-fs-sm); margin: var(--tck-space-1) 0 0; }
+.tck-field-hint { color: var(--color-text-maxcontrast); font-size: var(--tck-fs-sm); margin: var(--tck-space-1) 0 0; }
+.tck-field--check { flex-direction: row; align-items: center; gap: var(--tck-space-3); }
+.tck-field--check input { width: 24px; height: 24px; }
+.tck-fieldset { border: 1px solid var(--color-border); border-radius: var(--tck-radius-md); padding: var(--tck-space-4); margin-bottom: var(--tck-space-5); }
+.tck-fieldset legend { font-weight: 600; padding: 0 var(--tck-space-2); }
+.tck-form-actions { display: flex; gap: var(--tck-space-2); flex-wrap: wrap; }
+.tck-field--inline { display: inline-flex; margin: 0 var(--tck-space-4) 0 0; }
+.tck-field textarea { min-height: 5rem; padding: var(--tck-space-2) var(--tck-space-3); border: 1px solid var(--tck-form-border); border-radius: var(--tck-radius-sm); background: var(--color-main-background); color: var(--color-main-text); font: inherit; width: 100%; box-sizing: border-box; }
+
+/* --- pickers (uid/gid autocomplete, combobox pattern) --- */
+.tck-picker-wrap { position: relative; }
+.tck-picker {
+	position: absolute; inset-inline: 0; top: calc(100% + var(--tck-space-1));
+	z-index: 200; margin: 0; padding: var(--tck-space-1); list-style: none;
+	background: var(--color-main-background); border: 1px solid var(--tck-border-strong);
+	border-radius: var(--tck-radius-md); box-shadow: var(--tck-shadow-md);
+	max-height: 16rem; overflow-y: auto;
+}
+.tck-picker__item {
+	display: flex; align-items: center; gap: var(--tck-space-3);
+	min-height: var(--tck-touch); padding: var(--tck-space-2) var(--tck-space-3);
+	border-radius: var(--tck-radius-sm); cursor: pointer;
+}
+.tck-picker__item:hover, .tck-picker__item[aria-selected="true"] { background: var(--color-background-hover); }
+.tck-picker__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.tck-picker__id { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
+
+/* --- tiles / badges / lists --- */
+.tck-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--tck-space-3); }
+.tck-tile { display: flex; flex-direction: column; align-items: center; padding: var(--tck-space-4); border: 1px solid var(--color-border); border-radius: var(--tck-radius-md); background: var(--color-main-background); }
+.tck-tile__num { font-size: var(--tck-fs-2xl); font-weight: 700; }
+.tck-tile__label { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
+.tck-tile--missed .tck-tile__num { color: var(--tck-danger-ink); }
+.tck-tile--done .tck-tile__num { color: var(--color-success-text, var(--color-success)); }
+.tck-tile--due .tck-tile__num, .tck-tile--active .tck-tile__num { color: var(--color-primary-element); }
+
+.tck-badge { display: inline-flex; align-items: center; min-height: 28px; padding: 0 var(--tck-space-3); border-radius: var(--tck-radius-pill); border: 1px solid color-mix(in srgb, currentColor 35%, transparent); font-size: var(--tck-fs-sm); background: var(--color-background-dark); color: var(--color-main-text); white-space: nowrap; }
+.tck-badge--done, .tck-badge--attested, .tck-badge--ok, .tck-badge--active { background: var(--tck-tint-success); color: var(--color-success-text, var(--color-success)); }
+.tck-badge--missed, .tck-badge--failed, .tck-badge--warn, .tck-badge--sev-critical, .tck-badge--sev-high { background: var(--tck-tint-danger); color: var(--tck-danger-ink); }
+.tck-badge--partial, .tck-badge--sev-medium, .tck-badge--sev-low, .tck-badge--due { background: var(--tck-tint-warning); color: var(--color-warning-text, var(--color-warning)); }
+.tck-badge--scheduled, .tck-badge--pending, .tck-badge--archived { background: var(--color-background-dark); }
+
+.tck-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--tck-space-2); }
+.tck-list__row { display: flex; align-items: center; gap: var(--tck-space-3); min-height: var(--tck-touch); padding: var(--tck-space-2) var(--tck-space-3); border: 1px solid var(--color-border); border-radius: var(--tck-radius-md); background: var(--color-main-background); }
+.tck-list__main { flex: 1; display: flex; flex-direction: column; min-width: 0; color: var(--color-main-text); text-decoration: none; }
+.tck-list__title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.tck-list__aside { display: flex; align-items: center; gap: var(--tck-space-2); flex-wrap: wrap; }
+.tck-list__sub { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
+
+/* Incident detail: panel hangs under its row, visually grouped by the
+   hairline. Corrective rows reuse .tck-list (narrower card, no row border
+   doubling). */
+.tck-incident { display: flex; flex-direction: column; }
+.tck-incident .tck-list__row:has(+ .tck-incident__detail:not([hidden])) { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.tck-incident__detail { padding: var(--tck-space-3) var(--tck-space-3) var(--tck-space-4); border: 1px solid var(--color-border); border-top: none; border-radius: 0 0 var(--tck-radius-md) var(--tck-radius-md); background: var(--color-main-background); }
+.tck-incident__note { margin: 0 0 var(--tck-space-3); max-width: 46rem; }
+.tck-incident__sub-title { font-size: var(--tck-fs-md); margin: 0 0 var(--tck-space-2); }
+.tck-incident__detail .tck-list__row { min-height: 0; }
+.tck-incident__detail .tck-form { margin-top: var(--tck-space-3); }
+
+.tck-section-title { font-size: var(--tck-fs-xl); margin: 0 0 var(--tck-space-3); }
+.tck-section-head { display: flex; align-items: center; justify-content: space-between; gap: var(--tck-space-3); flex-wrap: wrap; margin-bottom: var(--tck-space-3); }
+.tck-empty { color: var(--color-text-maxcontrast); padding: var(--tck-space-5); text-align: center; border: 1px dashed var(--color-border); border-radius: var(--tck-radius-md); }
+.tck-hint { color: var(--color-text-maxcontrast); margin: 0 0 var(--tck-space-3); max-width: 46rem; }
+.tck-notice { border: 1px solid var(--tck-border-strong); border-radius: var(--tck-radius-md); padding: var(--tck-space-3); margin-bottom: var(--tck-space-3); background: var(--color-background-dark); }
+.tck-notice--warn { border-color: var(--color-warning); background: var(--tck-tint-warning); color: var(--tck-notif-fg-warning); }
+.tck-copy-row { display: flex; gap: var(--tck-space-2); align-items: center; }
+.tck-copy-row__text { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; padding: var(--tck-space-2); background: var(--color-main-background); border: 1px solid var(--color-border); border-radius: var(--tck-radius-sm); font-size: var(--tck-fs-sm); }
+.tck-card { border: 1px solid var(--color-border); border-radius: var(--tck-radius-md); padding: var(--tck-space-4); }
+.tck-deflist { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: var(--tck-space-3); margin: 0 0 var(--tck-space-3); }
+.tck-deflist dt { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
+.tck-deflist dd { margin: 0; font-weight: 600; }
+.tck-empty-state { max-width: 30rem; margin: var(--tck-space-8) auto; text-align: center; }
+
+/* --- table --- */
+.tck-tablewrap { overflow-x: auto; }
+.tck-table { width: 100%; border-collapse: collapse; }
+.tck-table th, .tck-table td { text-align: start; padding: var(--tck-space-2) var(--tck-space-3); border-bottom: 1px solid var(--color-border); }
+.tck-table th { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
+.tck-row--flag td { background: var(--color-background-hover); }
+
+/* --- coach (guided first run, §12 honest steps) --- */
+.tck-coach { border: 1px solid var(--color-primary-element); border-radius: var(--tck-radius-lg); padding: var(--tck-space-4); background: var(--tck-tint-info); }
+.tck-coach__steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--tck-space-3); }
+.tck-coach__step { display: flex; align-items: center; gap: var(--tck-space-3); min-height: var(--tck-touch); }
+.tck-coach__step--done .tck-coach__label { color: var(--color-text-maxcontrast); text-decoration: line-through; }
+.tck-coach__label { flex: 1; font-size: var(--tck-fs-md); }
+.tck-icon { width: 24px; height: 24px; stroke: var(--color-primary-element); }
+
+/* --- capture surface --- */
+.tck-shell--capture .tck-main { display: flex; justify-content: center; }
+.tck-capture { width: 100%; max-width: 32rem; display: flex; flex-direction: column; gap: var(--tck-space-5); }
+.tck-capture__title { font-size: var(--tck-fs-2xl); margin: var(--tck-space-4) 0 0; }
+.tck-capture__progress { font-size: var(--tck-fs-lg); font-weight: 600; }
+.tck-scanbox__label { font-weight: 600; }
+/* #app-content.tck-app scope: core `#app-content input` min-height/padding must
+ * not shrink the primary scan surface below its 64px worker-facing target. */
+#app-content.tck-app .tck-scanbox__input { min-height: 64px; font-size: var(--tck-fs-xl); width: 100%; padding: 0 var(--tck-space-4); border: 2px solid var(--tck-form-border); border-radius: var(--tck-radius-md); background: var(--color-main-background); color: var(--color-main-text); }
+#app-content.tck-app .tck-scanbox__input:focus { border-color: var(--color-primary-element); }
+.tck-capture__cpname { font-size: var(--tck-fs-xl); font-weight: 700; }
+.tck-capture__reject { color: var(--tck-danger-ink); font-size: var(--tck-fs-lg); font-weight: 600; }
+
+/* --- kiosk --- */
+.tck-main--kiosk { display: flex; justify-content: center; padding-top: var(--tck-space-6); }
+.tck-kiosk { width: 100%; max-width: 44rem; }
+.tck-kiosk__title { font-size: var(--tck-fs-2xl); text-align: center; }
+.tck-kiosk__prompt { font-size: var(--tck-fs-xl); text-align: center; margin: var(--tck-space-4) 0; }
+.tck-kiosk__big { font-size: var(--tck-fs-2xl); font-weight: 700; }
+.tck-kiosk__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: var(--tck-space-3); }
+/* #app-content.tck-app scope: station tiles/pinpad keys are buttons — core
+ * `#app-content button` would otherwise clamp them to 34px min-height. */
+#app-content.tck-app .tck-kiosk__tile { display: flex; flex-direction: column; align-items: center; gap: var(--tck-space-2); width: 100%; min-height: 8rem; padding: var(--tck-space-3); border: 1px solid var(--tck-form-border); border-radius: var(--tck-radius-lg); background: var(--color-main-background); color: var(--color-main-text); cursor: pointer; }
+#app-content.tck-app .tck-kiosk__tile:hover, #app-content.tck-app .tck-kiosk__tile:focus-visible { border-color: var(--color-primary-element); background: var(--tck-tint-info); }
+.tck-kiosk__initials { display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: var(--color-primary-element); color: var(--color-primary-element-text); font-size: var(--tck-fs-lg); font-weight: 700; }
+.tck-kiosk__name { font-size: var(--tck-fs-md); font-weight: 600; text-align: center; }
+.tck-pinpad { display: flex; flex-direction: column; align-items: center; gap: var(--tck-space-4); }
+.tck-pinpad__dots { display: flex; gap: var(--tck-space-2); min-height: 20px; }
+.tck-pinpad__dots span { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--tck-border-strong); }
+.tck-pinpad__dots span.tck-dot--filled { background: var(--color-primary-element); border-color: var(--color-primary-element); }
+.tck-pinpad__keys { display: grid; grid-template-columns: repeat(3, 6rem); gap: var(--tck-space-3); justify-content: center; }
+#app-content.tck-app .tck-pinpad__key { min-height: 64px; font-size: var(--tck-fs-xl); border: 1px solid var(--tck-form-border); border-radius: var(--tck-radius-md); background: var(--color-main-background); color: var(--color-main-text); cursor: pointer; }
+#app-content.tck-app .tck-pinpad__key:hover, #app-content.tck-app .tck-pinpad__key:focus-visible { background: var(--color-background-hover); }
+.tck-kiosk__pinerr { text-align: center; }
+
+/* --- live page --- */
+.tck-main--live { display: flex; justify-content: center; }
+.tck-live { width: 100%; max-width: 36rem; display: flex; flex-direction: column; gap: var(--tck-space-4); }
+.tck-live__title { font-size: var(--tck-fs-2xl); margin: var(--tck-space-4) 0 0; }
+.tck-live__lead { color: var(--color-text-maxcontrast); }
+.tck-live__foot { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); text-align: center; margin-top: var(--tck-space-6); }
+
+/* --- toasts (app-owned, dedup kind+text) --- */
+.tck-toasts { position: fixed; bottom: var(--tck-space-5); right: var(--tck-space-5); display: flex; flex-direction: column; gap: var(--tck-space-2); z-index: 4000; max-width: min(24rem, 90vw); }
+.tck-toast { display: flex; align-items: flex-start; gap: var(--tck-space-3); padding: var(--tck-space-3) var(--tck-space-4); border-radius: var(--tck-radius-md); background: var(--color-main-background); border: 1px solid var(--color-border); box-shadow: var(--tck-shadow-md); font-size: var(--tck-fs-md); }
+.tck-toast--error { border-color: var(--tck-danger-ink); }
+.tck-toast__content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--tck-space-1); }
+.tck-toast__close { flex-shrink: 0; min-width: var(--tck-touch); min-height: var(--tck-touch); margin: calc(-1 * var(--tck-space-2)); padding: 0; border: none; background: transparent; color: var(--color-text-maxcontrast); font-size: var(--tck-fs-lg); line-height: 1; cursor: pointer; border-radius: var(--tck-radius-sm); }
+.tck-toast__close:hover { color: var(--color-main-text); background: var(--color-background-hover); }
+.tck-toast__close:focus-visible { outline: 2px solid var(--color-primary-element); outline-offset: 2px; }
+
+/* --- footer --- */
+.tck-footer { border-top: 1px solid var(--color-border); padding: var(--tck-space-3) var(--tck-space-5); }
+.tck-footer__inner { display: flex; gap: var(--tck-space-5); flex-wrap: wrap; }
+.tck-footer__link { color: var(--color-text-maxcontrast); font-size: var(--tck-fs-sm); min-height: var(--tck-touch); display: inline-flex; align-items: center; }
+.tck-footer__link:hover { color: var(--color-main-text); }
+
+/* --- responsive --- */
+/* <1024px: NC collapses app-navigation off-canvas and no core toggle exists →
+   in-page Menu + translate drawer; width capped at 88vw so a scrim remains. */
+@media (width < 1024px) {
+	#app-content.tck-app .tck-nav-toggle { display: inline-flex; }
+	#content.app-tourcheck #app-navigation-toggle,
+	#content.app-tourcheck .app-navigation-toggle {
+		display: none !important;
+		visibility: hidden !important;
+		pointer-events: none !important;
+	}
+	#content.app-tourcheck #app-navigation.tck-nav {
+		position: fixed !important;
+		top: var(--header-height, 50px) !important;
+		inset-inline-start: 0;
+		width: min(18rem, 88vw) !important;
+		max-width: 88vw;
+		height: calc(100dvh - var(--header-height, 50px)) !important;
+		z-index: 1999;
+		transform: translateX(-105%) !important;
+		transition: transform 180ms ease;
+		box-shadow:
+			0 4px 16px color-mix(in srgb, var(--color-main-text) 18%, transparent),
+			0 0 0 1px var(--color-border);
+		overflow-x: hidden;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+		background: var(--color-main-background);
+	}
+	#content.app-tourcheck #app-navigation.tck-nav.tck-nav--open {
+		transform: translateX(0) !important;
+	}
+	body.tck-nav-open { overflow: hidden; }
+}
+
+/* >=1024px: desktop sidebar is sacred — toggle never renders. */
+@media (min-width: 1024px) {
+	#app-content.tck-app .tck-nav-toggle { display: none !important; }
+}
+
+/* <=768px: tighter padding + pinpad fits 320px (3×4rem + gaps + padding). */
+@media (max-width: 768px) {
+	.tck-page-header__main { gap: var(--tck-space-3); }
+	.tck-pinpad__keys { grid-template-columns: repeat(3, minmax(4rem, 6rem)); }
+	.tck-main { padding: var(--tck-space-4) var(--tck-space-3) var(--tck-space-6); }
+}
+
+/* App-owned surfaces: thicken borders + rings under HC, keep shape cues under
+   forced-colors (tint fills are flattened there), kill all motion. */
+@media (prefers-contrast: more) {
+	.tck-tile, .tck-list__row, .tck-card, .tck-kiosk__tile, .tck-pinpad__key,
+	.tck-btn, .tck-badge, .tck-toast { border-width: 2px; }
+	.tck-app :is(a, button, input, select, textarea, [tabindex]):focus-visible,
+	#app-navigation.tck-nav :is(a, button, [tabindex]):focus-visible { outline-width: 3px; }
+}
+@media (forced-colors: active) {
+	.tck-badge { border-color: CanvasText; }
+	.tck-kiosk__tile, .tck-pinpad__key, .tck-toast { border-color: ButtonText; }
+	.tck-nav__item--active > .tck-nav__link,
+	.tck-nav__subitem--active .tck-nav__sublink { outline: 2px solid Highlight; }
+	.tck-pinpad__dots span.tck-dot--filled { background: Highlight; border-color: Highlight; }
+	.tck-kiosk__initials { forced-color-adjust: none; }
+	.tck-app :focus-visible, #app-navigation.tck-nav :focus-visible {
+		outline: 3px solid Highlight !important;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.tck-app *, .tck-app *::before, .tck-app *::after,
+	#app-navigation.tck-nav { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+@media print {
+	.tck-nav, .tck-page-header, .tck-footer, .tck-nav-toggle, .tck-skip-link { display: none !important; }
+	.tck-main { padding: 0; }
+}
+
+/* === app-feedback:tck start === */
+#app-navigation .tck-nav-footer,
+.tck-nav .tck-nav-footer,
+.tck-app-nav .tck-nav-footer {
+	margin-top: auto;
+	flex-shrink: 0;
+	min-width: 0;
+	width: 100%;
+	box-sizing: border-box;
+	padding: var(--tck-space-2, 0.5rem) var(--tck-space-3, 0.75rem)
+		max(var(--tck-space-3, 0.75rem), env(safe-area-inset-bottom, 0px));
+	border-top: 1px solid var(--tck-border, color-mix(in srgb, var(--color-main-text) 12%, var(--color-main-background)));
+	background: transparent;
+	z-index: 1;
+}
+
+.tck-nav-footer__popover {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--tck-space-2, 0.5rem);
+}
+
+/* Scoped under #content: bare .{p}-nav-footer__trigger loses to NC core
+ * `#app-content button` / `#app-navigation button` min-height rules
+ * (var(--default-clickable-area) → 34px) — Atlas touch-target defect. */
+#content .tck-nav-footer__trigger {
+	display: inline-flex;
+	gap: var(--tck-space-3, 0.75rem);
+	min-height: 44px;
+	min-width: 44px;
+	padding: var(--tck-space-2, 0.5rem) var(--tck-space-3, 0.75rem);
+	border-radius: var(--tck-radius-sm, 6px);
+	box-sizing: border-box;
+	border: none;
+	background: none;
+	color: var(--color-main-text);
+	font: inherit;
+	cursor: pointer;
+	align-items: center;
+	justify-content: center;
+	white-space: nowrap;
+}
+
+.tck-nav-footer__trigger:hover {
+	background: color-mix(in srgb, var(--color-primary-element) 8%, var(--color-main-background));
+}
+
+.tck-nav-footer__trigger:focus-visible {
+	outline: 3px solid var(--color-primary-element);
+	outline-offset: 2px;
+}
+
+.tck-nav-footer__trigger:focus:not(:focus-visible) {
+	outline: none;
+}
+
+.tck-nav-footer__trigger-icon .tck-icon {
+	width: 20px;
+	height: 20px;
+}
+
+.tck-nav-footer__menu {
+	position: absolute;
+	bottom: calc(100% + var(--tck-space-2, 0.5rem));
+	left: 50%;
+	transform: translateX(-50%);
+	min-width: max-content;
+	max-width: calc(100vw - 2rem);
+	list-style: none;
+	margin: 0;
+	padding: var(--tck-space-2, 0.5rem);
+	background: var(--color-main-background);
+	border: 1px solid var(--tck-border, var(--color-border));
+	border-radius: var(--tck-radius-md, 12px);
+	box-shadow:
+		0 2px 6px color-mix(in srgb, var(--color-main-text) 6%, transparent),
+		0 8px 24px color-mix(in srgb, var(--color-main-text) 10%, transparent);
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	z-index: 100;
+}
+
+.tck-nav-footer__menu[hidden] {
+	display: none;
+}
+
+#content .tck-nav-footer__menu-item {
+	display: flex;
+	align-items: center;
+	gap: var(--tck-space-3, 0.75rem);
+	min-height: 44px;
+	min-width: 44px;
+	padding: var(--tck-space-2, 0.5rem) var(--tck-space-3, 0.75rem);
+	border-radius: var(--tck-radius-sm, 6px);
+	color: var(--color-main-text);
+	text-decoration: none;
+	font-size: var(--tck-fs-sm, 0.875rem);
+	line-height: var(--tck-line-base, 1.45);
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
+.tck-nav-footer__menu-item:hover {
+	background: color-mix(in srgb, var(--color-primary-element) 8%, var(--color-main-background));
+}
+
+.tck-nav-footer__menu-item:focus-visible {
+	outline: 3px solid var(--color-primary-element);
+	outline-offset: -2px;
+}
+
+.tck-nav-footer__menu-item:focus:not(:focus-visible) {
+	outline: none;
+}
+
+.tck-nav-footer__menu-icon .tck-icon {
+	width: 18px;
+	height: 18px;
+}
+
+.tck-nav-footer__note {
+	margin: 0;
+	font-size: var(--tck-fs-xs, 0.75rem);
+	line-height: 1.45;
+	color: var(--color-text-maxcontrast);
+	text-align: center;
+	overflow-wrap: anywhere;
+}
+
+@media (width < 480px) {
+	.tck-nav-footer__menu {
+		left: var(--tck-space-2, 0.5rem);
+		right: var(--tck-space-2, 0.5rem);
+		transform: none;
+		min-width: 0;
+	}
+}
+
+.tck-nav-footer__new-tab {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+#content .tck-nav-footer__toast-link {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	min-width: 44px;
+	margin-top: var(--tck-space-2, 0.5rem);
+	padding: 0;
+	font-size: var(--tck-fs-sm, 0.875rem);
+	line-height: 1.45;
+	color: var(--color-error-text, var(--color-main-text));
+	text-decoration: underline;
+	text-underline-offset: 0.15em;
+	overflow-wrap: anywhere;
+}
+
+.tck-nav-footer__toast-link:focus-visible {
+	outline: 2px solid var(--color-primary-element);
+	outline-offset: 2px;
+}
+
+.tck-nav-footer__toast-link:focus:not(:focus-visible) {
+	outline: none;
+}
+
+@media (prefers-contrast: more) {
+	#app-navigation .tck-nav-footer,
+	.tck-nav .tck-nav-footer,
+	.tck-app-nav .tck-nav-footer {
+		border-top-width: 2px;
+		border-top-color: var(--color-main-text);
+	}
+
+	.tck-nav-footer__menu {
+		border-width: 2px;
+	}
+
+	.tck-nav-footer__trigger:focus-visible,
+	.tck-nav-footer__menu-item:focus-visible,
+	.tck-nav-footer__toast-link:focus-visible {
+		outline-width: 3px;
+	}
+}
+
+@media (forced-colors: active) {
+	.tck-nav-footer__menu-item,
+	.tck-nav-footer__toast-link {
+		forced-color-adjust: none;
+		color: LinkText;
+	}
+
+	.tck-nav-footer__trigger:focus-visible,
+	.tck-nav-footer__menu-item:focus-visible,
+	.tck-nav-footer__toast-link:focus-visible {
+		outline: 3px solid Highlight;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tck-nav-footer__trigger,
+	.tck-nav-footer__menu-item,
+	.tck-nav-footer__toast-link {
+		transition: none;
+	}
+}
+/* === app-feedback:tck end === */
+
+/* === support-us:tck start === */
+/**
+ * Support & Us — shared family styles (WCAG 2.1 AA, responsive).
+ * Prefix: tck
+ * Maps to Nextcloud --color-* so light / dark / high-contrast / custom accents adapt.
+ */
+
+.tck-support-us {
+	margin-block-start: var(--tck-space-5, 1.5rem);
+	min-width: 0;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.tck-support-us--page {
+	margin-block-start: 0;
+	border: 0;
+	background: transparent;
+	max-width: none;
+}
+
+.tck-support-us__header {
+	margin-block-end: var(--tck-space-4, 1rem);
+}
+
+.tck-support-us__title {
+	margin: 0 0 var(--tck-space-2, 0.5rem);
+	font-size: var(--tck-fs-xl, 1.5rem);
+	font-weight: 700;
+	line-height: var(--tck-line-tight, 1.2);
+	color: var(--color-main-text);
+	overflow-wrap: anywhere;
+}
+
+.tck-support-us__intro {
+	margin: 0;
+	max-width: 65ch;
+	font-size: var(--tck-fs-md, 1rem);
+	line-height: var(--tck-line-base, 1.45);
+	color: var(--color-text-maxcontrast);
+	overflow-wrap: anywhere;
+}
+
+.tck-support-us__body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tck-space-5, 1.5rem);
+	min-width: 0;
+	width: 100%;
+}
+
+.tck-support-us__primary {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--tck-space-3, 0.75rem);
+	min-width: 0;
+	width: 100%;
+	padding: var(--tck-space-4, 1rem);
+	border: 1px solid var(--color-border-maxcontrast, var(--color-border));
+	border-inline-start: 4px solid var(--color-primary-element);
+	border-radius: var(--tck-radius-md, var(--border-radius-large, 12px));
+	background: color-mix(in srgb, var(--color-primary-element) 10%, var(--color-main-background));
+	box-sizing: border-box;
+}
+
+.tck-support-us__primary-copy,
+.tck-support-us__primary-actions {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--tck-space-3, 0.75rem);
+	min-width: 0;
+	width: 100%;
+}
+
+.tck-support-us__offer-title {
+	margin: 0;
+	font-size: var(--tck-fs-lg, 1.125rem);
+	font-weight: 700;
+	line-height: var(--tck-line-tight, 1.25);
+	color: var(--color-main-text);
+	overflow-wrap: anywhere;
+}
+
+.tck-support-us__benefit,
+.tck-support-us__coverage,
+.tck-support-us__hint {
+	margin: 0;
+	max-width: 65ch;
+	font-size: var(--tck-fs-sm, 0.875rem);
+	line-height: var(--tck-line-base, 1.45);
+	overflow-wrap: anywhere;
+}
+
+.tck-support-us__benefit {
+	font-size: var(--tck-fs-md, 1rem);
+	color: var(--color-main-text);
+}
+
+.tck-support-us__coverage,
+.tck-support-us__hint {
+	color: var(--color-text-maxcontrast);
+}
+
+.tck-support-us__hint a {
+	color: var(--color-main-text);
+	text-decoration: underline;
+	text-underline-offset: 0.15em;
+}
+
+.tck-support-us__secondary {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tck-space-3, 0.75rem);
+	min-width: 0;
+	width: 100%;
+}
+
+.tck-support-us__secondary-title {
+	margin: 0;
+	font-size: var(--tck-fs-md, 1rem);
+	font-weight: 600;
+	line-height: var(--tck-line-tight, 1.25);
+	color: var(--color-main-text);
+}
+
+.tck-support-us__options {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+	gap: var(--tck-space-4, 1rem);
+	width: 100%;
+	min-width: 0;
+}
+
+.tck-support-us__option {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: var(--tck-space-3, 0.75rem);
+	min-width: 0;
+	padding: var(--tck-space-4, 1rem);
+	border: 1px solid var(--color-border);
+	border-radius: var(--tck-radius-md, var(--border-radius-large, 12px));
+	background: var(--color-main-background);
+	box-sizing: border-box;
+}
+
+.tck-support-us__option-title {
+	margin: 0;
+	font-size: var(--tck-fs-lg, 1.125rem);
+	font-weight: 700;
+	line-height: var(--tck-line-tight, 1.25);
+	color: var(--color-main-text);
+	overflow-wrap: anywhere;
+}
+
+.tck-support-us__option-hint {
+	margin: 0;
+	flex: 1 1 auto;
+	font-size: var(--tck-fs-sm, 0.875rem);
+	line-height: var(--tck-line-base, 1.45);
+	color: var(--color-text-maxcontrast);
+	overflow-wrap: anywhere;
+}
+
+.tck-support-us__cta {
+	/* WCAG 2.5.5: px + !important — NC root is 15px and .azc-btn uses 2.75rem (41.25px). */
+	min-height: 44px !important;
+	min-width: 44px !important;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding-inline: var(--tck-space-4, 1rem);
+	text-align: center;
+	text-decoration: none;
+	box-sizing: border-box;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	max-width: 100%;
+}
+
+.tck-support-us__cta--primary {
+	min-height: 48px !important;
+}
+
+.tck-support-us__option .tck-support-us__cta,
+.tck-support-us--page .tck-support-us__primary-actions .tck-support-us__cta {
+	align-self: stretch;
+	width: 100%;
+}
+
+.tck-support-us__cta:focus-visible,
+.tck-support-us__hint a:focus-visible,
+.tck-support-us__more a:focus-visible,
+.tck-support-us__contact a:focus-visible {
+	outline: 2px solid var(--color-primary-element);
+	outline-offset: 2px;
+}
+
+.tck-support-us__cta:focus:not(:focus-visible),
+.tck-support-us__hint a:focus:not(:focus-visible),
+.tck-support-us__more a:focus:not(:focus-visible),
+.tck-support-us__contact a:focus:not(:focus-visible) {
+	outline: none;
+}
+
+.tck-support-us__tertiary {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tck-space-2, 0.5rem);
+	padding-block-start: var(--tck-space-4, 1rem);
+	border-block-start: 1px solid var(--color-border);
+}
+
+.tck-support-us__more,
+.tck-support-us__contact {
+	margin: 0;
+	font-size: var(--tck-fs-sm, 0.875rem);
+	line-height: var(--tck-line-base, 1.45);
+	color: var(--color-text-maxcontrast);
+	overflow-wrap: anywhere;
+}
+
+.tck-support-us__more a,
+.tck-support-us__contact a {
+	color: var(--color-main-text);
+	text-decoration: underline;
+	text-underline-offset: 0.15em;
+}
+
+.tck-support-us__new-tab {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+@media (max-width: 768px) {
+	.tck-support-us__options {
+		grid-template-columns: 1fr;
+	}
+
+	.tck-support-us__cta,
+	.tck-support-us__primary,
+	.tck-support-us__option {
+		width: 100%;
+		max-width: none;
+	}
+}
+
+@media (prefers-contrast: more) {
+	.tck-support-us__primary {
+		background: var(--color-main-background);
+		border-color: var(--color-main-text);
+		border-inline-start-width: 4px;
+	}
+
+	.tck-support-us__option {
+		border-width: 2px;
+		border-color: var(--color-main-text);
+	}
+
+	.tck-support-us__cta:focus-visible,
+	.tck-support-us__hint a:focus-visible,
+	.tck-support-us__more a:focus-visible,
+	.tck-support-us__contact a:focus-visible {
+		outline-width: 3px;
+	}
+}
+
+@media (forced-colors: active) {
+	.tck-support-us__primary,
+	.tck-support-us__option {
+		border: 2px solid CanvasText;
+		background: Canvas;
+	}
+
+	.tck-support-us__cta:focus-visible,
+	.tck-support-us__hint a:focus-visible,
+	.tck-support-us__more a:focus-visible,
+	.tck-support-us__contact a:focus-visible {
+		outline: 3px solid Highlight;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tck-support-us__cta,
+	.tck-support-us__option {
+		transition: none;
+	}
+}
+/* === support-us:tck end === */

@@ -1,0 +1,17 @@
+{
+    "seedLabel": "tourcheck-tck2-test-signing-v1",
+    "publicKeyB64": "-ZoLcDzrtZOJ5p7Cmv2kYWZgsNf6NqEY9gE5Mn7xSlE",
+    "payload": {
+        "v": 2,
+        "product": "tourcheck",
+        "customerId": "test",
+        "issuedAt": "2026-01-01",
+        "validUntil": "2027-12-31",
+        "mobileSeats": 5,
+        "terminalDevices": 2,
+        "bundle": true
+    },
+    "payloadB64": "eyJ2IjoyLCJwcm9kdWN0IjoidG91cmNoZWNrIiwiY3VzdG9tZXJJZCI6InRlc3QiLCJpc3N1ZWRBdCI6IjIwMjYtMDEtMDEiLCJ2YWxpZFVudGlsIjoiMjAyNy0xMi0zMSIsIm1vYmlsZVNlYXRzIjo1LCJ0ZXJtaW5hbERldmljZXMiOjIsImJ1bmRsZSI6dHJ1ZX0",
+    "signatureB64": "j9l-jHEKhqfApta6Cp56vhhCv6vu-Z1_b2HXJSGKF_U5czOk6r3Ti9p6YLfJDzyeAIuxhMpmMAB30EewGRu5DQ",
+    "wireKey": "TCK2.eyJ2IjoyLCJwcm9kdWN0IjoidG91cmNoZWNrIiwiY3VzdG9tZXJJZCI6InRlc3QiLCJpc3N1ZWRBdCI6IjIwMjYtMDEtMDEiLCJ2YWxpZFVudGlsIjoiMjAyNy0xMi0zMSIsIm1vYmlsZVNlYXRzIjo1LCJ0ZXJtaW5hbERldmljZXMiOjIsImJ1bmRsZSI6dHJ1ZX0.j9l-jHEKhqfApta6Cp56vhhCv6vu-Z1_b2HXJSGKF_U5czOk6r3Ti9p6YLfJDzyeAIuxhMpmMAB30EewGRu5DQ"
+}

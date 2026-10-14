@@ -1,0 +1,7 @@
+/* Dashboard widget icon — loaded via TourCheckWidget::load(). */
+.icon-tourcheck {
+	background-image: url('../img/app.svg');
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: contain;
+}

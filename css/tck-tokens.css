@@ -1,0 +1,123 @@
+/*
+ * TourCheck design tokens (--tck-*).
+ * Colors derive from Nextcloud theme variables; no raw hex in feature CSS.
+ * Spacing/typography on :root; theme colors on body (NC sets --color-* on body).
+ */
+:root {
+	--tck-space-1: 4px;
+	--tck-space-2: 8px;
+	--tck-space-3: 12px;
+	--tck-space-4: 16px;
+	--tck-space-5: 24px;
+	--tck-space-6: 32px;
+	--tck-space-7: 48px;
+	--tck-space-8: 64px;
+
+	--tck-radius-sm: 6px;
+	--tck-radius-md: 12px;
+	--tck-radius-lg: 16px;
+
+	--tck-fs-xs: 0.75rem;
+	--tck-fs-sm: 0.875rem;
+	--tck-fs-md: 1rem;
+	--tck-fs-lg: 1.125rem;
+	--tck-fs-xl: 1.5rem;
+	--tck-fs-2xl: 1.875rem;
+
+	--tck-line-tight: 1.2;
+	--tck-line-base: 1.45;
+
+	--tck-breakpoint-sm: 480px;
+	--tck-breakpoint-md: 768px;
+	--tck-breakpoint-lg: 1024px;
+
+	/* Constrained reading shell (design-system §2.1) */
+	--tck-shell-max: 72rem;
+
+	/* Inline SVG catalogue (IconCatalog / AzcCatalog) */
+	--tck-icon-sm: 1rem;
+	--tck-icon-md: 1.125rem;
+	--tck-icon-lg: 1.375rem;
+	--tck-icon-xl: 1.5rem;         /* svg inside the 48px page-header well */
+	--tck-icon-well: 2.25rem;
+	--tck-icon-stroke: 2;
+
+	--tck-tab-num: tabular-nums;
+
+	/* Touch targets (WCAG 2.5.5 / design-system §0.4) */
+	--tck-touch: 44px;
+	--tck-touch-lg: 48px;
+}
+
+/* Theme-bound tokens — must follow body [data-theme-*] where NC defines --color-* */
+body {
+	/* Fixed overlays (panels, backdrops, mobile nav) sit below NC #header, not under the profile menu */
+	--tck-overlay-top: var(--header-height, 50px);
+	--tck-overlay-height: calc(100dvh - var(--header-height, 50px));
+
+	--tck-bg-soft: color-mix(in srgb, var(--color-main-background) 96%, var(--color-main-text) 4%);
+	--tck-bg-card: var(--color-main-background);
+	--tck-text: var(--color-main-text);
+	--tck-muted: var(--color-text-maxcontrast);
+	--tck-border: color-mix(in srgb, var(--color-main-text) 12%, transparent);
+	--tck-border-strong: color-mix(in srgb, var(--color-main-text) 24%, transparent);
+	/* Interactive controls need >=3:1 (WCAG 1.4.11): maxcontrast is NC's own
+	   input border; --color-border / --tck-border stay surface-only. */
+	--tck-form-border: var(--color-border-maxcontrast, var(--tck-border-strong));
+
+	/* Mix with main background — not transparent — so callouts stay visible on all NC themes */
+	--tck-tint-success: color-mix(in srgb, var(--color-success-text, var(--color-success)) 18%, var(--color-main-background));
+	--tck-tint-warning: color-mix(in srgb, var(--color-warning-text, var(--color-warning)) 22%, var(--color-main-background));
+	--tck-tint-danger: color-mix(in srgb, var(--color-error-text, var(--color-error)) 18%, var(--color-main-background));
+	--tck-tint-info: color-mix(in srgb, var(--color-primary-element) 16%, var(--color-main-background));
+
+	--tck-shadow-sm: 0 1px 2px color-mix(in srgb, var(--color-main-text) 8%, transparent);
+	--tck-shadow-md: 0 8px 24px color-mix(in srgb, var(--color-main-text) 12%, transparent);
+
+	/* Modal / drawer scrim — theme-aware, never raw black rgba */
+	--tck-scrim: color-mix(in srgb, var(--color-main-text) 45%, transparent);
+
+	/*
+	 * Solid danger CTA fill (design-system §3.3 / WCAG 1.4.3).
+	 * NC 30+ maps --color-error to a pale tint — never put on-fill text on that.
+	 * Use --color-element-error; dark themes darken the fill so ink stays ≥ 4.5:1.
+	 */
+	--tck-danger-fill: var(--color-element-error, var(--color-error));
+	--tck-danger-fill-hover: color-mix(in srgb, var(--tck-danger-fill) 88%, var(--color-main-text));
+	--tck-danger-on-fill: var(--color-primary-element-text, var(--color-primary-text));
+	--tck-danger-ink: var(--color-error-text, var(--color-error));
+
+	/*
+	 * Notification icon wells — pale tint + semantic stroke (see .azc-page-header__icon).
+	 * NC *-text tokens are tuned per theme for contrast on main-background.
+	 */
+	--tck-notif-fg-info: var(--color-primary-element);
+	--tck-notif-fg-warning: var(--color-warning-text, var(--color-warning));
+	--tck-notif-fg-success: var(--color-success-text, var(--color-success));
+	--tck-notif-fg-danger: var(--color-error-text, var(--color-error));
+}
+
+/* Bright accent fills on dark themes fail AA with white/black ink — darken fill + use main-text. */
+body[data-theme-dark],
+body[data-theme-dark-highcontrast] {
+	--tck-danger-fill: color-mix(
+		in srgb,
+		var(--color-element-error, var(--color-error)) 40%,
+		var(--color-main-background)
+	);
+	/* primary-element-text is often black (for light CTAs) — unusable on medium red */
+	--tck-danger-on-fill: var(--color-main-text);
+}
+
+/* Aliases for refs added by sheets ported from other apps — dead names
+   silently fell back to literals. */
+body {
+	--tck-accent: var(--color-primary-element);
+	--tck-bg: var(--tck-bg-card);
+	--tck-surface: var(--tck-bg-card);
+	--tck-surface-2: var(--tck-bg-soft);
+	--tck-surface-muted: var(--tck-bg-soft);
+	--tck-fs-base: var(--tck-fs-md);
+	--tck-radius-base: var(--tck-radius-md);
+	--tck-radius-pill: var(--border-radius-pill, 999px);
+}
