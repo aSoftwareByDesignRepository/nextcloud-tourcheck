@@ -1,5 +1,6 @@
 // @ts-check
 import { test, expect } from '@playwright/test'
+import { AxeBuilder } from '@axe-core/playwright'
 import { login } from './helpers/auth.js'
 
 /**
@@ -135,6 +136,25 @@ test('kiosk signature: drawn ink rides the confirm POST (NH-06 web parity)', asy
 	await confirmBtn.click()
 	await expect(page.locator('[data-tck-stage="confirm"]')).toBeVisible({ timeout: 15000 })
 	expect(posted?.signature_b64, 'signature_b64 must ride the confirm body').toMatch(/^[A-Za-z0-9+/=]{100,}$/)
+})
+
+test('kiosk a11y: member grid + signature stage pass axe (public surface)', async ({ page }) => {
+	await page.goto('/index.php/apps/tourcheck/dashboard', { waitUntil: 'domcontentloaded' })
+	const token = await page.evaluate(() => window.OC?.requestToken || '')
+	const apiHeaders = { requesttoken: token, 'OCS-APIREQUEST': 'true', 'Content-Type': 'application/json' }
+	const rot = await page.request.post('/index.php/apps/tourcheck/api/stations/2/rotate', { headers: apiHeaders })
+	expect(rot.ok()).toBeTruthy()
+	const secret = (await rot.json()).data.secret
+
+	await page.goto(`/index.php/apps/tourcheck/kiosk?station_token=${encodeURIComponent(secret)}`, { waitUntil: 'domcontentloaded' })
+	const gridScan = await new AxeBuilder({ page }).include('[data-tck-kiosk]').analyze()
+	expect(gridScan.violations, JSON.stringify(gridScan.violations, null, 2)).toEqual([])
+
+	await page.locator('[data-tck-member="1"]').click()
+	await page.locator('[data-tck-pin-input]').fill('123456')
+	await expect(page.locator('[data-tck-stage="sign"]')).toBeVisible({ timeout: 15000 })
+	const signScan = await new AxeBuilder({ page }).include('[data-tck-stage="sign"]').analyze()
+	expect(signScan.violations, JSON.stringify(signScan.violations, null, 2)).toEqual([])
 })
 
 test('schedule toggle: a live schedule can be silenced — no orphan dead end', async ({ page }) => {

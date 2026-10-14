@@ -191,9 +191,11 @@
 
 /* --- table --- */
 /* Horizontal scroll only exists above the card-transform breakpoint —
-   below 768px `tck-table--cards` stacks rows and must not leave an
-   unfocusable scroll region (axe scrollable-region-focusable). */
-@media (min-width: 768px) {
+   at ≤768px `tck-table--cards` stacks rows and must not leave an
+   unfocusable scroll region (axe scrollable-region-focusable). 769 not
+   768: both clauses firing at exactly 768px put a focusable scroll wrap
+   around already-stacked cards. */
+@media (min-width: 769px) {
 	.tck-tablewrap, .tck-table-wrap { overflow-x: auto; }
 }
 .tck-table { width: 100%; border-collapse: collapse; }
@@ -274,7 +276,8 @@
 #app-content.tck-app .tck-pinpad__key:hover, #app-content.tck-app .tck-pinpad__key:focus-visible { background: var(--color-background-hover); }
 .tck-kiosk__pinerr { text-align: center; }
 /* NH-06 signature stage — document surface: white paper + dark ink in
- * every theme (the stored PNG is evidence, not UI chrome). */
+ * every theme (the stored PNG is evidence, not UI chrome; canvas raster
+ * ignores forced-colors/theme vars anyway). */
 .tck-signpad { display: block; margin: 0 auto; max-width: 100%; height: auto; border: 2px solid var(--tck-border-strong); border-radius: var(--tck-radius-md); background: #ffffff; touch-action: none; cursor: crosshair; }
 .tck-signpad:focus-visible { outline: 2px solid var(--color-primary-element); outline-offset: 2px; }
 .tck-kiosk__actions { display: flex; gap: var(--tck-space-3); justify-content: center; margin-top: var(--tck-space-4); flex-wrap: wrap; }
