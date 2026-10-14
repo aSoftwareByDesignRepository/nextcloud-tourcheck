@@ -341,12 +341,15 @@ class ReportService
 		}
 		$existing = $this->schedules->findByNatural($siteId, $cadence, $recipient);
 		$now = $this->timeFactory->getDateTime();
+		$apply = static function (ReportSched $s) use ($active, $audience, $now): ReportSched {
+			$s->setActive($active ? 1 : 0);
+			$s->setSharePolicyJson(json_encode(['audience' => $audience]));
+			$s->setRevision((int)$s->getRevision() + 1);
+			$s->setUpdatedAt($now);
+			return $s;
+		};
 		if ($existing !== null) {
-			$existing->setActive($active ? 1 : 0);
-			$existing->setSharePolicyJson(json_encode(['audience' => $audience]));
-			$existing->setRevision((int)$existing->getRevision() + 1);
-			$existing->setUpdatedAt($now);
-			$sched = $this->schedules->update($existing);
+			$sched = $this->schedules->update($apply($existing));
 		} else {
 			$sched = new ReportSched();
 			$sched->setSiteId($siteId);
@@ -357,7 +360,21 @@ class ReportService
 			$sched->setRevision(1);
 			$sched->setCreatedAt($now);
 			$sched->setUpdatedAt($now);
-			$sched = $this->schedules->insert($sched);
+			try {
+				$sched = $this->schedules->insert($sched);
+			} catch (\OCP\DB\Exception $e) {
+				// A concurrent upsert won the (site,cadence,recipient) insert —
+				// reload the winner and apply our fields instead of surfacing
+				// a raw 500 (mint-idempotency: never a second row, never 500).
+				if ($e->getReason() !== \OCP\DB\Exception::REASON_UNIQUE_CONSTRAINT_VIOLATION) {
+					throw $e;
+				}
+				$existing = $this->schedules->findByNatural($siteId, $cadence, $recipient);
+				if ($existing === null) {
+					throw $e;
+				}
+				$sched = $this->schedules->update($apply($existing));
+			}
 		}
 		$this->chain()->append($siteId, [
 			'kind' => Constants::KIND_ADMIN, 'actorUid' => $uid,
@@ -440,6 +457,34 @@ class ReportService
 		} catch (\Throwable) {
 			return null;
 		}
+	}
+
+	/**
+	 * Rebuild the appdata PDF when a delivery row exists but its file does
+	 * not (prior run crashed between insert and newFile). Returns the
+	 * delivery unchanged when the file is already there.
+	 */
+	public function ensureDeliveryFile(ReportDelivery $d): ReportDelivery
+	{
+		if ($this->deliveryFile($d) !== null) {
+			return $d;
+		}
+		$siteId = (int)$d->getSiteId();
+		$sched = $d->getSchedId() !== null ? $this->schedules->find((int)$d->getSchedId()) : null;
+		$audience = $sched !== null ? self::audienceOf($sched) : 'internal';
+		$pdf = $this->buildPdf($siteId, (string)$d->getPeriod(), $audience);
+		$folder = $this->reportFolder($siteId);
+		try {
+			$existing = $folder->getFile($this->deliveryFileName($d));
+			$existing->putContent($pdf);
+		} catch (\OCP\Files\NotFoundException) {
+			$folder->newFile($this->deliveryFileName($d), $pdf);
+		}
+		if ($d->getFileId() === null) {
+			$d->setFileId((int)$d->getId());
+			$d = $this->deliveries->update($d);
+		}
+		return $d;
 	}
 
 	/** Mail a scheduled delivery's PDF to the schedule recipient. */

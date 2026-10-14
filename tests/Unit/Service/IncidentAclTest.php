@@ -174,6 +174,7 @@ final class IncidentAclTest extends TestCase
 		$inc->setStatus('action');
 		$inc->setRevision(2);
 		$this->incidents->method('find')->willReturn($inc);
+		$this->incidents->method('findForUpdate')->willReturn($inc);
 
 		$c = new Corrective();
 		$c->setId(9);
@@ -182,6 +183,7 @@ final class IncidentAclTest extends TestCase
 		$c->setStatus('open');
 		$c->setRevision(1);
 		$this->correctives->method('find')->willReturn($c);
+		$this->correctives->method('findForUpdate')->willReturn($c);
 		return $c;
 	}
 

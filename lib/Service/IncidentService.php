@@ -249,26 +249,39 @@ class IncidentService
 	{
 		$inc = $this->get($incidentId);
 		$uid = $this->acl->assertCanSuperviseSite((int)$inc->getSiteId());
-		$this->sites->assertRevision($inc->getRevision(), $baseRevision);
-		if (array_key_exists('note', $data)) {
-			$inc->setNote(mb_substr((string)$data['note'], 0, 8000) ?: null);
-		}
-		if (array_key_exists('title', $data)) {
-			$inc->setTitle(mb_substr(trim((string)$data['title']), 0, 400) ?: null);
-		}
-		if (array_key_exists('severity', $data)) {
-			if (!in_array($data['severity'], self::SEVERITIES, true)) {
-				throw new ValidationException(Constants::ERR_VALIDATION, 'Invalid severity.', ['severity' => 'invalid']);
+		// Row lock before the CAS check — revision compare without it is a
+		// lost-update race (same class as SiteService::update).
+		$this->db->beginTransaction();
+		try {
+			$inc = $this->incidents->findForUpdate($incidentId);
+			if ($inc === null) {
+				throw new NotFoundException();
 			}
-			$inc->setSeverity((string)$data['severity']);
+			$this->sites->assertRevision($inc->getRevision(), $baseRevision);
+			if (array_key_exists('note', $data)) {
+				$inc->setNote(mb_substr((string)$data['note'], 0, 8000) ?: null);
+			}
+			if (array_key_exists('title', $data)) {
+				$inc->setTitle(mb_substr(trim((string)$data['title']), 0, 400) ?: null);
+			}
+			if (array_key_exists('severity', $data)) {
+				if (!in_array($data['severity'], self::SEVERITIES, true)) {
+					throw new ValidationException(Constants::ERR_VALIDATION, 'Invalid severity.', ['severity' => 'invalid']);
+				}
+				$inc->setSeverity((string)$data['severity']);
+			}
+			if (array_key_exists('status', $data)) {
+				$this->assertTransition($inc->getStatus(), (string)$data['status']);
+				$inc->setStatus((string)$data['status']);
+			}
+			$inc->setRevision((int)$inc->getRevision() + 1);
+			$inc->setUpdatedAt($this->timeFactory->getDateTime());
+			$inc = $this->incidents->update($inc);
+			$this->db->commit();
+		} catch (\Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
 		}
-		if (array_key_exists('status', $data)) {
-			$this->assertTransition($inc->getStatus(), (string)$data['status']);
-			$inc->setStatus((string)$data['status']);
-		}
-		$inc->setRevision((int)$inc->getRevision() + 1);
-		$inc->setUpdatedAt($this->timeFactory->getDateTime());
-		$inc = $this->incidents->update($inc);
 		$this->journalIncident($inc, $uid, 'incident_updated');
 		return $inc;
 	}
@@ -316,6 +329,12 @@ class IncidentService
 		$c->setUpdatedAt($now);
 		$this->db->beginTransaction();
 		try {
+			// Re-read under the row lock — the entity above may be stale
+			// (concurrent verifyCorrective/update hold the same row).
+			$inc = $this->incidents->findForUpdate($incidentId);
+			if ($inc === null) {
+				throw new NotFoundException();
+			}
 			$c = $this->correctives->insert($c);
 			if ($inc->getStatus() === 'open') {
 				$inc->setStatus('action');
@@ -348,25 +367,40 @@ class IncidentService
 		if (!$isAssignee && !$canSupervise) {
 			throw new NotFoundException();
 		}
-		$this->sites->assertRevision($c->getRevision(), $baseRevision);
-		if (array_key_exists('status', $data)) {
-			if (!in_array($data['status'], ['open', 'done'], true)) {
-				throw new ValidationException(Constants::ERR_VALIDATION, 'Invalid status.', ['status' => 'invalid']);
+		// Lock order: parent incident row first, then the corrective —
+		// matches round→chain-head convention (aggregate before child) and
+		// keeps this path deadlock-safe against IncidentService::update.
+		$this->db->beginTransaction();
+		try {
+			$inc = $this->incidents->findForUpdate((int)$inc->getId());
+			$c = $this->correctives->findForUpdate($correctiveId);
+			if ($inc === null || $c === null || (int)$c->getIncidentId() !== (int)$inc->getId()) {
+				throw new NotFoundException();
 			}
-			$c->setStatus((string)$data['status']);
-			if ($data['status'] === 'done' && $inc->getStatus() === 'action') {
-				$inc->setStatus('verify');
-				$inc->setRevision((int)$inc->getRevision() + 1);
-				$inc->setUpdatedAt($this->timeFactory->getDateTime());
-				$this->incidents->update($inc);
+			$this->sites->assertRevision($c->getRevision(), $baseRevision);
+			if (array_key_exists('status', $data)) {
+				if (!in_array($data['status'], ['open', 'done'], true)) {
+					throw new ValidationException(Constants::ERR_VALIDATION, 'Invalid status.', ['status' => 'invalid']);
+				}
+				$c->setStatus((string)$data['status']);
+				if ($data['status'] === 'done' && $inc->getStatus() === 'action') {
+					$inc->setStatus('verify');
+					$inc->setRevision((int)$inc->getRevision() + 1);
+					$inc->setUpdatedAt($this->timeFactory->getDateTime());
+					$this->incidents->update($inc);
+				}
 			}
+			if (array_key_exists('resolution', $data)) {
+				$c->setResolution(mb_substr((string)$data['resolution'], 0, 1000) ?: null);
+			}
+			$c->setRevision((int)$c->getRevision() + 1);
+			$c->setUpdatedAt($this->timeFactory->getDateTime());
+			$c = $this->correctives->update($c);
+			$this->db->commit();
+		} catch (\Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
 		}
-		if (array_key_exists('resolution', $data)) {
-			$c->setResolution(mb_substr((string)$data['resolution'], 0, 1000) ?: null);
-		}
-		$c->setRevision((int)$c->getRevision() + 1);
-		$c->setUpdatedAt($this->timeFactory->getDateTime());
-		$c = $this->correctives->update($c);
 		$this->journalIncident($inc, $uid, 'corrective_updated:' . $c->getStatus());
 		return $c;
 	}
@@ -385,6 +419,17 @@ class IncidentService
 		}
 		$this->db->beginTransaction();
 		try {
+			// Lock incident → corrective (parent-first) and re-check status
+			// under the lock — a concurrent verify on the stale 'done' read
+			// must not double-verify, double-bump, or double-journal.
+			$inc = $this->incidents->findForUpdate((int)$inc->getId());
+			$c = $this->correctives->findForUpdate($correctiveId);
+			if ($inc === null || $c === null || (int)$c->getIncidentId() !== (int)$inc->getId()) {
+				throw new NotFoundException();
+			}
+			if ($c->getStatus() !== 'done') {
+				throw new DomainException('not_done', 'Only finished actions can be verified.', 409);
+			}
 			$c->setStatus('verified');
 			$c->setVerifiedBy($uid);
 			$c->setVerifiedAt($this->timeFactory->getDateTime());

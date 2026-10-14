@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\TourCheck\Cron;
 
+use OCA\TourCheck\Db\ReportDeliveryMapper;
 use OCA\TourCheck\Db\ReportSchedMapper;
 use OCA\TourCheck\Service\ReportService;
 use OCA\TourCheck\Service\SettingsService;
@@ -23,6 +24,7 @@ class ReportScheduleJob extends TimedJob
 	public function __construct(
 		ITimeFactory $time,
 		private readonly ReportSchedMapper $schedules,
+		private readonly ReportDeliveryMapper $deliveries,
 		private readonly ReportService $reports,
 		private readonly SettingsService $settings,
 		private readonly LoggerInterface $logger,
@@ -52,8 +54,27 @@ class ReportScheduleJob extends TimedJob
 					if ($uid === null) {
 						continue;
 					}
-					$r = $this->reports->generate((int)$sched->getSiteId(), $period, 'sched', (int)$sched->getId(), $uid, ReportService::audienceOf($sched));
-					$this->reports->sendDelivery($r['delivery']);
+					try {
+						$r = $this->reports->generate((int)$sched->getSiteId(), $period, 'sched', (int)$sched->getId(), $uid, ReportService::audienceOf($sched));
+						$dlv = $r['delivery'];
+					} catch (\OCP\DB\Exception $e) {
+						if ($e->getReason() !== \OCP\DB\Exception::REASON_UNIQUE_CONSTRAINT_VIOLATION) {
+							throw $e;
+						}
+						// Delivery row already exists for (sched, period) —
+						// a prior run crashed between insert and last_period.
+						// Retry ONLY the failed leg; never regenerate/remail.
+						$dlv = $this->deliveries->findForSchedPeriod((int)$sched->getId(), $period);
+						if ($dlv === null) {
+							throw $e;
+						}
+						// Crash between row insert and newFile leaves the row
+						// fileless — rebuild the PDF leg, then send.
+						$dlv = $this->reports->ensureDeliveryFile($dlv);
+					}
+					if ($dlv->getStatus() !== 'sent') {
+						$this->reports->sendDelivery($dlv);
+					}
 					$sched->setLastPeriod($period);
 					$this->schedules->update($sched);
 				} catch (\Throwable $e) {

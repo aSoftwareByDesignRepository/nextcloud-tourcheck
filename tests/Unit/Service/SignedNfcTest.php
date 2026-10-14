@@ -58,7 +58,8 @@ final class SignedNfcTest extends TestCase
 		);
 
 		$this->svc = new TokenService(
-			$this->tokenMapper, $this->cpMapper, $this->time, $this->anomaly, $this->settings
+			$this->tokenMapper, $this->cpMapper, $this->time, $this->anomaly, $this->settings,
+			$this->createMock(\OCP\IDBConnection::class)
 		);
 	}
 

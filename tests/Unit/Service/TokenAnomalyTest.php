@@ -230,7 +230,7 @@ final class TokenAnomalyTest extends TestCase
 
 	private function tokenSvc(CheckpointTokenMapper&MockObject $tokens, CheckpointMapper&MockObject $cps, TokenAnomalyService&MockObject $anomaly): TokenService
 	{
-		return new TokenService($tokens, $cps, $this->createMock(ITimeFactory::class), $anomaly, $this->createMock(SettingsService::class));
+		return new TokenService($tokens, $cps, $this->createMock(ITimeFactory::class), $anomaly, $this->createMock(SettingsService::class), $this->createMock(\OCP\IDBConnection::class));
 	}
 
 	public function testResolveMalformedCountsInvalid(): void

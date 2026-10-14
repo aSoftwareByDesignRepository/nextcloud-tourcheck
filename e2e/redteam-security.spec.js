@@ -262,6 +262,31 @@ test.describe('redteam: authorization boundary matrix', () => {
 		}
 	})
 
+	test('CAS race: two concurrent updates on the same revision — exactly one wins', async ({ page }) => {
+		await login(page, ADMIN)
+		const req = page.context().request
+		const ah = await hdr(page)
+		// Seed a scratch site so the race can't corrupt fixture state.
+		const created = await req.post(api('/sites'), { headers: ah, data: { name: `CasRace-${Date.now()}` } })
+		expect(created.status()).toBe(201)
+		const site = (await created.json()).data
+		const base = site.revision
+
+		// Fire both writers on the SAME base revision, truly concurrent.
+		const [a, b] = await Promise.all([
+			req.fetch(api(`/sites/${site.id}`), { method: 'PUT', headers: ah, data: JSON.stringify({ address: 'Writer A', revision: base }) }),
+			req.fetch(api(`/sites/${site.id}`), { method: 'PUT', headers: ah, data: JSON.stringify({ address: 'Writer B', revision: base }) }),
+		])
+		const statuses = [a.status(), b.status()].sort()
+		expect(statuses, 'exactly one writer must win; the loser gets 409').toEqual([200, 409])
+
+		// Final state: revision bumped exactly once — no silent last-writer-wins.
+		const after = await req.get(api(`/sites/${site.id}`), { headers: ah })
+		expect((await after.json()).data.revision).toBe(base + 1)
+
+		await req.delete(api(`/sites/${site.id}`), { headers: ah })
+	})
+
 	test('unauthenticated: API returns 401/redirect, never data', async ({ browser }) => {
 		const ctx = await browser.newContext()
 		const req = ctx.request

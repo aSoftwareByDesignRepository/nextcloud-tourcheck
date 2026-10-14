@@ -110,39 +110,52 @@ class CheckpointService
 	{
 		$this->sites->getVisible($siteId);
 		$uid = $this->acl->assertCanManageSite($siteId);
-		$cp = $this->getInSite($checkpointId, $siteId);
-		$this->sites->assertRevision($cp->getRevision(), $baseRevision);
+		$this->getInSite($checkpointId, $siteId);
+		// Row lock before the CAS check — otherwise two writers both pass
+		// assertRevision on the same base and the second silently wins.
+		$this->db->beginTransaction();
+		try {
+			$cp = $this->checkpoints->findForUpdate($checkpointId);
+			if ($cp === null || (int)$cp->getSiteId() !== $siteId || (int)$cp->getActive() !== 1) {
+				throw new NotFoundException();
+			}
+			$this->sites->assertRevision($cp->getRevision(), $baseRevision);
 
-		if (array_key_exists('name', $data)) {
-			$name = trim((string)$data['name']);
-			if ($name === '' || strlen($name) > 190) {
-				throw new ValidationException(Constants::ERR_VALIDATION, 'Checkpoint name is required.', ['name' => 'required']);
+			if (array_key_exists('name', $data)) {
+				$name = trim((string)$data['name']);
+				if ($name === '' || strlen($name) > 190) {
+					throw new ValidationException(Constants::ERR_VALIDATION, 'Checkpoint name is required.', ['name' => 'required']);
+				}
+				$cp->setName($name);
 			}
-			$cp->setName($name);
-		}
-		if (array_key_exists('instructions', $data)) {
-			$cp->setInstructions(trim((string)$data['instructions']) ?: null);
-		}
-		if (array_key_exists('order_hint', $data)) {
-			$cp->setOrderHint((int)$data['order_hint']);
-		}
-		if (array_key_exists('profile', $data)) {
-			$profile = $this->validateProfile($data['profile']);
-			$cp->setProfileJson($profile !== null ? json_encode($profile) : null);
-		}
-		if (array_key_exists('geo_lat', $data) || array_key_exists('geo_lon', $data)) {
-			$lat = $data['geo_lat'] === null || $data['geo_lat'] === '' ? null : (float)$data['geo_lat'];
-			$lon = $data['geo_lon'] === null || $data['geo_lon'] === '' ? null : (float)$data['geo_lon'];
-			if (($lat !== null) !== ($lon !== null) || ($lat !== null && (abs($lat) > 90 || abs($lon) > 180))) {
-				throw new ValidationException(Constants::ERR_VALIDATION, 'Invalid coordinates.', ['geo' => 'invalid']);
+			if (array_key_exists('instructions', $data)) {
+				$cp->setInstructions(trim((string)$data['instructions']) ?: null);
 			}
-			$cp->setGeoLat($lat);
-			$cp->setGeoLon($lon);
-			$cp->setGeoRadius($lat !== null ? max(10, min(1000, (int)($data['geo_radius'] ?? $cp->getGeoRadius() ?? 100))) : null);
+			if (array_key_exists('order_hint', $data)) {
+				$cp->setOrderHint((int)$data['order_hint']);
+			}
+			if (array_key_exists('profile', $data)) {
+				$profile = $this->validateProfile($data['profile']);
+				$cp->setProfileJson($profile !== null ? json_encode($profile) : null);
+			}
+			if (array_key_exists('geo_lat', $data) || array_key_exists('geo_lon', $data)) {
+				$lat = $data['geo_lat'] === null || $data['geo_lat'] === '' ? null : (float)$data['geo_lat'];
+				$lon = $data['geo_lon'] === null || $data['geo_lon'] === '' ? null : (float)$data['geo_lon'];
+				if (($lat !== null) !== ($lon !== null) || ($lat !== null && (abs($lat) > 90 || abs($lon) > 180))) {
+					throw new ValidationException(Constants::ERR_VALIDATION, 'Invalid coordinates.', ['geo' => 'invalid']);
+				}
+				$cp->setGeoLat($lat);
+				$cp->setGeoLon($lon);
+				$cp->setGeoRadius($lat !== null ? max(10, min(1000, (int)($data['geo_radius'] ?? $cp->getGeoRadius() ?? 100))) : null);
+			}
+			$cp->setRevision((int)$cp->getRevision() + 1);
+			$cp->setUpdatedAt($this->timeFactory->getDateTime());
+			$cp = $this->checkpoints->update($cp);
+			$this->db->commit();
+		} catch (\Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
 		}
-		$cp->setRevision((int)$cp->getRevision() + 1);
-		$cp->setUpdatedAt($this->timeFactory->getDateTime());
-		$cp = $this->checkpoints->update($cp);
 		$this->chain->append($siteId, [
 			'kind' => Constants::KIND_ADMIN,
 			'actorUid' => $uid,
@@ -157,9 +170,15 @@ class CheckpointService
 	{
 		$this->sites->getVisible($siteId);
 		$uid = $this->acl->assertCanManageSite($siteId);
-		$cp = $this->getInSite($checkpointId, $siteId);
+		$this->getInSite($checkpointId, $siteId);
 		$this->db->beginTransaction();
 		try {
+			// Re-read under the row lock — the entity fetched above may be
+			// stale by now (a concurrent update() holds the lock).
+			$cp = $this->checkpoints->findForUpdate($checkpointId);
+			if ($cp === null || (int)$cp->getSiteId() !== $siteId || (int)$cp->getActive() !== 1) {
+				throw new NotFoundException();
+			}
 			$cp->setActive(0);
 			$cp->setRevision((int)$cp->getRevision() + 1);
 			$cp->setUpdatedAt($this->timeFactory->getDateTime());

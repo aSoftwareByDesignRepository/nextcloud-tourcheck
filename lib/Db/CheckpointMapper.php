@@ -28,6 +28,20 @@ class CheckpointMapper extends QBMapper
 		}
 	}
 
+	/** Row lock for CAS updates — call inside an open transaction. */
+	public function findForUpdate(int $id): ?Checkpoint
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')->from($this->getTableName())
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($id)))
+			->forUpdate();
+		try {
+			return $this->findEntity($qb);
+		} catch (DoesNotExistException) {
+			return null;
+		}
+	}
+
 	/** @return list<Checkpoint> */
 	public function findForSite(int $siteId, bool $includeInactive = false): array
 	{

@@ -28,6 +28,21 @@ class ReportDeliveryMapper extends QBMapper
 		}
 	}
 
+	/** Unique (sched_id, period) lookup — rerun leg of the schedule job. */
+	public function findForSchedPeriod(int $schedId, string $period): ?ReportDelivery
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')->from($this->getTableName())
+			->where($qb->expr()->eq('sched_id', $qb->createNamedParameter($schedId)))
+			->andWhere($qb->expr()->eq('period', $qb->createNamedParameter($period)))
+			->setMaxResults(1);
+		try {
+			return $this->findEntity($qb);
+		} catch (DoesNotExistException) {
+			return null;
+		}
+	}
+
 	/** @return list<ReportDelivery> */
 	public function findForSite(int $siteId, int $limit): array
 	{

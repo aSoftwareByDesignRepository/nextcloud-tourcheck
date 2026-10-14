@@ -28,6 +28,7 @@ class TokenService
 		private readonly ITimeFactory $timeFactory,
 		private readonly TokenAnomalyService $anomaly,
 		private readonly SettingsService $settings,
+		private readonly \OCP\IDBConnection $db,
 	) {
 	}
 
@@ -54,17 +55,29 @@ class TokenService
 	 */
 	public function rotate(Checkpoint $checkpoint, string $kind): string
 	{
-		$active = $this->tokens->findActiveForCheckpoint((int)$checkpoint->getId());
-		if ($active !== [] && in_array($active[0]->getKind(), ['qr', 'nfc', 'manual'], true)) {
-			// Kind is a property of the checkpoint's physical token type —
-			// rotation must not silently downgrade nfc/manual back to qr.
-			$kind = (string)$active[0]->getKind();
+		// Row lock on the checkpoint serializes concurrent rotates —
+		// without it two rotates can each revoke the pre-read active set and
+		// issue, leaving TWO live tokens (the un-printed one is leaked-valid).
+		$this->db->beginTransaction();
+		try {
+			$this->checkpoints->findForUpdate((int)$checkpoint->getId());
+			$active = $this->tokens->findActiveForCheckpoint((int)$checkpoint->getId());
+			if ($active !== [] && in_array($active[0]->getKind(), ['qr', 'nfc', 'manual'], true)) {
+				// Kind is a property of the checkpoint's physical token type —
+				// rotation must not silently downgrade nfc/manual back to qr.
+				$kind = (string)$active[0]->getKind();
+			}
+			foreach ($active as $t) {
+				$t->setRevokedAt($this->timeFactory->getDateTime());
+				$this->tokens->update($t);
+			}
+			$raw = $this->issue($checkpoint, $kind);
+			$this->db->commit();
+			return $raw;
+		} catch (\Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
 		}
-		foreach ($active as $t) {
-			$t->setRevokedAt($this->timeFactory->getDateTime());
-			$this->tokens->update($t);
-		}
-		return $this->issue($checkpoint, $kind);
 	}
 
 	/** @return array<int,string> checkpointId → active token kind */
