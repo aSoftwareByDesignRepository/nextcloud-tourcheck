@@ -1,5 +1,11 @@
 {
 	"translations": {
+		"TourCheck round": "TourCheck round",
+		"Round skipped": "Round skipped",
+		"Round missed": "Round missed",
+		"Round completed": "Round completed",
+		"Incident created": "Incident created",
+		"Create one to share this site’s status.": "Create one to share this site’s status.",
 		"%1$d of %2$d done": "%1$d of %2$d done",
 		"%1$d of %2$d — %3$s": "%1$d of %2$d — %3$s",
 		"%d h": "%d h",

@@ -1,5 +1,11 @@
 {
 	"translations": {
+		"TourCheck round": "TourCheck-runde",
+		"Round skipped": "Runde sprunget over",
+		"Round missed": "Runde forpasset",
+		"Round completed": "Runde fuldført",
+		"Incident created": "Hændelse oprettet",
+		"Create one to share this site’s status.": "Opret et for at dele dette objekts status.",
 		"%1$d of %2$d done": "%1$d af %2$d udført",
 		"%1$d of %2$d — %3$s": "%1$d af %2$d — %3$s",
 		"%d h": "%d t",

@@ -1,5 +1,11 @@
 {
 	"translations": {
+		"TourCheck round": "Giro TourCheck",
+		"Round skipped": "Giro saltato",
+		"Round missed": "Giro mancato",
+		"Round completed": "Giro completato",
+		"Incident created": "Incidente creato",
+		"Create one to share this site’s status.": "Creane uno per condividere lo stato di questa sede.",
 		"%1$d of %2$d done": "%1$d di %2$d completati",
 		"%1$d of %2$d — %3$s": "%1$d di %2$d — %3$s",
 		"%d h": "%d h",

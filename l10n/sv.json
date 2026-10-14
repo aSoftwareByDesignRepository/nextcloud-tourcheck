@@ -1,5 +1,11 @@
 {
 	"translations": {
+		"TourCheck round": "TourCheck-rond",
+		"Round skipped": "Rond överhoppad",
+		"Round missed": "Rond missad",
+		"Round completed": "Rond slutförd",
+		"Incident created": "Incident skapad",
+		"Create one to share this site’s status.": "Skapa en för att dela detta objekts status.",
 		"%1$d of %2$d done": "%1$d av %2$d klara",
 		"%1$d of %2$d — %3$s": "%1$d av %2$d — %3$s",
 		"%d h": "%d h",
