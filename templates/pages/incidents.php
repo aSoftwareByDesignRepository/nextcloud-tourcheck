@@ -1,5 +1,6 @@
 <?php
 /** @var array $_ @var \OCP\IL10N $l */
+use OCA\TourCheck\Support\Badge;
 $incidents = (array)($_['incidents'] ?? []);
 $sites = (array)($_['sites'] ?? []);
 $uid = (string)($_['uid'] ?? '');
@@ -10,12 +11,22 @@ $catLabel = [
 ];
 $statusLabel = ['open' => $l->t('Open'), 'action' => $l->t('In progress'), 'verify' => $l->t('To verify'), 'closed' => $l->t('Closed')];
 $corrStatusLabel = ['open' => $l->t('Open'), 'done' => $l->t('Done'), 'verified' => $l->t('Verified')];
+$pills = [
+	'' => $l->t('All'),
+	'open' => $l->t('Open'),
+	'action' => $l->t('In progress'),
+	'verify' => $l->t('To verify'),
+	'closed' => $l->t('Closed'),
+];
 ?>
 <section aria-labelledby="tck-inc-title">
-	<div class="tck-section-head">
-		<h2 id="tck-inc-title" class="tck-section-title"><?php p($l->t('Incidents')); ?></h2>
+	<div class="tck-list-head">
+		<h2 id="tck-inc-title" class="tck-list-head__title"><?php p($l->t('Incidents')); ?></h2>
+		<span class="tck-list-head__count" data-tck-incidents-count role="status"></span>
 		<?php if ($sites !== []): ?>
-			<button type="button" class="tck-btn tck-btn--primary" data-tck-new-incident><?php p($l->t('New incident')); ?></button>
+			<span class="tck-list-head__actions">
+				<button type="button" class="tck-btn tck-btn--primary" data-tck-new-incident><?php p($l->t('New incident')); ?></button>
+			</span>
 		<?php endif; ?>
 	</div>
 	<?php if ($sites !== []): ?>
@@ -60,20 +71,40 @@ $corrStatusLabel = ['open' => $l->t('Open'), 'done' => $l->t('Done'), 'verified'
 		</form>
 	<?php endif; ?>
 	<?php if ($incidents === []): ?>
-		<p class="tck-empty"><?php p($sites === [] ? $l->t('No incidents recorded.') : $l->t('No incidents recorded. If something happens on a round, report it here.')); ?></p>
+		<div class="tck-empty-state">
+			<p class="tck-empty-state__title"><?php p($l->t('No incidents recorded')); ?></p>
+			<p class="tck-empty-state__text"><?php p($sites === [] ? $l->t('Incidents need a site first.') : $l->t('If something happens on a round, report it here.')); ?></p>
+			<?php if ($sites !== []): ?>
+				<button type="button" class="tck-btn tck-btn--primary" data-tck-new-incident><?php p($l->t('Report an incident')); ?></button>
+			<?php endif; ?>
+		</div>
 	<?php else: ?>
-		<ul class="tck-list">
+		<div class="tck-quick-filters">
+			<span class="tck-quick-filters__label" id="tck-incidents-filter-label"><?php p($l->t('Show')); ?></span>
+			<div class="tck-filter-bar" data-tck-incidents-filter aria-labelledby="tck-incidents-filter-label">
+				<?php foreach ($pills as $value => $label): ?>
+					<button type="button" class="tck-filter" data-value="<?php p($value); ?>" aria-pressed="<?php p($value === '' ? 'true' : 'false'); ?>">
+						<?php p($label); ?>
+					</button>
+				<?php endforeach; ?>
+			</div>
+		</div>
+		<div class="tck-empty-state" data-tck-incidents-empty-filtered hidden>
+			<p class="tck-empty-state__title"><?php p($l->t('Nothing matches')); ?></p>
+			<p class="tck-empty-state__text"><?php p($l->t('Pick another status to see more incidents.')); ?></p>
+		</div>
+		<ul class="tck-list" data-tck-incidents-list>
 			<?php foreach ($incidents as $i): ?>
 				<?php $closed = $i['status'] === 'closed'; ?>
-				<li class="tck-incident">
+				<li class="tck-incident" data-status="<?php p((string)$i['status']); ?>">
 					<div class="tck-list__row">
 						<span class="tck-list__main">
 							<span class="tck-list__title"><?php p((string)$i['title']); ?></span>
 							<span class="tck-list__sub"><?php p((string)$i['siteName'] . ' · ' . $i['timeLabel']); ?></span>
 						</span>
 						<span class="tck-list__aside">
-							<span class="tck-badge tck-badge--sev-<?php p((string)$i['severity']); ?>"><?php p($sevLabel[$i['severity']] ?? $i['severity']); ?></span>
-							<span class="tck-badge"><?php p($statusLabel[$i['status']] ?? $i['status']); ?></span>
+							<?php print_unescaped(Badge::render((string)($sevLabel[$i['severity']] ?? $i['severity']), Badge::incidentSeverity((string)$i['severity']))); ?>
+							<?php print_unescaped(Badge::render((string)($statusLabel[$i['status']] ?? $i['status']), Badge::incidentStatus((string)$i['status']))); ?>
 							<button type="button" class="tck-btn" data-tck-incident-toggle
 								aria-expanded="false" aria-controls="tck-inc-detail-<?php p((string)$i['id']); ?>">
 								<?php p($l->t('Details')); ?>

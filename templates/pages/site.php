@@ -1,6 +1,7 @@
 <?php
 $urlGenerator = $_['urlGenerator'] ?? \OCP\Server::get(\OCP\IURLGenerator::class);
 /** @var array $_ @var \OCP\IL10N $l */
+use OCA\TourCheck\Support\Badge;
 $site = $_['site'] ?? null;
 $checkpoints = (array)($_['checkpoints'] ?? []);
 $plans = (array)($_['plans'] ?? []);
@@ -10,21 +11,36 @@ $members = (array)($_['members'] ?? []);
 $kindLabel = ['qr' => $l->t('QR code'), 'nfc' => $l->t('NFC tag'), 'manual' => $l->t('Manual button')];
 $checkpointKinds = (array)($_['checkpointKinds'] ?? []);
 $templates = (array)($_['templates'] ?? []);
+$canManage = !empty($_['canManage']);
+$tckKeys = (array)($_['keys'] ?? []);
+$tckKeyLog = (array)($_['keyLog'] ?? []);
 ?>
 <?php if ($site): ?>
-<section aria-labelledby="tck-cp-title">
-	<div class="tck-section-head">
-		<h2 id="tck-cp-title" class="tck-section-title"><?php p($l->t('Checkpoints')); ?></h2>
-		<div class="tck-btn-row">
-			<?php if (!empty($_['canManage']) && $checkpoints !== []): ?>
+<nav class="tck-chipbar" aria-label="<?php p($l->t('On this page')); ?>">
+	<a class="tck-chipbar__chip" href="#tck-sec-checkpoints"><?php p($l->t('Checkpoints')); ?></a>
+	<a class="tck-chipbar__chip" href="#tck-sec-plans"><?php p($l->t('Plans')); ?></a>
+	<a class="tck-chipbar__chip" href="#tck-sec-keys"><?php p($l->t('Keys')); ?></a>
+	<a class="tck-chipbar__chip" href="#tck-sec-members"><?php p($l->t('Members')); ?></a>
+	<?php if ($canManage): ?>
+		<a class="tck-chipbar__chip" href="#tck-sec-live"><?php p($l->t('Live links')); ?></a>
+		<a class="tck-chipbar__chip" href="#tck-sec-privacy"><?php p($l->t('Privacy')); ?></a>
+	<?php endif; ?>
+</nav>
+
+<section id="tck-sec-checkpoints" aria-labelledby="tck-cp-title">
+	<div class="tck-list-head">
+		<h2 id="tck-cp-title" class="tck-list-head__title"><?php p($l->t('Checkpoints')); ?></h2>
+		<span class="tck-list-head__count"><?php p($l->t('%n in walk order', ['%n' => count($checkpoints)])); ?></span>
+		<div class="tck-list-head__actions">
+			<?php if ($canManage && $checkpoints !== []): ?>
 				<a class="tck-btn" href="<?php p($urlGenerator->linkToRoute('tourcheck.page.qrSheet', ['siteId' => $site->getId()])); ?>" target="_blank" rel="noopener"><?php p($l->t('Print QR sheet')); ?></a>
 			<?php endif; ?>
-			<?php if (!empty($_['canManage'])): ?>
+			<?php if ($canManage): ?>
 				<button type="button" class="tck-btn tck-btn--primary" data-tck-new-cp><?php p($l->t('New checkpoint')); ?></button>
 			<?php endif; ?>
 		</div>
 	</div>
-	<?php if (!empty($_['canManage'])): ?>
+	<?php if ($canManage): ?>
 		<form class="tck-form tck-hidden" id="tck-cp-form" data-tck-cp-form data-site-id="<?php p($site->getId()); ?>" novalidate>
 			<div class="tck-field">
 				<label for="tck-cp-name"><?php p($l->t('Name')); ?></label>
@@ -89,8 +105,11 @@ $templates = (array)($_['templates'] ?? []);
 		</form>
 	<?php endif; ?>
 	<?php if ($checkpoints === []): ?>
-		<p class="tck-empty"><?php p($l->t('No checkpoints yet. Add one, print its QR code, and stick it where the guard must go.')); ?></p>
-		<?php if (!empty($_['canManage']) && $templates !== []): ?>
+		<div class="tck-empty-state">
+			<p class="tck-empty-state__title"><?php p($l->t('No checkpoints yet')); ?></p>
+			<p class="tck-empty-state__text"><?php p($l->t('Add one, print its QR code, and stick it where the guard must go.')); ?></p>
+		</div>
+		<?php if ($canManage && $templates !== []): ?>
 			<form class="tck-form" data-tck-template-form data-site-id="<?php p($site->getId()); ?>" novalidate>
 				<div class="tck-field">
 					<label for="tck-template-key"><?php p($l->t('Or start from a template')); ?></label>
@@ -114,7 +133,7 @@ $templates = (array)($_['templates'] ?? []);
 						<span class="tck-list__title"><?php p($cp->getName()); ?></span>
 						<span class="tck-list__sub"><?php $k = $checkpointKinds[(int)$cp->getId()] ?? 'qr'; p($kindLabel[$k] ?? $k); ?></span>
 					</span>
-					<?php if (!empty($_['canManage'])): ?>
+					<?php if ($canManage): ?>
 						<button type="button" class="tck-btn tck-btn--danger" data-tck-archive-cp="<?php p($cp->getId()); ?>" data-site-id="<?php p($site->getId()); ?>"><?php p($l->t('Archive')); ?></button>
 					<?php endif; ?>
 				</li>
@@ -123,14 +142,17 @@ $templates = (array)($_['templates'] ?? []);
 	<?php endif; ?>
 </section>
 
-<section aria-labelledby="tck-plan-title">
-	<div class="tck-section-head">
-		<h2 id="tck-plan-title" class="tck-section-title"><?php p($l->t('Plans')); ?></h2>
-		<?php if (!empty($_['canManage'])): ?>
-			<button type="button" class="tck-btn tck-btn--primary" data-tck-new-plan><?php p($l->t('New plan')); ?></button>
+<section id="tck-sec-plans" aria-labelledby="tck-plan-title">
+	<div class="tck-list-head">
+		<h2 id="tck-plan-title" class="tck-list-head__title"><?php p($l->t('Plans')); ?></h2>
+		<span class="tck-list-head__count"><?php p($l->t('%n configured', ['%n' => count($plans)])); ?></span>
+		<?php if ($canManage): ?>
+			<div class="tck-list-head__actions">
+				<button type="button" class="tck-btn tck-btn--primary" data-tck-new-plan><?php p($l->t('New plan')); ?></button>
+			</div>
 		<?php endif; ?>
 	</div>
-	<?php if (!empty($_['canManage'])): ?>
+	<?php if ($canManage): ?>
 		<form class="tck-form tck-hidden" id="tck-plan-form" data-tck-plan-form data-site-id="<?php p($site->getId()); ?>" novalidate>
 			<div class="tck-field">
 				<label for="tck-plan-name"><?php p($l->t('Plan name')); ?></label>
@@ -195,18 +217,21 @@ $templates = (array)($_['templates'] ?? []);
 		</form>
 	<?php endif; ?>
 	<?php if ($plans === []): ?>
-		<p class="tck-empty"><?php p($l->t('No plan yet. A plan says which checkpoints a round needs and when it runs.')); ?></p>
+		<div class="tck-empty-state">
+			<p class="tck-empty-state__title"><?php p($l->t('No plan yet')); ?></p>
+			<p class="tck-empty-state__text"><?php p($l->t('A plan says which checkpoints a round needs and when it runs.')); ?></p>
+		</div>
 	<?php else: ?>
 		<ul class="tck-list">
 			<?php foreach ($plans as $plan): ?>
 				<li class="tck-list__row">
 					<span class="tck-list__main">
-						<span class="tck-list__title"><?php p($plan['name']); ?></span>
+						<span class="tck-list__title"><?php p((string)$plan['name']); ?></span>
 						<span class="tck-list__sub"><?php p($l->t('v%d · %s', [(int)$plan['revision'], (string)$plan['summary']])); ?></span>
 					</span>
 					<span class="tck-list__aside">
-						<span class="tck-badge tck-badge--<?php p($plan['active'] ? 'ok' : 'warn'); ?>"><?php p($plan['active'] ? $l->t('Active') : $l->t('Inactive')); ?></span>
-						<?php if (!empty($_['canManage'])): ?>
+						<?php print_unescaped(Badge::render($plan['active'] ? $l->t('Active') : $l->t('Inactive'), Badge::onOff($plan['active']))); ?>
+						<?php if ($canManage): ?>
 							<button type="button" class="tck-btn" data-tck-plan-state="<?php p((string)$plan['id']); ?>" data-active="<?php p($plan['active'] ? '1' : '0'); ?>">
 								<?php p($plan['active'] ? $l->t('Deactivate') : $l->t('Activate')); ?>
 							</button>
@@ -218,14 +243,17 @@ $templates = (array)($_['templates'] ?? []);
 	<?php endif; ?>
 </section>
 
-<section aria-labelledby="tck-keys-title">
-	<div class="tck-section-head">
-		<h2 id="tck-keys-title" class="tck-section-title"><?php p($l->t('Keys')); ?></h2>
-		<?php if (!empty($_['canManage'])): ?>
-			<button type="button" class="tck-btn tck-btn--primary" data-tck-new-key><?php p($l->t('Register key')); ?></button>
+<section id="tck-sec-keys" aria-labelledby="tck-keys-title">
+	<div class="tck-list-head">
+		<h2 id="tck-keys-title" class="tck-list-head__title"><?php p($l->t('Keys')); ?></h2>
+		<span class="tck-list-head__count"><?php p($l->t('%n registered', ['%n' => count($tckKeys)])); ?></span>
+		<?php if ($canManage): ?>
+			<div class="tck-list-head__actions">
+				<button type="button" class="tck-btn tck-btn--primary" data-tck-new-key><?php p($l->t('Register key')); ?></button>
+			</div>
 		<?php endif; ?>
 	</div>
-	<?php if (!empty($_['canManage'])): ?>
+	<?php if ($canManage): ?>
 		<form class="tck-form tck-hidden" id="tck-key-form" data-tck-key-form data-site-id="<?php p($site->getId()); ?>" novalidate>
 			<div class="tck-field">
 				<label for="tck-key-label"><?php p($l->t('Key label')); ?></label>
@@ -238,9 +266,11 @@ $templates = (array)($_['templates'] ?? []);
 			</div>
 		</form>
 	<?php endif; ?>
-	<?php $tckKeys = (array)($_['keys'] ?? []); $tckKeyLog = (array)($_['keyLog'] ?? []); ?>
 	<?php if ($tckKeys === []): ?>
-		<p class="tck-empty"><?php p($l->t('No keys registered. Register a key to track who has it.')); ?></p>
+		<div class="tck-empty-state">
+			<p class="tck-empty-state__title"><?php p($l->t('No keys registered')); ?></p>
+			<p class="tck-empty-state__text"><?php p($l->t('Register a key to track who has it.')); ?></p>
+		</div>
 	<?php else: ?>
 		<ul class="tck-list" data-tck-key-list data-site-id="<?php p($site->getId()); ?>">
 			<?php foreach ($tckKeys as $k): ?>
@@ -250,7 +280,7 @@ $templates = (array)($_['templates'] ?? []);
 						<span class="tck-list__sub"><?php p($k['status'] === 'out' ? $l->t('Taken') : $l->t('In the register')); ?></span>
 					</span>
 					<span class="tck-list__aside">
-						<span class="tck-badge tck-badge--<?php p($k['status'] === 'out' ? 'warn' : 'ok'); ?>"><?php p($k['status'] === 'out' ? $l->t('Out') : $l->t('In')); ?></span>
+						<?php print_unescaped(Badge::render($k['status'] === 'out' ? $l->t('Out') : $l->t('In'), $k['status'] === 'out' ? 'warning' : 'success')); ?>
 						<button type="button" class="tck-btn" data-tck-key-act="<?php p((string)$k['id']); ?>" data-act="<?php p($k['status'] === 'out' ? 'return' : 'take'); ?>">
 							<?php p($k['status'] === 'out' ? $l->t('Return') : $l->t('Take')); ?>
 						</button>
@@ -276,14 +306,17 @@ $templates = (array)($_['templates'] ?? []);
 	<?php endif; ?>
 </section>
 
-<section aria-labelledby="tck-mem-title">
-	<div class="tck-section-head">
-		<h2 id="tck-mem-title" class="tck-section-title"><?php p($l->t('Members')); ?></h2>
-		<?php if (!empty($_['canManage'])): ?>
-			<button type="button" class="tck-btn tck-btn--primary" data-tck-new-member><?php p($l->t('Add member')); ?></button>
+<section id="tck-sec-members" aria-labelledby="tck-mem-title">
+	<div class="tck-list-head">
+		<h2 id="tck-mem-title" class="tck-list-head__title"><?php p($l->t('Members')); ?></h2>
+		<span class="tck-list-head__count"><?php p($l->t('%n assigned', ['%n' => count($members)])); ?></span>
+		<?php if ($canManage): ?>
+			<div class="tck-list-head__actions">
+				<button type="button" class="tck-btn tck-btn--primary" data-tck-new-member><?php p($l->t('Add member')); ?></button>
+			</div>
 		<?php endif; ?>
 	</div>
-	<?php if (!empty($_['canManage'])): ?>
+	<?php if ($canManage): ?>
 		<form class="tck-form tck-hidden" id="tck-member-form" data-tck-member-form data-site-id="<?php p($site->getId()); ?>" novalidate>
 			<div class="tck-field">
 				<label for="tck-mem-uid"><?php p($l->t('User')); ?></label>
@@ -305,7 +338,10 @@ $templates = (array)($_['templates'] ?? []);
 		</form>
 	<?php endif; ?>
 	<?php if ($members === []): ?>
-		<p class="tck-empty"><?php p($l->t('Nobody is assigned to this site yet.')); ?></p>
+		<div class="tck-empty-state">
+			<p class="tck-empty-state__title"><?php p($l->t('No members yet')); ?></p>
+			<p class="tck-empty-state__text"><?php p($l->t('Assign people so they can see and work this site.')); ?></p>
+		</div>
 	<?php else: ?>
 		<ul class="tck-list">
 			<?php foreach ($members as $m): ?>
@@ -315,8 +351,8 @@ $templates = (array)($_['templates'] ?? []);
 						<span class="tck-list__sub"><?php p((string)$m['uid']); ?></span>
 					</span>
 					<span class="tck-list__aside">
-						<span class="tck-badge"><?php p((string)$m['role']); ?></span>
-						<?php if (!empty($_['canManage'])): ?>
+						<?php print_unescaped(Badge::render((string)$m['role'], 'info')); ?>
+						<?php if ($canManage): ?>
 							<button type="button" class="tck-btn tck-btn--danger" data-tck-remove-member="<?php p((string)$m['uid']); ?>" data-site-id="<?php p($site->getId()); ?>"><?php p($l->t('Remove')); ?></button>
 						<?php endif; ?>
 					</span>
@@ -326,11 +362,14 @@ $templates = (array)($_['templates'] ?? []);
 	<?php endif; ?>
 </section>
 
-<?php if (!empty($_['canManage'])): ?>
-<section aria-labelledby="tck-live-title">
-	<div class="tck-section-head">
-		<h2 id="tck-live-title" class="tck-section-title"><?php p($l->t('Live links')); ?></h2>
-		<button type="button" class="tck-btn tck-btn--primary" data-tck-new-live><?php p($l->t('New live link')); ?></button>
+<?php if ($canManage): ?>
+<section id="tck-sec-live" aria-labelledby="tck-live-title">
+	<div class="tck-list-head">
+		<h2 id="tck-live-title" class="tck-list-head__title"><?php p($l->t('Live links')); ?></h2>
+		<span class="tck-list-head__count"><?php p($l->t('%n shared', ['%n' => count($liveLinks)])); ?></span>
+		<div class="tck-list-head__actions">
+			<button type="button" class="tck-btn tck-btn--primary" data-tck-new-live><?php p($l->t('New live link')); ?></button>
+		</div>
 	</div>
 	<p class="tck-hint"><?php p($l->t("A live link shows this site’s status to anyone with the URL — no login needed. Share it with the object’s owner.")); ?></p>
 	<form class="tck-form tck-hidden" id="tck-live-form" data-tck-live-form data-site-id="<?php p($site->getId()); ?>" data-live-base="<?php p($liveBase); ?>" novalidate>
@@ -347,15 +386,19 @@ $templates = (array)($_['templates'] ?? []);
 			<button type="button" class="tck-btn" data-tck-cancel><?php p($l->t('Cancel')); ?></button>
 		</div>
 	</form>
-	<div class="tck-notice tck-hidden" id="tck-live-created" role="status">
-		<p><?php p($l->t('Link created — copy it now. It will not be shown again.')); ?></p>
+	<div class="tck-callout tck-callout--success tck-hidden" id="tck-live-created" role="status">
+		<p class="tck-callout__title"><?php p($l->t('Link created — copy it now')); ?></p>
+		<p><?php p($l->t('It will not be shown again.')); ?></p>
 		<div class="tck-copy-row">
 			<code id="tck-live-url" class="tck-copy-row__text"></code>
 			<button type="button" class="tck-btn" id="tck-live-copy"><?php p($l->t('Copy')); ?></button>
 		</div>
 	</div>
 	<?php if ($liveLinks === []): ?>
-		<p class="tck-empty"><?php p($l->t("No live links yet. Create one to share this site’s status.")); ?></p>
+		<div class="tck-empty-state">
+			<p class="tck-empty-state__title"><?php p($l->t('No live links yet')); ?></p>
+			<p class="tck-empty-state__text"><?php p($l->t("Create one to share this site’s status.")); ?></p>
+		</div>
 	<?php else: ?>
 		<ul class="tck-list">
 			<?php foreach ($liveLinks as $ll): ?>
@@ -372,7 +415,9 @@ $templates = (array)($_['templates'] ?? []);
 							}
 						?></span>
 					</span>
-					<?php if (!$ll['revoked']): ?>
+					<?php if ($ll['revoked']): ?>
+						<?php print_unescaped(Badge::render($l->t('Revoked'), 'danger')); ?>
+					<?php else: ?>
 						<button type="button" class="tck-btn tck-btn--danger" data-tck-revoke-live="<?php p((string)$ll['id']); ?>"><?php p($l->t('Revoke')); ?></button>
 					<?php endif; ?>
 				</li>
@@ -380,9 +425,9 @@ $templates = (array)($_['templates'] ?? []);
 		</ul>
 	<?php endif; ?>
 </section>
-<section aria-labelledby="tck-privacy-title">
-	<div class="tck-section-head">
-		<h2 id="tck-privacy-title" class="tck-section-title"><?php p($l->t('Privacy')); ?></h2>
+<section id="tck-sec-privacy" aria-labelledby="tck-privacy-title">
+	<div class="tck-list-head">
+		<h2 id="tck-privacy-title" class="tck-list-head__title"><?php p($l->t('Privacy')); ?></h2>
 	</div>
 	<div class="tck-field tck-field--check">
 		<input id="tck-live-pos" type="checkbox" data-tck-live-pos

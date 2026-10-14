@@ -1,10 +1,12 @@
 <?php /** @var array $_ @var \OCP\IL10N $l */ $stations = (array)($_['stations'] ?? []); $v = (array)($_['settings'] ?? []); $siteCps = (array)($_['siteCheckpoints'] ?? []); ?>
 <?php $siteOptions = (array)($_['siteOptions'] ?? []); ?>
 <section aria-labelledby="tck-st-title">
-	<div class="tck-section-head">
-		<h2 id="tck-st-title" class="tck-section-title"><?php p($l->t('Stations')); ?></h2>
+	<div class="tck-list-head">
+		<h2 id="tck-st-title" class="tck-list-head__title"><?php p($l->t('Stations')); ?></h2>
 		<?php if ($siteOptions !== []): ?>
-			<button type="button" class="tck-btn tck-btn--primary" data-tck-new-station><?php p($l->t('Add station')); ?></button>
+			<div class="tck-list-head__actions">
+				<button type="button" class="tck-btn tck-btn--primary" data-tck-new-station><?php p($l->t('Add station')); ?></button>
+			</div>
 		<?php endif; ?>
 	</div>
 	<?php if ($siteOptions !== []): ?>
@@ -29,7 +31,10 @@
 		</form>
 	<?php endif; ?>
 	<?php if ($stations === []): ?>
-		<p class="tck-empty"><?php p($l->t('No stations enrolled. Pair a kiosk device from the companion app.')); ?></p>
+		<div class="tck-empty-state">
+			<p class="tck-empty-state__title"><?php p($l->t('No stations enrolled')); ?></p>
+			<p class="tck-empty-state__text"><?php p($l->t('Pair a kiosk device from the companion app.')); ?></p>
+		</div>
 	<?php else: ?>
 		<ul class="tck-list">
 			<?php foreach ($stations as $st): ?>
@@ -53,7 +58,7 @@
 			<?php endforeach; ?>
 		</ul>
 	<?php endif; ?>
-	<div class="tck-notice tck-hidden" id="tck-pair-card" role="status" aria-live="polite">
+	<div class="tck-callout tck-callout--success tck-hidden" id="tck-pair-card" role="status" aria-live="polite">
 		<p><strong><?php p($l->t('Scan this code on the kiosk device — valid for 10 minutes, single use.')); ?></strong></p>
 		<div id="tck-pair-qr" class="tck-pair-qr" aria-label="<?php p($l->t('Pairing QR code')); ?>"></div>
 		<div class="tck-copy-row">

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\TourCheck;
 
 use OCP\Capabilities\IPublicCapability;
+use OCP\IURLGenerator;
 
 /**
  * Suite flange advertisement (F11): MobilityCheck capability-detects
@@ -13,13 +14,18 @@ use OCP\Capabilities\IPublicCapability;
  */
 class Capabilities implements IPublicCapability
 {
+	public function __construct(private IURLGenerator $urlGenerator)
+	{
+	}
+
 	public function getCapabilities(): array
 	{
 		return [
 			'check' => [
 				'drive-segments' => [
 					'version' => 1,
-					'endpoint' => '/apps/tourcheck/api/drive-segments',
+					// linkToRoute keeps webroot + /index.php correct for consumers.
+					'endpoint' => $this->urlGenerator->linkToRoute('tourcheck.api.driveSegments'),
 				],
 			],
 		];

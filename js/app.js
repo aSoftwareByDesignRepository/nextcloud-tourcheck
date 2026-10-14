@@ -955,6 +955,107 @@
 		});
 	});
 
+	/* --- list filters: canonical recipes §3.6b (panel) + §3.6c (pills) ---
+	   Every filterable list shows "X of Y" and swaps to a filtered-empty
+	   state instead of a blank area when nothing matches. */
+	var VC = window.CheckViewComponents || {};
+
+	function countText(countEl, shown, total, nounSingle, nounPlural) {
+		if (!countEl) { return; }
+		var noun = shown === 1 ? nounSingle : nounPlural;
+		countEl.textContent = shown === total
+			? t('{n} ' + noun).replace('{n}', String(shown))
+			: t('{n} of {m} ' + noun).replace('{n}', String(shown)).replace('{m}', String(total));
+	}
+
+	function filterRows(rows, match, countEl, emptyEl, containerEl, nounSingle, nounPlural) {
+		var shown = 0;
+		rows.forEach(function (row) {
+			var ok = match(row);
+			row.hidden = !ok;
+			if (ok) { shown++; }
+		});
+		countText(countEl, shown, rows.length, nounSingle, nounPlural);
+		if (emptyEl) { emptyEl.hidden = shown !== 0; }
+		if (containerEl) { containerEl.hidden = shown === 0; }
+	}
+
+	/* rounds: status pills — 'done' is a group over the terminal-good
+	   statuses so the pills stay human words, not enum values. */
+	(function () {
+		var bar = document.querySelector('[data-tck-rounds-filter]');
+		var list = document.querySelector('[data-tck-rounds-list]');
+		if (!bar || !list || !VC.pillGroup) { return; }
+		var rows = Array.prototype.slice.call(list.children);
+		var countEl = document.querySelector('[data-tck-rounds-count]');
+		var emptyEl = document.querySelector('[data-tck-rounds-empty-filtered]');
+		var groups = { done: ['completed', 'partial', 'attested', 'done'] };
+		var apply = function (value) {
+			filterRows(rows, function (row) {
+				if (value === '') { return true; }
+				var wanted = groups[value] || [value];
+				return wanted.indexOf(row.getAttribute('data-status')) >= 0;
+			}, countEl, emptyEl, list, 'round', 'rounds');
+		};
+		VC.pillGroup(bar, apply);
+	}());
+
+	/* incidents: status pills map 1:1 onto the row status. */
+	(function () {
+		var bar = document.querySelector('[data-tck-incidents-filter]');
+		var list = document.querySelector('[data-tck-incidents-list]');
+		if (!bar || !list || !VC.pillGroup) { return; }
+		var rows = Array.prototype.slice.call(list.children);
+		var countEl = document.querySelector('[data-tck-incidents-count]');
+		var emptyEl = document.querySelector('[data-tck-incidents-empty-filtered]');
+		VC.pillGroup(bar, function (value) {
+			filterRows(rows, function (row) {
+				return value === '' || row.getAttribute('data-status') === value;
+			}, countEl, emptyEl, list, 'incident', 'incidents');
+		});
+	}());
+
+	/* journal: recipe-A panel — free text + method select over rows. */
+	(function () {
+		var form = document.querySelector('[data-tck-journal-filter]');
+		var wrap = document.querySelector('[data-tck-journal-table]');
+		if (!form || !wrap || !VC.bindListFilter) { return; }
+		var rows = Array.prototype.slice.call(wrap.querySelectorAll('tbody tr'));
+		var countEl = document.querySelector('[data-tck-journal-count]');
+		var emptyEl = document.querySelector('[data-tck-journal-empty-filtered]');
+		VC.bindListFilter(form, function (values) {
+			var q = (values.q || '').trim().toLowerCase();
+			var method = values.method || '';
+			filterRows(rows, function (row) {
+				if (method !== '' && row.getAttribute('data-method') !== method) { return false; }
+				return q === '' || (row.getAttribute('data-search') || '').indexOf(q) >= 0;
+			}, countEl, emptyEl, wrap, 'entry', 'entries');
+		});
+		/* bindListFilter only fires on change — apply once so the count
+		   is populated on first paint. */
+		filterRows(rows, function () { return true; }, countEl, emptyEl, wrap, 'entry', 'entries');
+	}());
+
+	/* sites + reports: recipe-A panel, free-text search only. */
+	[
+		{ form: '[data-tck-sites-filter]', list: '[data-tck-sites-list]', count: '[data-tck-sites-count]', empty: '[data-tck-sites-empty-filtered]', single: 'site', plural: 'sites' },
+		{ form: '[data-tck-reports-filter]', list: '[data-tck-reports-list]', count: '[data-tck-reports-count]', empty: '[data-tck-reports-empty-filtered]', single: 'report', plural: 'reports' },
+	].forEach(function (cfg) {
+		var form = document.querySelector(cfg.form);
+		var list = document.querySelector(cfg.list);
+		if (!form || !list || !VC.bindListFilter) { return; }
+		var rows = Array.prototype.slice.call(list.children);
+		var countEl = document.querySelector(cfg.count);
+		var emptyEl = document.querySelector(cfg.empty);
+		VC.bindListFilter(form, function (values) {
+			var q = (values.q || '').trim().toLowerCase();
+			filterRows(rows, function (row) {
+				return q === '' || (row.getAttribute('data-search') || '').indexOf(q) >= 0;
+			}, countEl, emptyEl, list, cfg.single, cfg.plural);
+		});
+		filterRows(rows, function () { return true; }, countEl, emptyEl, list, cfg.single, cfg.plural);
+	});
+
 	/* --- license: apply + remove --- */
 	var licForm = document.querySelector('[data-tck-license]');
 	if (licForm) {

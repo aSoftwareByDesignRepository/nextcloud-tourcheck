@@ -155,21 +155,10 @@
 .tck-picker__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .tck-picker__id { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
 
-/* --- tiles / badges / lists --- */
-.tck-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--tck-space-3); }
-.tck-tile { display: flex; flex-direction: column; align-items: center; padding: var(--tck-space-4); border: 1px solid var(--color-border); border-radius: var(--tck-radius-md); background: var(--color-main-background); }
-.tck-tile__num { font-size: var(--tck-fs-2xl); font-weight: 700; }
-.tck-tile__label { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
-.tck-tile--missed .tck-tile__num { color: var(--tck-danger-ink); }
-.tck-tile--done .tck-tile__num { color: var(--color-success-text, var(--color-success)); }
-.tck-tile--due .tck-tile__num, .tck-tile--active .tck-tile__num { color: var(--color-primary-element); }
-
-.tck-badge { display: inline-flex; align-items: center; min-height: 28px; padding: 0 var(--tck-space-3); border-radius: var(--tck-radius-pill); border: 1px solid color-mix(in srgb, currentColor 35%, transparent); font-size: var(--tck-fs-sm); background: var(--color-background-dark); color: var(--color-main-text); white-space: nowrap; }
-.tck-badge--done, .tck-badge--attested, .tck-badge--ok, .tck-badge--active { background: var(--tck-tint-success); color: var(--color-success-text, var(--color-success)); }
-.tck-badge--missed, .tck-badge--failed, .tck-badge--warn, .tck-badge--sev-critical, .tck-badge--sev-high { background: var(--tck-tint-danger); color: var(--tck-danger-ink); }
-.tck-badge--partial, .tck-badge--sev-medium, .tck-badge--sev-low, .tck-badge--due { background: var(--tck-tint-warning); color: var(--color-warning-text, var(--color-warning)); }
-.tck-badge--scheduled, .tck-badge--pending, .tck-badge--archived { background: var(--color-background-dark); }
-
+/* --- lists ---
+   Stat tiles, badges, filter panels, list heads, empty states and
+   callouts come from the shared view-components layer — do not restyle
+   them here (load order lets these rules win, keep it minimal). */
 .tck-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--tck-space-2); }
 .tck-list__row { display: flex; align-items: center; gap: var(--tck-space-3); min-height: var(--tck-touch); padding: var(--tck-space-2) var(--tck-space-3); border: 1px solid var(--color-border); border-radius: var(--tck-radius-md); background: var(--color-main-background); }
 .tck-list__main { flex: 1; display: flex; flex-direction: column; min-width: 0; color: var(--color-main-text); text-decoration: none; }
@@ -190,7 +179,6 @@
 
 .tck-section-title { font-size: var(--tck-fs-xl); margin: 0 0 var(--tck-space-3); }
 .tck-section-head { display: flex; align-items: center; justify-content: space-between; gap: var(--tck-space-3); flex-wrap: wrap; margin-bottom: var(--tck-space-3); }
-.tck-empty { color: var(--color-text-maxcontrast); padding: var(--tck-space-5); text-align: center; border: 1px dashed var(--color-border); border-radius: var(--tck-radius-md); }
 .tck-hint { color: var(--color-text-maxcontrast); margin: 0 0 var(--tck-space-3); max-width: 46rem; }
 .tck-notice { border: 1px solid var(--tck-border-strong); border-radius: var(--tck-radius-md); padding: var(--tck-space-3); margin-bottom: var(--tck-space-3); background: var(--color-background-dark); }
 .tck-notice--warn { border-color: var(--color-warning); background: var(--tck-tint-warning); color: var(--tck-notif-fg-warning); }
@@ -200,14 +188,48 @@
 .tck-deflist { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: var(--tck-space-3); margin: 0 0 var(--tck-space-3); }
 .tck-deflist dt { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
 .tck-deflist dd { margin: 0; font-weight: 600; }
-.tck-empty-state { max-width: 30rem; margin: var(--tck-space-8) auto; text-align: center; }
 
 /* --- table --- */
-.tck-tablewrap { overflow-x: auto; }
+/* Horizontal scroll only exists above the card-transform breakpoint —
+   below 768px `tck-table--cards` stacks rows and must not leave an
+   unfocusable scroll region (axe scrollable-region-focusable). */
+@media (min-width: 768px) {
+	.tck-tablewrap, .tck-table-wrap { overflow-x: auto; }
+}
 .tck-table { width: 100%; border-collapse: collapse; }
 .tck-table th, .tck-table td { text-align: start; padding: var(--tck-space-2) var(--tck-space-3); border-bottom: 1px solid var(--color-border); }
 .tck-table th { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
 .tck-row--flag td { background: var(--color-background-hover); }
+
+/* --- in-page section nav (long detail pages): sticky chip row --- */
+.tck-chipbar {
+	display: flex; gap: var(--tck-space-2); flex-wrap: wrap;
+	margin: 0 0 var(--tck-space-4);
+	position: sticky; top: 0; z-index: 5;
+	padding: var(--tck-space-2) 0;
+	background: var(--color-main-background);
+}
+.tck-chipbar__chip {
+	display: inline-flex; align-items: center; min-height: var(--tck-touch);
+	padding: var(--tck-space-1) var(--tck-space-3);
+	border: 1px solid var(--tck-form-border); border-radius: var(--tck-radius-pill);
+	background: var(--color-main-background); color: var(--color-main-text);
+	font-size: var(--tck-fs-sm); font-weight: 600; text-decoration: none;
+}
+.tck-chipbar__chip:hover { background: var(--color-background-hover); }
+
+/* --- collapsible detail blocks (key movements log etc.) --- */
+.tck-details { border: 1px solid var(--color-border); border-radius: var(--tck-radius-md); padding: var(--tck-space-2) var(--tck-space-3); }
+.tck-details > summary { min-height: var(--tck-touch); display: flex; align-items: center; font-weight: 600; cursor: pointer; }
+.tck-details[open] > summary { margin-bottom: var(--tck-space-2); }
+
+/* --- checklist profile rows inside the checkpoint form --- */
+.tck-profile-item { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--tck-space-2); padding: var(--tck-space-3); border: 1px solid var(--color-border); border-radius: var(--tck-radius-md); margin-bottom: var(--tck-space-2); }
+.tck-profile-item__band { display: flex; gap: var(--tck-space-2); flex-wrap: wrap; width: 100%; }
+.tck-profile-item__band .tck-field { flex: 1; min-width: 7rem; }
+
+.tck-form--compact { margin-top: var(--tck-space-2); }
+.tck-list--ordered { list-style: decimal inside; }
 
 /* --- coach (guided first run, §12 honest steps) --- */
 .tck-coach { border: 1px solid var(--color-primary-element); border-radius: var(--tck-radius-lg); padding: var(--tck-space-4); background: var(--tck-tint-info); }
@@ -324,7 +346,7 @@
 /* App-owned surfaces: thicken borders + rings under HC, keep shape cues under
    forced-colors (tint fills are flattened there), kill all motion. */
 @media (prefers-contrast: more) {
-	.tck-tile, .tck-list__row, .tck-card, .tck-kiosk__tile, .tck-pinpad__key,
+	.tck-stat-tile, .tck-list__row, .tck-card, .tck-kiosk__tile, .tck-pinpad__key,
 	.tck-btn, .tck-badge, .tck-toast { border-width: 2px; }
 	.tck-app :is(a, button, input, select, textarea, [tabindex]):focus-visible,
 	#app-navigation.tck-nav :is(a, button, [tabindex]):focus-visible { outline-width: 3px; }

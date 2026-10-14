@@ -192,10 +192,9 @@ function main() {
 			return this[k] || null;
 		},
 		querySelector(sel) {
-			if (String(sel).includes('feedback')) {
-				return null;
-			}
-			return { appendChild() {} };
+			// Shared app-feedback skips toasts that already carry a feedback
+			// link — this fake toast has none, only a content host.
+			return /feedback/.test(sel) ? null : { appendChild() {} };
 		},
 	};
 	sandbox.BudgetCheckComponents = {

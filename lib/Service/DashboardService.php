@@ -49,6 +49,7 @@ class DashboardService
 				'active' => $active,
 				'missed' => $missed,
 				'upcoming' => $upcoming,
+				'done' => $this->rounds->countFinishedSince($siteIds, $unrestricted, (new \DateTime())->setTimestamp($now->getTimestamp() - 86400)),
 				'next' => array_map(static fn ($r) => [
 					'id' => (int)$r->getId(),
 					'site_id' => (int)$r->getSiteId(),

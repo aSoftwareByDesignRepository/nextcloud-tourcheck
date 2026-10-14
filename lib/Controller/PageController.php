@@ -259,7 +259,7 @@ class PageController extends Controller
 				'due' => $home['rounds']['upcoming'],
 				'active' => $home['rounds']['active'],
 				'missed' => $home['rounds']['missed'],
-				'done' => 0,
+				'done' => (int)($home['rounds']['done'] ?? 0),
 				'nextRounds' => $next,
 				'openIncidents' => $open,
 				/* §spec cron_stale: admin-visible banner when background jobs
@@ -362,10 +362,16 @@ class PageController extends Controller
 	{
 		$scope = $this->scope();
 		$rows = [];
-		foreach ($this->rounds->todayFor(array_map(static fn ($s) => (int)$s->getId(), $scope['sites']), $this->acl->isAppAdmin()) as $r) {
+		foreach ($this->rounds->inWindow(array_map(static fn ($s) => (int)$s->getId(), $scope['sites']), $this->acl->isAppAdmin()) as $r) {
 			$rows[] = $this->roundRow($r);
 		}
-		return $this->shell('rounds', ['rounds' => $rows]);
+		// Deep links from the dashboard tiles preselect the status pill.
+		$statusParam = (string)$this->request->getParam('status', '');
+		$allowed = ['scheduled', 'active', 'missed', 'done', 'skipped'];
+		return $this->shell('rounds', [
+			'rounds' => $rows,
+			'roundsStatus' => in_array($statusParam, $allowed, true) ? $statusParam : '',
+		]);
 	}
 
 	#[NoAdminRequired]

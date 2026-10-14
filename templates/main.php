@@ -10,10 +10,12 @@ use OCA\TourCheck\Service\IconCatalog;
 
 /** @var \OCP\IURLGenerator $urlGenerator */
 $urlGenerator = $_['urlGenerator'] ?? \OCP\Server::get(\OCP\IURLGenerator::class);
+script('tourcheck', 'common/view-components');
 script('tourcheck', 'app');
 script('tourcheck', 'common/mobile-nav');
 script('tourcheck', 'common/app-feedback');
 style('tourcheck', 'tck-tokens');
+style('tourcheck', 'common/view-components');
 style('tourcheck', 'tck');
 style('tourcheck', 'app');
 $pageId = (string)($_['pageId'] ?? 'dashboard');

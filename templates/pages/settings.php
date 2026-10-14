@@ -1,10 +1,11 @@
 <?php
 /** @var array $_ @var \OCP\IL10N $l */
 $section = (string)($_['settingsSection'] ?? 'site');
-$values = (array)($_['settings'] ?? []);
 ?>
 <section aria-labelledby="tck-set-title">
-	<h2 id="tck-set-title" class="tck-section-title"><?php p((string)($_['settingsSectionLabel'] ?? $l->t('Settings'))); ?></h2>
+	<div class="tck-list-head">
+		<h2 id="tck-set-title" class="tck-list-head__title"><?php p((string)($_['settingsSectionLabel'] ?? $l->t('Settings'))); ?></h2>
+	</div>
 	<?php
 	$partial = __DIR__ . '/settings/' . preg_replace('/[^a-z]/', '', $section) . '.php';
 	if (is_file($partial)) {

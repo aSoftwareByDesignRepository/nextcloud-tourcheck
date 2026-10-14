@@ -320,6 +320,27 @@ class RoundService
 		return $this->rounds->findOpen($siteIds, $unrestricted, $this->timeFactory->getDateTime());
 	}
 
+	/**
+	 * Web Rounds overview — every status inside ±14 days around now.
+	 * Unlike todayFor() this includes finished/skipped rounds: the web
+	 * list is the record view and must not dead-end at "today".
+	 * @param list<int> $siteIds
+	 * @return list<Round>
+	 */
+	public function inWindow(array $siteIds, bool $unrestricted): array
+	{
+		$now = $this->timeFactory->getDateTime();
+		$from = (new \DateTime())->setTimestamp($now->getTimestamp() - 14 * 86400);
+		$to = (new \DateTime())->setTimestamp($now->getTimestamp() + 14 * 86400);
+		return $this->rounds->findInWindow($siteIds, $unrestricted, $from, $to);
+	}
+
+	/** Finished rounds (completed/partial) since $since — dashboard "Done" tile. */
+	public function countFinishedSince(array $siteIds, bool $unrestricted, \DateTimeInterface $since): int
+	{
+		return $this->rounds->countFinishedSince($siteIds, $unrestricted, $since);
+	}
+
 	/** @return list<Round> */
 	public function listForSite(int $siteId, ?string $status, int $limit, int $offset): array
 	{

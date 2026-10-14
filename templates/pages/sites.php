@@ -1,13 +1,17 @@
 <?php
 $urlGenerator = $_['urlGenerator'] ?? \OCP\Server::get(\OCP\IURLGenerator::class);
 /** @var array $_ @var \OCP\IL10N $l */
+use OCA\TourCheck\Support\Badge;
 $sites = (array)($_['sites'] ?? []);
 ?>
 <section aria-labelledby="tck-sites-title">
-	<div class="tck-section-head">
-		<h2 id="tck-sites-title" class="tck-section-title"><?php p($l->t('Your sites')); ?></h2>
+	<div class="tck-list-head">
+		<h2 id="tck-sites-title" class="tck-list-head__title"><?php p($l->t('Your sites')); ?></h2>
+		<span class="tck-list-head__count" data-tck-sites-count role="status"></span>
 		<?php if (!empty($_['canManage'])): ?>
-			<button type="button" class="tck-btn tck-btn--primary" data-tck-new-site><?php p($l->t('New site')); ?></button>
+			<span class="tck-list-head__actions">
+				<button type="button" class="tck-btn tck-btn--primary" data-tck-new-site><?php p($l->t('New site')); ?></button>
+			</span>
 		<?php endif; ?>
 	</div>
 	<?php if (!empty($_['canManage'])): ?>
@@ -44,16 +48,46 @@ $sites = (array)($_['sites'] ?? []);
 		</form>
 	<?php endif; ?>
 	<?php if ($sites === []): ?>
-		<p class="tck-empty"><?php p($l->t('No sites yet. A site is one object you guard — a building, a plant, a property.')); ?></p>
+		<div class="tck-empty-state">
+			<p class="tck-empty-state__title"><?php p($l->t('No sites yet')); ?></p>
+			<p class="tck-empty-state__text"><?php p($l->t('A site is one object you guard — a building, a plant, a property.')); ?></p>
+		</div>
 	<?php else: ?>
-		<ul class="tck-list">
+		<section class="tck-filter-panel" aria-labelledby="tck-sites-filter-title">
+			<header class="tck-filter-panel__head">
+				<h2 id="tck-sites-filter-title" class="tck-sr-only"><?php p($l->t('Filter sites')); ?></h2>
+			</header>
+			<div class="tck-filter-panel__body">
+				<form class="tck-filter-panel__form" role="search" data-tck-sites-filter novalidate
+					aria-label="<?php p($l->t('Filter sites')); ?>">
+					<div class="tck-filter-grid tck-filter-grid--search">
+						<div class="tck-filter-field">
+							<label class="tck-filter-field__label" for="tck-sf-q"><?php p($l->t('Search')); ?></label>
+							<div class="tck-filter-field__control">
+								<input id="tck-sf-q" name="q" type="search" class="tck-select"
+									placeholder="<?php p($l->t('Site name…')); ?>" autocomplete="off">
+							</div>
+						</div>
+						<div class="tck-filter-field tck-filter-field--actions">
+							<button type="submit" class="tck-btn tck-btn--primary"><?php p($l->t('Apply')); ?></button>
+							<button type="reset" class="tck-btn"><?php p($l->t('Clear')); ?></button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</section>
+		<div class="tck-empty-state" data-tck-sites-empty-filtered hidden>
+			<p class="tck-empty-state__title"><?php p($l->t('Nothing matches')); ?></p>
+			<p class="tck-empty-state__text"><?php p($l->t('Clear the search to see all sites again.')); ?></p>
+		</div>
+		<ul class="tck-list" data-tck-sites-list>
 			<?php foreach ($sites as $site): ?>
-				<li class="tck-list__row">
+				<li class="tck-list__row" data-search="<?php p(strtolower($site->getName() . ' ' . $site->getTz())); ?>">
 					<a class="tck-list__main" href="<?php p($urlGenerator->linkToRoute('tourcheck.page.site', ['siteId' => $site->getId()])); ?>">
 						<span class="tck-list__title"><?php p($site->getName()); ?></span>
 						<span class="tck-list__sub"><?php p($site->getTz()); ?></span>
 					</a>
-					<span class="tck-badge tck-badge--<?php p($site->getActive() === 1 ? 'ok' : 'warn'); ?>"><?php p($site->getActive() === 1 ? $l->t('Active') : $l->t('Archived')); ?></span>
+					<?php print_unescaped(Badge::render($site->getActive() === 1 ? $l->t('Active') : $l->t('Archived'), Badge::onOff($site->getActive() === 1))); ?>
 				</li>
 			<?php endforeach; ?>
 		</ul>

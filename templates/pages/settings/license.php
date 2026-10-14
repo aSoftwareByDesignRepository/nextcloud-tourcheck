@@ -11,7 +11,10 @@
 		</dl>
 		<button type="button" class="tck-btn tck-btn--danger" data-tck-clear-license><?php p($l->t('Remove license')); ?></button>
 	<?php else: ?>
-		<p class="tck-empty"><?php p($l->t('No license installed.')); ?></p>
+		<div class="tck-empty-state">
+			<p class="tck-empty-state__title"><?php p($l->t('No license installed')); ?></p>
+			<p class="tck-empty-state__text"><?php p($l->t('Paste the key below to unlock companion and station devices.')); ?></p>
+		</div>
 	<?php endif; ?>
 	<form class="tck-form" data-tck-license novalidate>
 		<div class="tck-field">

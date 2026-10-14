@@ -86,7 +86,47 @@ class RoundMapper extends QBMapper
 		return $this->findEntities($qb);
 	}
 
-	/** @return list<Round> */
+	/**
+	 * Rounds overview window — every status, scheduled_start inside
+	 * [$from,$to), on the given sites (or all when $unrestricted). The web
+	 * Rounds page is a record view, not just "today": finished and skipped
+	 * rounds must be reachable, otherwise the list is a dead end.
+	 * @param list<int> $siteIds
+	 * @return list<Round>
+	 */
+	public function findInWindow(array $siteIds, bool $unrestricted, \DateTimeInterface $from, \DateTimeInterface $to): array
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')->from($this->getTableName())
+			->where($qb->expr()->gte('scheduled_start', $qb->createNamedParameter($from, 'datetime')))
+			->andWhere($qb->expr()->lt('scheduled_start', $qb->createNamedParameter($to, 'datetime')))
+			->orderBy('scheduled_start', 'DESC')
+			->setMaxResults(500);
+		if (!$unrestricted) {
+			if ($siteIds === []) {
+				return [];
+			}
+			$qb->andWhere($qb->expr()->in('site_id', $qb->createNamedParameter(array_map('intval', $siteIds), \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_INT_ARRAY)));
+		}
+		return $this->findEntities($qb);
+	}
+
+	/** Finished rounds (completed/partial) since $since — dashboard "Done" tile. */
+	public function countFinishedSince(array $siteIds, bool $unrestricted, \DateTimeInterface $since): int
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('id'))->from($this->getTableName())
+			->where($qb->expr()->gte('scheduled_start', $qb->createNamedParameter($since, 'datetime')))
+			->andWhere($qb->expr()->in('status', $qb->createNamedParameter(['completed', 'partial'], \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_STR_ARRAY)));
+		if (!$unrestricted) {
+			if ($siteIds === []) {
+				return 0;
+			}
+			$qb->andWhere($qb->expr()->in('site_id', $qb->createNamedParameter(array_map('intval', $siteIds), \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_INT_ARRAY)));
+		}
+		return (int)$qb->executeQuery()->fetchOne();
+	}
+
 	/** @return list<Round> rounds of a site whose scheduled_start falls in [from,to) */
 	public function findScheduledBetween(int $siteId, \DateTimeInterface $from, \DateTimeInterface $to): array
 	{

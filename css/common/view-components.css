@@ -1,0 +1,300 @@
+/*
+ * Check family — view components (canonical, tck-templated).
+ * Implements DESIGN-SYSTEM §3.2 badges, §3.4 callouts, §3.5 stat tiles,
+ * §3.6b filter panels (recipe A), §3.6c quick-filter pills (recipe B),
+ * §3.7 table card-rows, §3.8 empty/loading, §3.11 pagination.
+ *
+ * Every var() carries a literal fallback so the pack still renders sanely
+ * in an app whose token layer is thinner than §1 requires.
+ */
+
+/* ---------- §3.5 Stat strip / tiles ---------- */
+.tck-stat-strip {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr));
+	gap: var(--tck-space-3, 12px);
+	margin: 0 0 var(--tck-space-5, 24px);
+}
+.tck-stat-tile {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: var(--tck-space-1, 4px);
+	padding: var(--tck-space-3, 12px) var(--tck-space-4, 16px);
+	background: var(--tck-bg-card, var(--color-main-background));
+	border: 1px solid var(--tck-border, var(--color-border));
+	border-inline-start: 3px solid var(--tck-border-strong, var(--color-border-maxcontrast));
+	border-radius: var(--tck-radius-md, 12px);
+	color: var(--tck-text, var(--color-main-text));
+	text-decoration: none;
+}
+a.tck-stat-tile:hover, a.tck-stat-tile:focus-visible,
+button.tck-stat-tile:hover, button.tck-stat-tile:focus-visible {
+	background: var(--color-background-hover);
+}
+.tck-stat-tile--primary { border-inline-start-color: var(--color-primary-element); }
+.tck-stat-tile--success { border-inline-start-color: var(--color-success-text, var(--color-success)); }
+.tck-stat-tile--warning { border-inline-start-color: var(--color-warning-text, var(--color-warning)); }
+.tck-stat-tile--danger  { border-inline-start-color: var(--tck-danger-fill, var(--color-error)); }
+.tck-stat-tile__label {
+	font-size: var(--tck-fs-xs, 0.75rem);
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--tck-muted, var(--color-text-maxcontrast));
+}
+.tck-stat-tile__value {
+	font-size: clamp(1.25rem, 2vw, 1.6rem);
+	font-weight: 700;
+	font-variant-numeric: var(--tck-tab-num, tabular-nums);
+	line-height: var(--tck-line-tight, 1.2);
+}
+.tck-stat-tile__meta { font-size: var(--tck-fs-xs, 0.75rem); color: var(--tck-muted, var(--color-text-maxcontrast)); }
+
+/* ---------- Card grid ---------- */
+.tck-card-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+	gap: var(--tck-space-4, 16px);
+	margin: 0 0 var(--tck-space-4, 16px);
+}
+
+/* ---------- §3.6b Filter panel — recipe A ---------- */
+.tck-filter-panel {
+	background: var(--tck-bg-card, var(--color-main-background));
+	border: 1px solid var(--tck-border, var(--color-border));
+	border-inline-start: 4px solid var(--color-primary-element);
+	border-radius: var(--tck-radius-md, 12px);
+	padding: 0;
+	margin: 0 0 var(--tck-space-4, 16px);
+	overflow: hidden;
+}
+.tck-filter-panel[hidden] { display: none !important; }
+.tck-filter-panel__head {
+	background: var(--tck-bg-soft, var(--color-background-dark));
+	border-bottom: 1px solid var(--tck-border, var(--color-border));
+	padding: var(--tck-space-3, 12px) var(--tck-space-5, 24px);
+}
+.tck-filter-panel__head > h2,
+.tck-filter-panel__head > h3 {
+	margin: 0;
+	font-size: var(--tck-fs-lg, 1.125rem);
+	font-weight: 600;
+}
+.tck-filter-panel__intro {
+	margin: var(--tck-space-1, 4px) 0 0;
+	color: var(--tck-muted, var(--color-text-maxcontrast));
+	font-size: var(--tck-fs-sm, 0.875rem);
+	max-width: 65ch;
+}
+.tck-filter-panel__body { padding: var(--tck-space-4, 16px) var(--tck-space-5, 24px); }
+.tck-filter-panel__form { margin: 0; }
+.tck-filter-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
+	gap: var(--tck-space-3, 12px);
+	align-items: end;
+}
+/* Single-search variant: one wide field, actions beside it — never an
+   empty 4-column grid (DS §3.6b do/don't). */
+.tck-filter-grid--search { grid-template-columns: minmax(min(16rem, 100%), 28rem) auto; }
+.tck-filter-field { display: flex; flex-direction: column; gap: var(--tck-space-1, 4px); min-width: 0; }
+.tck-filter-field__label {
+	font-size: var(--tck-fs-sm, 0.875rem);
+	font-weight: 600;
+	color: var(--tck-text, var(--color-main-text));
+}
+.tck-filter-field__control { display: flex; min-width: 0; }
+.tck-filter-field__control > :is(input, select) { flex: 1 1 auto; min-width: 0; width: 100%; }
+.tck-filter-field--actions { flex-direction: row; gap: var(--tck-space-2, 8px); align-items: flex-end; }
+/* Filter controls are interactive targets (DS §3.6.0): touch height +
+   real control border, regardless of whether the app's form scope hits. */
+#app-content .tck-filter-panel :is(input, select, textarea):not([type='checkbox'], [type='radio'], [type='hidden'], [type='range'], [type='file']) {
+	min-height: var(--tck-touch, 44px);
+	border-color: var(--tck-form-border, var(--color-border-maxcontrast));
+}
+@media (max-width: 768px) {
+	.tck-filter-grid--search { grid-template-columns: 1fr; }
+	.tck-filter-field--actions { flex-direction: column; align-items: stretch; }
+	.tck-filter-field--actions > * { width: 100%; }
+	.tck-filter-panel__head, .tck-filter-panel__body { padding-inline: var(--tck-space-4, 16px); }
+}
+
+/* ---------- §3.6c recipe B — quick-filter pills ---------- */
+.tck-quick-filters {
+	display: flex;
+	align-items: center;
+	gap: var(--tck-space-3, 12px);
+	flex-wrap: wrap;
+	margin: 0 0 var(--tck-space-4, 16px);
+}
+.tck-quick-filters__label {
+	font-size: var(--tck-fs-sm, 0.875rem);
+	font-weight: 600;
+	color: var(--tck-muted, var(--color-text-maxcontrast));
+}
+.tck-filter-bar { display: flex; gap: var(--tck-space-1, 4px); flex-wrap: wrap; }
+#app-content .tck-filter {
+	min-height: var(--tck-touch, 44px);
+	padding: var(--tck-space-1, 4px) var(--tck-space-3, 12px);
+	border: 1px solid var(--tck-form-border, var(--color-border-maxcontrast));
+	border-radius: var(--tck-radius-pill, 999px);
+	background: var(--tck-bg-card, var(--color-main-background));
+	color: var(--tck-text, var(--color-main-text));
+	font-size: var(--tck-fs-sm, 0.875rem);
+	font-weight: 500;
+	cursor: pointer;
+}
+.tck-filter:hover { background: var(--color-background-hover); }
+.tck-filter[aria-pressed='true'] {
+	background: var(--tck-tint-info, var(--color-primary-element-light));
+	border-color: var(--color-primary-element);
+	color: var(--tck-text, var(--color-main-text));
+	font-weight: 600;
+}
+
+/* ---------- §3.2 Badges / status pills (leading dot + text, never colour alone) ---------- */
+.tck-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 2px var(--tck-space-2, 8px);
+	border-radius: var(--tck-radius-pill, 999px);
+	font-size: var(--tck-fs-xs, 0.75rem);
+	font-weight: 600;
+	white-space: nowrap;
+	background: var(--tck-bg-soft, var(--color-background-dark));
+	color: var(--tck-text, var(--color-main-text));
+}
+.tck-badge__dot { width: 0.5em; height: 0.5em; border-radius: 50%; background: currentColor; flex: 0 0 auto; }
+.tck-badge--success { background: var(--tck-tint-success, var(--color-background-dark)); }
+.tck-badge--success .tck-badge__dot { color: var(--color-success-text, var(--color-success)); }
+.tck-badge--warning { background: var(--tck-tint-warning, var(--color-background-dark)); }
+.tck-badge--warning .tck-badge__dot { color: var(--color-warning-text, var(--color-warning)); }
+.tck-badge--danger { background: var(--tck-tint-danger, var(--color-background-dark)); }
+.tck-badge--danger .tck-badge__dot { color: var(--tck-danger-ink, var(--color-error)); }
+.tck-badge--info { background: var(--tck-tint-info, var(--color-primary-element-light)); }
+.tck-badge--info .tck-badge__dot { color: var(--color-primary-element); }
+
+/* ---------- §3.4 Callouts ---------- */
+.tck-callout {
+	border: 1px solid var(--tck-border, var(--color-border));
+	border-inline-start: 4px solid var(--tck-border-strong, var(--color-border-maxcontrast));
+	border-radius: var(--tck-radius-md, 12px);
+	padding: var(--tck-space-4, 16px);
+	margin: 0 0 var(--tck-space-4, 16px);
+	background: var(--tck-bg-card, var(--color-main-background));
+}
+.tck-callout__title { margin: 0 0 var(--tck-space-2, 8px); font-size: var(--tck-fs-lg, 1.125rem); font-weight: 600; }
+.tck-callout--info    { border-inline-start-color: var(--color-primary-element); background: var(--tck-tint-info, var(--color-primary-element-light)); }
+.tck-callout--success { border-inline-start-color: var(--color-success-text, var(--color-success)); background: var(--tck-tint-success, var(--color-background-dark)); }
+.tck-callout--warning { border-inline-start-color: var(--color-warning-text, var(--color-warning)); background: var(--tck-tint-warning, var(--color-background-dark)); }
+.tck-callout--danger  { border-inline-start-color: var(--tck-danger-fill, var(--color-error)); background: var(--tck-tint-danger, var(--color-background-dark)); }
+
+/* ---------- List head (title + count + primary action row) ---------- */
+.tck-list-head {
+	display: flex;
+	align-items: center;
+	gap: var(--tck-space-3, 12px);
+	flex-wrap: wrap;
+	margin: 0 0 var(--tck-space-3, 12px);
+}
+.tck-list-head__title { margin: 0; font-size: var(--tck-fs-lg, 1.125rem); font-weight: 600; }
+.tck-list-head__count { color: var(--tck-muted, var(--color-text-maxcontrast)); font-size: var(--tck-fs-sm, 0.875rem); font-variant-numeric: var(--tck-tab-num, tabular-nums); }
+.tck-list-head__actions { margin-inline-start: auto; display: flex; gap: var(--tck-space-2, 8px); flex-wrap: wrap; }
+
+/* ---------- §3.8 Empty & loading ---------- */
+.tck-empty-state { text-align: center; padding: var(--tck-space-7, 48px) var(--tck-space-4, 16px); }
+.tck-empty-state__title { margin: 0 0 var(--tck-space-2, 8px); font-size: var(--tck-fs-lg, 1.125rem); font-weight: 600; }
+.tck-empty-state__text { margin: 0 auto var(--tck-space-4, 16px); max-width: 42ch; color: var(--tck-muted, var(--color-text-maxcontrast)); }
+.tck-loading {
+	display: flex;
+	align-items: center;
+	gap: var(--tck-space-2, 8px);
+	color: var(--tck-muted, var(--color-text-maxcontrast));
+	padding: var(--tck-space-4, 16px);
+}
+.tck-loading::before {
+	content: '';
+	width: 1rem;
+	height: 1rem;
+	border-radius: 50%;
+	border: 2px solid var(--tck-border-strong, var(--color-border-maxcontrast));
+	border-top-color: var(--color-primary-element);
+	animation: tck-vc-spin 0.8s linear infinite;
+}
+@keyframes tck-vc-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+	.tck-loading::before { animation: none; }
+}
+
+/* ---------- §3.11 Pagination ---------- */
+.tck-pagination {
+	display: flex;
+	align-items: center;
+	gap: var(--tck-space-3, 12px);
+	margin: var(--tck-space-4, 16px) 0 0;
+}
+.tck-pagination__info { font-variant-numeric: var(--tck-tab-num, tabular-nums); color: var(--tck-muted, var(--color-text-maxcontrast)); }
+@media (max-width: 480px) {
+	.tck-pagination { flex-wrap: wrap; }
+	.tck-pagination > * { flex: 1 1 auto; }
+	.tck-pagination__info { text-align: center; order: -1; flex-basis: 100%; }
+}
+
+/* ---------- §3.7 Table → stacked card rows (mobile) ----------
+ * Add `.tck-table--cards` to a table whose `td`s carry `data-cell="Label"`.
+ * Below 768 px the table becomes a card list; each cell gets its header
+ * label back via ::before — no horizontal scroll, no clipped columns.
+ * Cells without data-cell (action columns) render label-free.
+ * The table keeps its normal scroll wrap; on desktop the modifier
+ * changes nothing. */
+@media (max-width: 767px) {
+	.tck-table--cards thead {
+		position: absolute;
+		width: 1px; height: 1px;
+		padding: 0; margin: -1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
+		border: 0;
+	}
+	.tck-table--cards,
+	.tck-table--cards tbody { display: block; width: 100%; }
+	.tck-table--cards tr {
+		display: block;
+		border: 1px solid var(--tck-border, var(--color-border));
+		border-radius: var(--tck-radius-md, 12px);
+		padding: var(--tck-space-2, 8px) var(--tck-space-3, 12px);
+		margin-bottom: var(--tck-space-3, 12px);
+		background: var(--tck-bg-card, var(--color-main-background));
+	}
+	.tck-table--cards td {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--tck-space-3, 12px);
+		/* Long unbreakable values (uids, refs) must not force the card row
+		   wider than the viewport — core `td` nowrap must also be undone. */
+		overflow-wrap: anywhere;
+		white-space: normal;
+		padding: var(--tck-space-2, 8px) 0;
+		border: 0;
+		border-bottom: 1px solid var(--tck-border, var(--color-border));
+		text-align: end;
+	}
+	.tck-table--cards td:last-child { border-bottom: 0; }
+	.tck-table--cards td[data-cell]::before {
+		content: attr(data-cell);
+		font-weight: 600;
+		font-size: var(--tck-fs-sm, 0.875rem);
+		color: var(--tck-muted, var(--color-text-maxcontrast));
+		text-align: start;
+		flex: 0 0 auto;
+	}
+	/* Action cells (no data-cell): keep buttons right-aligned, wrap if long */
+	.tck-table--cards td:not([data-cell]) { justify-content: flex-end; flex-wrap: wrap; }
+	/* Empty-state / loading rows must not render as fake cards */
+	.tck-table--cards td[colspan] { display: block; text-align: center; }
+	.tck-table--cards td[colspan]::before { content: none; }
+}

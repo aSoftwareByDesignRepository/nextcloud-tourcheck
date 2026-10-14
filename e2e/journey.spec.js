@@ -65,8 +65,7 @@ test('core loop: site → checkpoint → plan → member → incident → report
   // Fresh plan rounds are scheduled + event-free — skip() must accept. (A
   // deactivated plan has none left: resync deletes its scheduled rounds.)
   await page.goto('/index.php/apps/tourcheck/rounds', { waitUntil: 'domcontentloaded' })
-  const openRow = page.locator('li.tck-list__row', {
-    has: page.locator('.tck-badge--scheduled, .tck-badge--active'),
+  const openRow = page.locator('li.tck-list__row[data-status="scheduled"], li.tck-list__row[data-status="active"]', {
     hasText: SITE_NAME,
   }).first()
   await expect(openRow).toBeVisible()
@@ -75,7 +74,7 @@ test('core loop: site → checkpoint → plan → member → incident → report
   await expect(page.locator('#tck-skip-form')).toBeVisible()
   await page.fill('#tck-skip-reason', 'public holiday')
   await clickAndReload(page, page.locator('#tck-skip-form [type="submit"]'))
-  await expect(page.locator('.tck-badge--skipped')).toBeVisible()
+  await expect(page.locator('.tck-badge', { hasText: /skip|über/i }).first()).toBeVisible()
   await expect(page.locator('.tck-deflist')).toContainText('public holiday')
   // Terminal now: the skip control must not reappear (no re-skip relabel).
   await expect(page.locator('[data-tck-show="tck-skip-form"]')).toHaveCount(0)
