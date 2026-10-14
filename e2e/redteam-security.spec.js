@@ -287,6 +287,35 @@ test.describe('redteam: authorization boundary matrix', () => {
 		await req.delete(api(`/sites/${site.id}`), { headers: ah })
 	})
 
+	test('restricted door oracle: excluded user sees what a nonexistent app returns', async ({ page }) => {
+		// probe1 has zero app access — but the default access_mode is 'open',
+		// so flip the app to restricted first, then the door must answer
+		// exactly like a missing app (404). A 303/403 diff discloses existence.
+		const { execFileSync } = await import('child_process')
+		const occ = (args) => execFileSync('docker', [
+			'compose', 'exec', '-T', '-u', 'www-data', 'nextcloud', 'php', 'occ', ...args,
+		], { cwd: new URL('../../../', import.meta.url).pathname, encoding: 'utf8', timeout: 60_000 })
+		occ(['config:app:set', 'tourcheck', 'access_mode', '--value=restricted'])
+		try {
+			await login(page, PROBE)
+			const req = page.context().request
+			const absent = await req.get('/index.php/apps/tckdefinitelymissing/', { maxRedirects: 0 })
+			// APCu appconfig can lag the config:set — poll the door until it
+			// matches the absent-app status (never a fixed sleep).
+			let door = 0
+			for (let i = 0; i < 20; i++) {
+				door = (await req.get('/index.php/apps/tourcheck/', { maxRedirects: 0 })).status()
+				if (door === absent.status()) break
+				await page.waitForTimeout(250)
+			}
+			expect(door, 'app door must be indistinguishable from absent').toBe(absent.status())
+			await page.goto('/index.php/apps/tourcheck/')
+			await expect(page.locator('body')).not.toContainText(/tourcheck/i)
+		} finally {
+			occ(['config:app:set', 'tourcheck', 'access_mode', '--value=open'])
+		}
+	})
+
 	test('unauthenticated: API returns 401/redirect, never data', async ({ browser }) => {
 		const ctx = await browser.newContext()
 		const req = ctx.request

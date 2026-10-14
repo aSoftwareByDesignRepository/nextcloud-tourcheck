@@ -109,8 +109,10 @@ class PageController extends Controller
 		try {
 			$this->acl->assertAppAccess();
 		} catch (NotFoundException) {
-			$r = new TemplateResponse('core', '403', [], 'guest');
-			$r->setStatus(Http::STATUS_FORBIDDEN);
+			// Restricted must be indistinguishable from absent — a 403 here
+			// would disclose the app exists to excluded users.
+			$r = new TemplateResponse('core', '404', [], 'guest');
+			$r->setStatus(Http::STATUS_NOT_FOUND);
 			return $r;
 		}
 		Util::addTranslations(Constants::APP_ID);
@@ -197,6 +199,15 @@ class PageController extends Controller
 	#[NoCSRFRequired]
 	public function index(): Response
 	{
+		try {
+			$this->acl->assertAppAccess();
+		} catch (NotFoundException) {
+			// No redirect for excluded users — a 303 here would disclose the
+			// app exists where a missing app returns 404.
+			$r = new TemplateResponse('core', '404', [], 'guest');
+			$r->setStatus(Http::STATUS_NOT_FOUND);
+			return $r;
+		}
 		return new RedirectResponse($this->urlGenerator->linkToRoute('tourcheck.page.dashboard'));
 	}
 
@@ -207,8 +218,8 @@ class PageController extends Controller
 		try {
 			$this->acl->assertAppAccess();
 		} catch (NotFoundException) {
-			$r = new TemplateResponse('core', '403', [], 'guest');
-			$r->setStatus(Http::STATUS_FORBIDDEN);
+			$r = new TemplateResponse('core', '404', [], 'guest');
+			$r->setStatus(Http::STATUS_NOT_FOUND);
 			return $r;
 		}
 		$home = $this->dashboard->home();

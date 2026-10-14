@@ -93,7 +93,13 @@ class CaptureController extends Controller
 	#[NoCSRFRequired]
 	public function today(): TemplateResponse
 	{
-		$this->acl->assertAppAccess();
+		try {
+			$this->acl->assertAppAccess();
+		} catch (NotFoundException) {
+			$r = new TemplateResponse('core', '404', [], 'guest');
+			$r->setStatus(Http::STATUS_NOT_FOUND);
+			return $r;
+		}
 		$uid = $this->acl->requireUid();
 		Util::addTranslations(Constants::APP_ID);
 		$active = $this->currentRoundData($uid);
@@ -108,7 +114,13 @@ class CaptureController extends Controller
 	#[NoCSRFRequired]
 	public function scan(string $token): TemplateResponse
 	{
-		$this->acl->assertAppAccess();
+		try {
+			$this->acl->assertAppAccess();
+		} catch (NotFoundException) {
+			$r = new TemplateResponse('core', '404', [], 'guest');
+			$r->setStatus(Http::STATUS_NOT_FOUND);
+			return $r;
+		}
 		$uid = $this->acl->requireUid();
 		$active = $this->currentRoundData($uid);
 		$response = new TemplateResponse(Constants::APP_ID, 'capture', [

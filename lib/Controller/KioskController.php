@@ -60,6 +60,9 @@ class KioskController extends Controller
 	public function home(): TemplateResponse
 	{
 		try {
+			// Station-token probing must not be free — same fail-closed
+			// opacity as the live page: throttled looks like an invalid token.
+			$this->rateLimit->hitStationAuth((string)$this->request->getRemoteAddress());
 			$station = $this->stations->authenticate($this->stationTokenFromRequest());
 			$this->license->requireStationPlan();
 		} catch (NotFoundException) {
@@ -67,6 +70,11 @@ class KioskController extends Controller
 			$r->setStatus(Http::STATUS_FORBIDDEN);
 			return $r;
 		} catch (DomainException $e) {
+			if ($e->errorCode === Constants::ERR_RATE_LIMITED) {
+				$r = new TemplateResponse('core', '403', [], 'guest');
+				$r->setStatus(Http::STATUS_FORBIDDEN);
+				return $r;
+			}
 			return new TemplateResponse(Constants::APP_ID, 'kiosk-license', ['reason' => $e->errorCode], 'guest');
 		}
 		$members = [];
