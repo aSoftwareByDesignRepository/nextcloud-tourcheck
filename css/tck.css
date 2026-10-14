@@ -273,6 +273,12 @@
 #app-content.tck-app .tck-pinpad__key { min-height: 64px; font-size: var(--tck-fs-xl); border: 1px solid var(--tck-form-border); border-radius: var(--tck-radius-md); background: var(--color-main-background); color: var(--color-main-text); cursor: pointer; }
 #app-content.tck-app .tck-pinpad__key:hover, #app-content.tck-app .tck-pinpad__key:focus-visible { background: var(--color-background-hover); }
 .tck-kiosk__pinerr { text-align: center; }
+/* NH-06 signature stage — document surface: white paper + dark ink in
+ * every theme (the stored PNG is evidence, not UI chrome). */
+.tck-signpad { display: block; margin: 0 auto; max-width: 100%; height: auto; border: 2px solid var(--tck-border-strong); border-radius: var(--tck-radius-md); background: #ffffff; touch-action: none; cursor: crosshair; }
+.tck-signpad:focus-visible { outline: 2px solid var(--color-primary-element); outline-offset: 2px; }
+.tck-kiosk__actions { display: flex; gap: var(--tck-space-3); justify-content: center; margin-top: var(--tck-space-4); flex-wrap: wrap; }
+#app-content.tck-app .tck-kiosk__actions .tck-btn { min-height: var(--tck-touch); }
 
 /* --- live page --- */
 .tck-main--live { display: flex; justify-content: center; }

@@ -1198,4 +1198,57 @@
 	document.querySelectorAll('[data-tck-gid-picker]').forEach(function (input) {
 		attachPicker(input, '/api/admin/groups/search', true);
 	});
+
+	/* F17: DutyCheck "on duty today" strip — capability-detected. The
+	   sibling app advertises check.on-duty; absent app, off flag, or a
+	   403 (the feed is planner-scoped upstream) simply keeps the section
+	   hidden — it is never an error surface here. */
+	(function () {
+		var section = document.querySelector('[data-tck-duty]');
+		if (!section) { return; }
+		var caps = (window.OC && OC.getCapabilities) ? OC.getCapabilities() : {};
+		var od = caps && caps.check && caps.check['on-duty'];
+		if (!od || !od.endpoint) { return; }
+		fetch(od.endpoint, {
+			credentials: 'same-origin',
+			headers: { 'requesttoken': OC.requestToken || '', 'Accept': 'application/json' },
+		}).then(function (r) {
+			return r.ok ? r.json() : null;
+		}).then(function (j) {
+			if (!j || !j.ok || !j.data || !j.data.effective) { return; }
+			var rows = j.data.assignments || [];
+			var ul = section.querySelector('[data-tck-duty-list]');
+			var cnt = section.querySelector('[data-tck-duty-count]');
+			if (!ul) { return; }
+			if (rows.length === 0) {
+				var empty = document.createElement('li');
+				empty.className = 'tck-list__row';
+				var span = document.createElement('span');
+				span.className = 'tck-list__sub';
+				span.textContent = t('Nobody on duty today');
+				empty.appendChild(span);
+				ul.appendChild(empty);
+			} else {
+				rows.forEach(function (a) {
+					var li = document.createElement('li');
+					li.className = 'tck-list__row';
+					var main = document.createElement('span');
+					main.className = 'tck-list__main';
+					var title = document.createElement('span');
+					title.className = 'tck-list__title';
+					title.textContent = a.displayName || '';
+					var sub = document.createElement('span');
+					sub.className = 'tck-list__sub';
+					var when = (a.startTime || '') + ' – ' + (a.endTime || '');
+					sub.textContent = (a.locationName ? a.locationName + ' · ' : '') + when;
+					main.appendChild(title);
+					main.appendChild(sub);
+					li.appendChild(main);
+					ul.appendChild(li);
+				});
+				if (cnt) { cnt.textContent = t('%n on duty').replace('%n', String(rows.length)); }
+			}
+			section.classList.remove('tck-hidden');
+		}).catch(function () { /* sibling unreachable — stay hidden */ });
+	})();
 })();

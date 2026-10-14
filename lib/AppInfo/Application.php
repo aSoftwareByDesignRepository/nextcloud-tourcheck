@@ -95,6 +95,13 @@ class Application extends App implements IBootstrap
 
 		// NH-04: instance Dashboard widget (missed/active rounds + open incidents).
 		$context->registerDashboardWidget(\OCA\TourCheck\Dashboard\TourCheckWidget::class);
+
+		// NH-04: Flow entity — round missed/completed/skipped + incident
+		// created become configurable workflow triggers.
+		$context->registerEventListener(
+			\OCP\WorkflowEngine\Events\RegisterEntitiesEvent::class,
+			\OCA\TourCheck\Listener\RegisterFlowEntityListener::class,
+		);
 	}
 
 	public function boot(IBootContext $context): void

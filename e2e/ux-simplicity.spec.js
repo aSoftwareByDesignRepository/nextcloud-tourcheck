@@ -74,8 +74,11 @@ test('kiosk: configured PIN length renders N dots and auto-submits — no dead p
 		for (const d of ['1', '2', '3', '4']) {
 			await page.locator(`[data-tck-key="${d}"]`).click()
 		}
-		// Submitted at the 4th digit — the confirm stage (or a wrong-PIN error)
-		// must appear; the old code stayed stuck on the pin stage forever.
+		// PIN-full → optional signature stage (NH-06 web/companion parity);
+		// Skip carries no signature and lands on confirm. The old code dead-
+		// ended on the pin stage at non-6 lengths.
+		await expect(page.locator('[data-tck-stage="sign"]')).toBeVisible({ timeout: 15000 })
+		await page.locator('[data-tck-sign-skip]').click()
 		await expect(page.locator('[data-tck-stage="confirm"]')).toBeVisible({ timeout: 15000 })
 	} finally {
 		// Restore the default through the same API so the FPM-side
@@ -86,6 +89,52 @@ test('kiosk: configured PIN length renders N dots and auto-submits — no dead p
 			data: { pin_length: 6 },
 		}).catch(() => {})
 	}
+})
+
+test('kiosk signature: drawn ink rides the confirm POST (NH-06 web parity)', async ({ page }) => {
+	await page.goto('/index.php/apps/tourcheck/dashboard', { waitUntil: 'domcontentloaded' })
+	const token = await page.evaluate(() =>
+		(window.OC && window.OC.requestToken)
+		|| document.querySelector('head[data-requesttoken]')?.getAttribute('data-requesttoken')
+		|| '')
+	const apiHeaders = { requesttoken: token, 'OCS-APIREQUEST': 'true', 'Content-Type': 'application/json' }
+
+	const rot = await page.request.post('/index.php/apps/tourcheck/api/stations/2/rotate', { headers: apiHeaders })
+	expect(rot.ok(), 'rotate station token').toBeTruthy()
+	const secret = (await rot.json()).data.secret
+	const up = await page.request.put('/index.php/apps/tourcheck/api/stations/2/members', {
+		headers: apiHeaders,
+		data: { member_id: 1, display_name: 'Atlas Wache', pin: '123456' },
+	})
+	expect(up.ok(), 'set member PIN').toBeTruthy()
+
+	await page.goto(`/index.php/apps/tourcheck/kiosk?station_token=${encodeURIComponent(secret)}`, { waitUntil: 'domcontentloaded' })
+	await page.locator('[data-tck-member="1"]').click()
+	for (const d of ['1', '2', '3', '4', '5', '6']) {
+		await page.locator(`[data-tck-key="${d}"]`).click()
+	}
+	await expect(page.locator('[data-tck-stage="sign"]')).toBeVisible({ timeout: 15000 })
+
+	// Confirm is gated on ink — disabled until a stroke lands.
+	const confirmBtn = page.locator('[data-tck-sign-confirm]')
+	await expect(confirmBtn).toBeDisabled()
+	const pad = page.locator('[data-tck-signpad]')
+	const box = await pad.boundingBox()
+	expect(box).toBeTruthy()
+	await page.mouse.move(box.x + 40, box.y + 60)
+	await page.mouse.down()
+	await page.mouse.move(box.x + 200, box.y + 120, { steps: 8 })
+	await page.mouse.move(box.x + 320, box.y + 80, { steps: 8 })
+	await page.mouse.up()
+	await expect(confirmBtn).toBeEnabled()
+
+	let posted = null
+	page.on('request', (r) => {
+		if (r.url().includes('/api/kiosk/confirm')) { posted = r.postDataJSON() }
+	})
+	await confirmBtn.click()
+	await expect(page.locator('[data-tck-stage="confirm"]')).toBeVisible({ timeout: 15000 })
+	expect(posted?.signature_b64, 'signature_b64 must ride the confirm body').toMatch(/^[A-Za-z0-9+/=]{100,}$/)
 })
 
 test('schedule toggle: a live schedule can be silenced — no orphan dead end', async ({ page }) => {
@@ -120,6 +169,18 @@ test('cron banner: healthy cron shows no false warning, and the surface exists',
 	// admin-only stale banner must NOT render (no always-on false positive).
 	await page.goto('/index.php/apps/tourcheck/dashboard', { waitUntil: 'domcontentloaded' })
 	await expect(page.locator('[data-tck-cron-stale]')).toHaveCount(0)
+})
+
+test('duty chip: fail-closed — hidden without effective data, never an error surface', async ({ page }) => {
+	// F17: the section only reveals itself when the advertised capability
+	// answers {effective:true}. Flag off OR a non-planner user (403)
+	// must both leave it hidden — verified on this box in both states.
+	await page.goto('/index.php/apps/tourcheck/dashboard', { waitUntil: 'domcontentloaded' })
+	const section = page.locator('[data-tck-duty]')
+	await expect(section).toHaveCount(1)
+	// Give the (possible) fetch a beat, then: still hidden, no error text.
+	await page.waitForTimeout(800)
+	await expect(section).toHaveClass(/tck-hidden/)
 })
 
 test('capture: network drop surfaces an error — no silent dead scan', async ({ page }) => {

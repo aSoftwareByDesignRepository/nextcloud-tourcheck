@@ -32,7 +32,38 @@ class RoundService
 		private readonly ChainService $chain,
 		private readonly ITimeFactory $timeFactory,
 		private readonly IDBConnection $db,
+		private readonly ?FlowEmitter $flow = null,
 	) {
+	}
+
+	/**
+	 * NH-04: emit a Flow domain event for a terminal status transition —
+	 * post-commit only, id-subject only (NN-08). Centralizes the
+	 * completed/partial → roundCompleted + skipped → roundSkipped mapping.
+	 */
+	public function emitRoundTransition(?string $newStatus, int $roundId): void
+	{
+		if ($newStatus === null || $this->flow === null) {
+			return;
+		}
+		$round = $this->rounds->find($roundId);
+		if ($round === null) {
+			return;
+		}
+		$event = match ($newStatus) {
+			Constants::ROUND_COMPLETED, Constants::ROUND_PARTIAL => FlowEmitter::EVENT_ROUND_COMPLETED,
+			Constants::ROUND_SKIPPED => FlowEmitter::EVENT_ROUND_SKIPPED,
+			Constants::ROUND_MISSED => FlowEmitter::EVENT_ROUND_MISSED,
+			default => null,
+		};
+		if ($event === null) {
+			return;
+		}
+		$this->flow->emit($event, [
+			'siteId' => (int)$round->getSiteId(),
+			'roundId' => $roundId,
+			'status' => $newStatus,
+		]);
 	}
 
 	/** Internal read, no ACL — jobs/ingest only. */
@@ -146,16 +177,21 @@ class RoundService
 	 * THE single writer of round.status. Derives status from round_cp rows +
 	 * clock. Call inside a transaction holding the round lock. Every status
 	 * transition is journaled (US-108: the Wachbuch reflects status changes).
+	 *
+	 * @return ?string the NEW status when the round transitioned this call,
+	 *                 null when unchanged — callers emit Flow domain events
+	 *                 post-commit on terminal transitions only.
 	 */
-	public function recomputeStatus(int $roundId): void
+	public function recomputeStatus(int $roundId): ?string
 	{
 		$round = $this->rounds->findForUpdate($roundId);
 		if ($round === null) {
-			return;
+			return null;
 		}
+		$from = $round->getStatus();
 		if ($round->getSkipReason() !== null) {
 			$this->setStatusIfChanged($round, Constants::ROUND_SKIPPED);
-			return;
+			return $from === $round->getStatus() ? null : $round->getStatus();
 		}
 		$cps = $this->roundCps->findForRound($roundId);
 		$now = $this->timeFactory->getDateTime();
@@ -181,17 +217,18 @@ class RoundService
 				$round->setCompletedAt($now);
 				$this->rounds->update($round);
 			}
-			return;
+			return $from === $round->getStatus() ? null : $round->getStatus();
 		}
 		if ($now > $round->getWindowEnd()) {
 			$this->setStatusIfChanged($round, Constants::ROUND_MISSED);
-			return;
+			return $from === $round->getStatus() ? null : $round->getStatus();
 		}
 		if ($now >= $round->getScheduledStart() || $this->hasAnyEvent($roundId)) {
 			$this->setStatusIfChanged($round, Constants::ROUND_ACTIVE);
-			return;
+			return $from === $round->getStatus() ? null : $round->getStatus();
 		}
 		$this->setStatusIfChanged($round, Constants::ROUND_SCHEDULED);
+		return $from === $round->getStatus() ? null : $round->getStatus();
 	}
 
 	private function setStatusIfChanged(Round $round, string $status, ?string $actorUid = null): void
@@ -248,7 +285,7 @@ class RoundService
 					$closedCount++;
 				}
 			}
-			$this->recomputeStatus($roundId);
+			$transition = $this->recomputeStatus($roundId);
 			$round = $this->rounds->findForUpdate($roundId);
 			if (in_array($round->getStatus(), [Constants::ROUND_COMPLETED, Constants::ROUND_PARTIAL], true) && $round->getCompletedBy() === null) {
 				$round->setCompletedBy($uid);
@@ -263,6 +300,7 @@ class RoundService
 				'payloadFields' => ['round' => $roundId, 'skipped_cps' => $closedCount],
 			]);
 			$this->db->commit();
+			$this->emitRoundTransition($transition, $roundId);
 			return $round;
 		} catch (\Throwable $e) {
 			$this->db->rollBack();
@@ -293,7 +331,7 @@ class RoundService
 			// the reason flag and lets the derivation produce ROUND_SKIPPED.
 			$round->setSkipReason($reason !== '' ? $reason : 'skipped');
 			$this->rounds->update($round);
-			$this->recomputeStatus($roundId);
+			$transition = $this->recomputeStatus($roundId);
 			$this->chain->append((int)$round->getSiteId(), [
 				'roundId' => $roundId,
 				'kind' => Constants::KIND_ADMIN,
@@ -303,6 +341,7 @@ class RoundService
 				'payloadFields' => ['round' => $roundId, 'reason' => $reason],
 			]);
 			$this->db->commit();
+			$this->emitRoundTransition($transition, $roundId);
 			return $this->rounds->find($roundId) ?? $round;
 		} catch (\Throwable $e) {
 			$this->db->rollBack();

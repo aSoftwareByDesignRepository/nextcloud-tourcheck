@@ -53,6 +53,17 @@ $openIncidents = (array)($dash['openIncidents'] ?? []);
 	<?php endforeach; ?>
 </section>
 
+<?php /* F17: DutyCheck on-duty chip — capability-detected, hidden until
+   the endpoint answers (planner-only upstream, so members simply never
+   see the section). */ ?>
+<section class="tck-hidden" data-tck-duty aria-labelledby="tck-duty-title">
+	<div class="tck-list-head">
+		<h2 id="tck-duty-title" class="tck-list-head__title"><?php p($l->t('On duty today')); ?></h2>
+		<span class="tck-list-head__count" data-tck-duty-count></span>
+	</div>
+	<ul class="tck-list" data-tck-duty-list></ul>
+</section>
+
 <section aria-labelledby="tck-next-title">
 	<div class="tck-list-head">
 		<h2 id="tck-next-title" class="tck-list-head__title"><?php p($l->t('Next rounds')); ?></h2>

@@ -227,6 +227,7 @@ class EventService
 		$event->setTombstoned(0);
 		$event->setCreatedAt($now);
 
+		$roundTransition = null;
 		$this->db->beginTransaction();
 		try {
 			if ($round !== null) {
@@ -263,7 +264,7 @@ class EventService
 				$rcp->setStatus($method === Constants::METHOD_ATTEST ? 'attested' : 'done');
 				$rcp->setEventId((int)$event->getId());
 				$this->updateRoundCp($rcp);
-				$this->rounds->recomputeStatus((int)$round->getId());
+				$roundTransition = $this->rounds->recomputeStatus((int)$round->getId());
 			}
 			// Anchor trigger: a round that just closed gets a pending anchor in
 			// the SAME transaction — evidence and its anchor request are atomic.
@@ -322,6 +323,12 @@ class EventService
 		// mint it post-commit, deduped by req-{client_event_id}.
 		if ($autoIncident && $failedRequired !== []) {
 			$this->requiredFailureIncident($siteId, (int)$cp->getId(), $event, $failedRequired, $round?->getId());
+		}
+		// NH-04 Flow: a terminal transition that just committed is a
+		// workflow trigger — emit it exactly once (replay path above returns
+		// earlier, so a retried scan can never re-fire the trigger).
+		if ($roundTransition !== null && $round !== null) {
+			$this->rounds->emitRoundTransition($roundTransition, (int)$round->getId());
 		}
 		return ['event' => $event, 'replayed' => false, 'mismatch' => false, 'attached' => $round !== null, 'progress' => $progress];
 	}

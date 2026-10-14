@@ -44,6 +44,7 @@ class IncidentService
 		private readonly IDBConnection $db,
 		private readonly NotificationService $notifier,
 		private readonly LoggerInterface $logger,
+		private readonly ?FlowEmitter $flow = null,
 	) {
 	}
 
@@ -200,6 +201,14 @@ class IncidentService
 			$this->db->rollBack();
 			throw $e;
 		}
+		// NH-04 Flow trigger — post-commit, ids only (NN-08). Severity is in
+		// the subject so a rule can narrow to e.g. critical only.
+		$this->flow?->emit(FlowEmitter::EVENT_INCIDENT_CREATED, [
+			'siteId' => $siteId,
+			'incidentId' => (int)$inc->getId(),
+			'severity' => $severity,
+			'category' => $category,
+		]);
 		if ($severity === 'critical') {
 			// NH-13 / escalation: a critical incident (SOS, life-safety finding)
 			// must reach supervisors NOW — not on their next dashboard visit.

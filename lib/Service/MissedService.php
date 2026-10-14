@@ -30,6 +30,7 @@ class MissedService
 	{
 		$count = 0;
 		foreach ($this->rounds->findOverdue() as $round) {
+			$transition = null;
 			$this->db->beginTransaction();
 			try {
 				$round = $this->rounds->lockRound((int)$round->getId());
@@ -43,11 +44,16 @@ class MissedService
 						$qb->executeStatement();
 					}
 				}
-				$this->rounds->recomputeStatus((int)$round->getId());
+				$transition = $this->rounds->recomputeStatus((int)$round->getId());
 				$this->db->commit();
 			} catch (\Throwable $e) {
 				$this->db->rollBack();
 				throw $e;
+			}
+			// NH-04 Flow: fire on the TRANSITION only — re-emitting every
+			// sweep for an already-missed round would re-trigger flows.
+			if ($transition === Constants::ROUND_MISSED) {
+				$this->rounds->emitRoundTransition($transition, (int)$round->getId());
 			}
 			$round = $this->rounds->findById((int)$round->getId());
 			if ($round !== null && $round->getStatus() === Constants::ROUND_MISSED) {

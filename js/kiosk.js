@@ -63,12 +63,116 @@
 	var kioskEl = document.querySelector('[data-tck-kiosk]');
 	var pinLen = Math.min(8, Math.max(4, parseInt(kioskEl ? kioskEl.getAttribute('data-pin-len') : '6', 10) || 6));
 
+	/* NH-06 signature stage — the pad is a document surface: fixed ink on
+	   light paper regardless of theme, HiDPI-scaled, pointer-only (keyboard
+	   users take the always-available Skip path). ~1 MB wire cap matches
+	   the server; oversized art must be cleared or skipped, never silently
+	   truncated. */
+	var signCanvas = document.querySelector('[data-tck-signpad]');
+	var signClear = document.querySelector('[data-tck-sign-clear]');
+	var signConfirm = document.querySelector('[data-tck-sign-confirm]');
+	var signSkip = document.querySelector('[data-tck-sign-skip]');
+	var signBack = document.querySelector('[data-tck-sign-back]');
+	var signName = document.querySelector('[data-tck-sign-name]');
+	var signErr = document.querySelector('[data-tck-sign-error]');
+	var signHasInk = false;
+	var signCtx = null;
+	var SIGN_MAX_B64 = 1400000; // ~1 MB binary after base64
+
+	function setupSignpad() {
+		if (!signCanvas) { return; }
+		var ratio = Math.max(1, window.devicePixelRatio || 1);
+		var w = signCanvas.width, h = signCanvas.height;
+		signCanvas.width = w * ratio;
+		signCanvas.height = h * ratio;
+		signCanvas.style.width = w + 'px';
+		signCanvas.style.height = h + 'px';
+		signCtx = signCanvas.getContext('2d');
+		signCtx.scale(ratio, ratio);
+		signCtx.fillStyle = '#ffffff';
+		signCtx.fillRect(0, 0, w, h);
+		signCtx.strokeStyle = '#111111';
+		signCtx.lineWidth = 3;
+		signCtx.lineCap = 'round';
+		signCtx.lineJoin = 'round';
+		signHasInk = false;
+	}
+	function signPos(e) {
+		var r = signCanvas.getBoundingClientRect();
+		// draw in logical (pre-ratio) coordinates: ctx is scaled
+		return { x: (e.clientX - r.left), y: (e.clientY - r.top) };
+	}
+	var signDrawing = false;
+	function signDraw(e) {
+		if (!signCtx || !signDrawing) { return; }
+		var p = signPos(e);
+		signCtx.lineTo(p.x, p.y);
+		signCtx.stroke();
+	}
+	function signBegin(e) {
+		if (!signCtx) { return; }
+		e.preventDefault();
+		if (signCanvas.setPointerCapture) { signCanvas.setPointerCapture(e.pointerId); }
+		signDrawing = true;
+		var p = signPos(e);
+		signCtx.beginPath();
+		signCtx.moveTo(p.x, p.y);
+		signHasInk = true;
+		if (signConfirm) { signConfirm.disabled = false; }
+		if (signClear) { signClear.disabled = false; }
+	}
+	function signEnd() { signDrawing = false; }
+	function clearSignature() {
+		if (signCtx) {
+			var w = signCanvas.width, h = signCanvas.height;
+			var ratio = Math.max(1, window.devicePixelRatio || 1);
+			signCtx.fillStyle = '#ffffff';
+			signCtx.fillRect(0, 0, w / ratio, h / ratio);
+		}
+		signHasInk = false;
+		if (signConfirm) { signConfirm.disabled = true; }
+		if (signClear) { signClear.disabled = true; }
+		if (signErr) { signErr.hidden = true; }
+	}
+	function signatureB64() {
+		if (!signHasInk || !signCanvas) { return ''; }
+		var url = signCanvas.toDataURL('image/png');
+		var b64 = url.slice(url.indexOf(',') + 1);
+		if (b64.length > SIGN_MAX_B64) {
+			if (signErr) {
+				signErr.textContent = t('Signature too large — clear or skip');
+				signErr.hidden = false;
+				announce(signErr.textContent);
+			}
+			return null; // abort submit — do not send a server-rejected payload
+		}
+		return b64;
+	}
+	if (signCanvas) {
+		setupSignpad();
+		signCanvas.addEventListener('pointerdown', signBegin);
+		signCanvas.addEventListener('pointermove', signDraw);
+		signCanvas.addEventListener('pointerup', signEnd);
+		signCanvas.addEventListener('pointercancel', signEnd);
+	}
+	if (signSkip) { signSkip.addEventListener('click', function () { postConfirm(null); }); }
+	if (signConfirm) {
+		signConfirm.addEventListener('click', function () {
+			var b64 = signatureB64();
+			if (b64 === null) { return; }
+			postConfirm(b64 || null);
+		});
+	}
+	if (signClear) { signClear.addEventListener('click', clearSignature); }
+	if (signBack) { signBack.addEventListener('click', function () { pin = ''; renderDots(); clearSignature(); show('pin'); }); }
+
 	function show(name) {
 		Object.keys(stages).forEach(function (k) { stages[k].classList.add('tck-hidden'); });
 		stages[name].classList.remove('tck-hidden');
 	}
 	function reset() {
 		memberId = null; pin = ''; submitting = false;
+		clearSignature();
 		renderDots();
 		if (pinInput) { pinInput.value = ''; }
 		if (pinErr) { pinErr.hidden = true; }
@@ -83,11 +187,21 @@
 		}
 	}
 	function submitPin() {
+		/* PIN full → optional signature stage (NH-06 parity with the
+		   companion station flow). The PIN is verified server-side inside
+		   the single confirm call so member + PIN + signature commit
+		   atomically — a wrong PIN never stores a signature. */
+		show('sign');
+		if (signSkip) { signSkip.focus(); }
+	}
+	function postConfirm(signatureB64) {
 		/* Guard: every key press after the pad is full used to re-POST the
 		   same PIN — a double event + double lockout count. */
 		if (submitting) { return; }
 		submitting = true;
-		api('/api/kiosk/confirm', { member_id: memberId, pin: pin }).then(function (j) {
+		var body = { member_id: memberId, pin: pin };
+		if (signatureB64) { body.signature_b64 = signatureB64; }
+		api('/api/kiosk/confirm', body).then(function (j) {
 			if (j.success) {
 				confirmText.textContent = j.data.message || t('Done');
 				show('confirm');
@@ -98,6 +212,8 @@
 				renderDots();
 				pinErr.textContent = j.message || t('Wrong PIN');
 				pinErr.hidden = false;
+				show('pin');
+				if (pinInput) { pinInput.focus(); }
 				announce(pinErr.textContent);
 				if (j.data && j.data.locked) {
 					setTimeout(reset, 2500);
@@ -109,6 +225,8 @@
 			renderDots();
 			pinErr.textContent = t('Network error');
 			pinErr.hidden = false;
+			show('pin');
+			if (pinInput) { pinInput.focus(); }
 			announce(pinErr.textContent);
 		});
 	}
@@ -117,6 +235,7 @@
 		btn.addEventListener('click', function () {
 			memberId = parseInt(btn.getAttribute('data-tck-member'), 10);
 			pinName.textContent = btn.getAttribute('data-name');
+			if (signName) { signName.textContent = btn.getAttribute('data-name'); }
 			pin = '';
 			renderDots();
 			show('pin');

@@ -40,6 +40,7 @@ class KioskController extends Controller
 		private readonly LicenseService $license,
 		private readonly RateLimitService $rateLimit,
 		private readonly RoundService $rounds,
+		private readonly \OCA\TourCheck\Service\PhotoService $photos,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -110,6 +111,30 @@ class KioskController extends Controller
 			[$attachRound] = $this->rounds->attach((int)$cp->getSiteId(), (int)$cp->getId(), new \DateTimeImmutable(), $roundId);
 			$clientEventId = 'kiosk_' . (int)$station->getId() . '_' . (int)$member->getId()
 				. '_' . (int)$cp->getId() . '_' . (int)($attachRound?->getId());
+			// NH-06: optional finger signature — identical pipeline to the
+			// companion station path (b64 cap, strict decode, staged file,
+			// EXIF-strip via PhotoService). A replayed confirm skips the
+			// upload so a retry can never mint a second signature file.
+			$signatureFileid = null;
+			$sigB64 = (string)($b['signature_b64'] ?? '');
+			if ($sigB64 !== '' && $this->events->findByClientEventId($clientEventId) === null) {
+				if (strlen($sigB64) > 1_500_000) {
+					throw new ValidationException(Constants::ERR_VALIDATION, 'Signature too large (max 1 MB).', ['signature' => 'too_large']);
+				}
+				$raw = base64_decode($sigB64, true);
+				if ($raw === false || $raw === '') {
+					throw new ValidationException(Constants::ERR_VALIDATION, 'Invalid signature data.', ['signature' => 'invalid']);
+				}
+				$tmp = tempnam(sys_get_temp_dir(), 'tck_sig_');
+				if ($tmp === false || file_put_contents($tmp, $raw) === false) {
+					throw new DomainException('signature_write_failed', 'Could not stage the signature.', 500);
+				}
+				try {
+					$signatureFileid = $this->photos->store((int)$cp->getSiteId(), $tmp);
+				} finally {
+					@unlink($tmp);
+				}
+			}
 			$r = $this->events->ingest([
 				'client_event_id' => $clientEventId,
 				'method' => Constants::METHOD_STATION,
@@ -118,6 +143,7 @@ class KioskController extends Controller
 				'station_id' => (int)$station->getId(),
 				'_checkpoint' => $cp,
 				'round_id' => $roundId,
+				'signature_fileid' => $signatureFileid,
 			]);
 			return $this->ok([
 				'message' => 'Confirmed',

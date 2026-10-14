@@ -50,6 +50,18 @@ $stationName = (string)($_['stationName'] ?? 'Station');
 				<button type="button" class="tck-btn" data-tck-back><?php p($l->t('Back')); ?></button>
 			</div>
 
+			<div class="tck-kiosk__stage tck-hidden" data-tck-stage="sign">
+				<p class="tck-kiosk__prompt"><?php print_unescaped(str_replace('__NAME__', '<strong data-tck-sign-name></strong>', \OCP\Util::sanitizeHTML($l->t('%s — optional: your signature', ['__NAME__'])))); ?></p>
+				<canvas class="tck-signpad" data-tck-signpad width="560" height="240" role="img" aria-label="<?php p($l->t('Signature pad — draw with finger, pen, or mouse')); ?>"></canvas>
+				<p class="tck-field-error tck-kiosk__pinerr" data-tck-sign-error hidden></p>
+				<div class="tck-kiosk__actions">
+					<button type="button" class="tck-btn" data-tck-sign-skip><?php p($l->t('Skip')); ?></button>
+					<button type="button" class="tck-btn" data-tck-sign-clear disabled><?php p($l->t('Clear')); ?></button>
+					<button type="button" class="tck-btn tck-btn--primary" data-tck-sign-confirm disabled><?php p($l->t('Confirm')); ?></button>
+				</div>
+				<button type="button" class="tck-btn" data-tck-sign-back><?php p($l->t('Back')); ?></button>
+			</div>
+
 			<div class="tck-kiosk__stage tck-hidden" data-tck-stage="confirm">
 				<p class="tck-kiosk__prompt tck-kiosk__big" data-tck-confirm-text></p>
 			</div>
