@@ -3,3 +3,4 @@ node_modules/
 test-results*/
 e2e/.auth/
 .phpunit.result.cache
+build/

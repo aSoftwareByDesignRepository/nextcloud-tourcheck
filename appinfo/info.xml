@@ -50,6 +50,12 @@ Wir verbessern diese App mit Praxis-Rückmeldungen — GitHub Issue (https://git
 
 - Nextcloud 32–35 · PHP 8.2+ · MySQL oder PostgreSQL
 	]]></description>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/01.png">https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/01.png</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/02.png">https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/02.png</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/03.png">https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/03.png</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/04.png">https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/04.png</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/05.png">https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/05.png</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/06.png">https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/06.png</screenshot>
 	<version>0.1.6</version>
 	<licence>agpl</licence>
 	<author mail="info@software-by-design.de" homepage="https://nextcloud.software-by-design.de/">Software by Design GbR</author>

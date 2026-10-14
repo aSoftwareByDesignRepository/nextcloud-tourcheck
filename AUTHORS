@@ -1,0 +1,40 @@
+# Authors
+
+TourCheck is developed by **Software by Design GbR**:
+
+- **Alexander Mäule**
+
+## Acknowledgments
+
+- **Nextcloud GmbH and Nextcloud contributors** — the platform and framework
+  this app builds on
+- **Nextcloud community** — feedback, testing, and translations
+
+## Copyright
+
+Copyright (C) 2026 Alexander Mäule / Software by Design GbR
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+## Contact
+
+- **Issues**: https://github.com/aSoftwareByDesignRepository/nextcloud-tourcheck/issues
+- **Repository**: https://github.com/aSoftwareByDesignRepository/nextcloud-tourcheck
+
+## Contributing
+
+We welcome contributions: fork the repository, create a feature branch,
+test thoroughly, and open a pull request. Please be respectful and inclusive,
+match the existing code style, write clear commit messages, and document
+new features.
