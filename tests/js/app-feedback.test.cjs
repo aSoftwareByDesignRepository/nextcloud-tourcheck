@@ -192,9 +192,12 @@ function main() {
 			return this[k] || null;
 		},
 		querySelector(sel) {
-			// Shared app-feedback skips toasts that already carry a feedback
-			// link — this fake toast has none, only a content host.
-			return /feedback/.test(sel) ? null : { appendChild() {} };
+			// No pre-existing report link inside the toast — the
+			// attachReportLink guard must not early-return here.
+			if (String(sel).indexOf('toast__feedback') !== -1) {
+				return null;
+			}
+			return { appendChild() {} };
 		},
 	};
 	sandbox.BudgetCheckComponents = {
