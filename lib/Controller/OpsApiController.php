@@ -563,13 +563,14 @@ class OpsApiController extends Controller
 					if ($delay === null) {
 						throw new ValidationException(Constants::ERR_VALIDATION, 'delay_min required.', ['legs' => 'invalid']);
 					}
-					$this->db->getQueryBuilder()->insert('tck_escalation_leg')
+					$ins = $this->db->getQueryBuilder();
+					$ins->insert('tck_escalation_leg')
 						->values([
-							'site_id' => $this->db->getQueryBuilder()->createNamedParameter($siteId),
-							'leg_no' => $this->db->getQueryBuilder()->createNamedParameter($no),
-							'delay_min' => $this->db->getQueryBuilder()->createNamedParameter($delay),
-							'channel' => $this->db->getQueryBuilder()->createNamedParameter($channel),
-							'target_json' => $this->db->getQueryBuilder()->createNamedParameter(json_encode($leg['target'] ?? [])),
+							'site_id' => $ins->createNamedParameter($siteId),
+							'leg_no' => $ins->createNamedParameter($no),
+							'delay_min' => $ins->createNamedParameter($delay),
+							'channel' => $ins->createNamedParameter($channel),
+							'target_json' => $ins->createNamedParameter(json_encode($leg['target'] ?? [])),
 						])->executeStatement();
 					$no++;
 				}

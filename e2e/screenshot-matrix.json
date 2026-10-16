@@ -1,0 +1,35 @@
+{
+	"prefix": "tck",
+	"outDir": "craft/web",
+	"viewports": [
+		{ "name": "mobile", "width": 320, "height": 800 },
+		{ "name": "tablet", "width": 768, "height": 800 },
+		{ "name": "desktop", "width": 1280, "height": 800 }
+	],
+	"surfaces": [
+		{ "id": "dashboard", "path": "/dashboard", "states": ["populated"], "dark": true },
+		{ "id": "sites", "path": "/sites", "states": ["populated", "empty"], "dark": true },
+		{ "id": "site-detail", "path": "/sites/{siteId}", "states": ["populated"], "needsSeed": true },
+		{ "id": "qr-sheet", "path": "/sites/{siteId}/qr-sheet", "states": ["populated"], "needsSeed": true, "settle": ".sheet-head" },
+		{ "id": "rounds", "path": "/rounds", "states": ["populated"], "dark": true },
+		{ "id": "round-detail", "path": "/rounds/{roundId}", "states": ["populated"], "needsSeed": true },
+		{ "id": "incidents", "path": "/incidents", "states": ["populated"], "dark": true },
+		{ "id": "journal", "path": "/journal?site={siteId}", "states": ["populated", "empty"], "needsSeed": true },
+		{ "id": "reports", "path": "/reports?site={siteId}", "states": ["populated", "empty"], "needsSeed": true },
+		{ "id": "ops", "path": "/ops", "states": ["populated"], "dark": true },
+		{ "id": "ops-site", "path": "/ops/{siteId}", "states": ["populated"], "needsSeed": true },
+		{ "id": "settings-access", "path": "/settings/access", "states": ["current"], "dark": true },
+		{ "id": "settings-site-defaults", "path": "/settings/site-defaults", "states": ["current"] },
+		{ "id": "settings-evidence", "path": "/settings/evidence", "states": ["current"] },
+		{ "id": "settings-retention", "path": "/settings/retention", "states": ["current"] },
+		{ "id": "settings-branding", "path": "/settings/branding", "states": ["current"] },
+		{ "id": "settings-stations", "path": "/settings/stations", "states": ["current"] },
+		{ "id": "settings-license", "path": "/settings/license", "states": ["current"] },
+		{ "id": "settings-feedback", "path": "/settings/feedback", "states": ["current"] },
+		{ "id": "capture", "path": "/capture", "states": ["current"] },
+		{ "id": "kiosk", "path": "/kiosk?station_token={stationToken}", "states": ["current"], "public": true },
+		{ "id": "live", "path": "/live/{liveToken}", "states": ["current"], "needsSeed": true },
+		{ "id": "portal", "path": "/portal", "states": ["populated"], "clientUser": true, "needsSeed": true },
+		{ "id": "portal-site", "path": "/portal/sites/{siteId}", "states": ["populated"], "clientUser": true, "needsSeed": true }
+	]
+}

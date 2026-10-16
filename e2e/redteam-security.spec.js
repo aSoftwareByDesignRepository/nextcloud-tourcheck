@@ -45,109 +45,154 @@ test.describe('redteam: authorization boundary matrix', () => {
 		const ah = await hdr(page)
 		const req = page.context().request
 
-		// Enumerate real ids as admin — the attacker's "knowledge".
-		const sites = await req.get(api('/sites'), { headers: ah }).then(r => r.json())
-		const siteId = sites.data[0].id
-		const cps = await req.get(api(`/sites/${siteId}/checkpoints`), { headers: ah }).then(r => r.json())
-		const cpId = cps.data?.[0]?.id ?? 1
-		const plans = await req.get(api(`/sites/${siteId}/plans`), { headers: ah }).then(r => r.json())
-		const planId = plans.data?.[0]?.id ?? 1
-		const stations = await req.get(api(`/sites/${siteId}/stations`), { headers: ah }).then(r => r.json())
-		const stationId = stations.data?.[0]?.id ?? 1
-		const keys = await req.get(api(`/sites/${siteId}/keys`), { headers: ah }).then(r => r.json())
-		const keyId = keys.data?.[0]?.id ?? 1
-		const incidents = await req.get(api('/incidents'), { headers: ah }).then(r => r.json())
-		const incidentId = incidents.data?.[0]?.id ?? 1
-		const rounds = await req.get(api('/rounds'), { headers: ah }).then(r => r.json())
-		const roundId = rounds.data?.[0]?.id ?? 1
-		const reports = await req.get(api(`/sites/${siteId}/reports`), { headers: ah }).then(r => r.json())
-		const reportId = reports.data?.[0]?.id ?? 1
-		const live = await req.get(api(`/sites/${siteId}/live-links`), { headers: ah }).then(r => r.json())
-		const liveId = live.data?.[0]?.id ?? 1
-
-		// Build the attack matrix: every id-bearing route, real + 999999 fake.
-		const F = 999999
-		const matrix = [
-			['GET', `/sites/${siteId}`, `/sites/${F}`],
-			['GET', `/checkpoints/${cpId}`, `/checkpoints/${F}`, 'PUT'],
-			['GET', `/plans/${planId}`, `/plans/${F}`],
-			['GET', `/rounds/${roundId}`, `/rounds/${F}`],
-			['GET', `/incidents/${incidentId}`, `/incidents/${F}`],
-			['GET', `/reports/${reportId}/download`, `/reports/${F}/download`],
-			['GET', `/stations/${stationId}/members`, `/stations/${F}/members`],
-			['POST', `/stations/${stationId}/revoke`, `/stations/${F}/revoke`],
-			['POST', `/keys/${keyId}/take`, `/keys/${F}/take`],
-			['POST', `/live-links/${liveId}/revoke`, `/live-links/${F}/revoke`],
-			['POST', `/rounds/${roundId}/skip`, `/rounds/${F}/skip`],
-			['GET', `/sites/${siteId}/journal`, `/sites/${F}/journal`],
-			['GET', `/sites/${siteId}/export`, `/sites/${F}/export`],
-			['GET', `/sites/${siteId}/keys`, `/sites/${F}/keys`],
-			['GET', `/sites/${siteId}/report-schedules`, `/sites/${F}/report-schedules`],
-		]
-
-		// ── Tier 1: zero app access ────────────────────────────────────
-		await login(page, PROBE)
-		const ph = await hdr(page).catch(() => null)
-		// Probe may not even reach the app page → no requesttoken: use an
-		// explicit bogus token — a missing token must still not 200.
-		const probeHdrs = ph ?? { requesttoken: 'bogus', ...J }
-		for (const row of matrix) {
-			const [method, realPath, fakePath] = row
-			const r = await fire(req, method, api(realPath), probeHdrs, method === 'PUT' ? {} : undefined)
-			const f = await fire(req, method, api(fakePath), probeHdrs, method === 'PUT' ? {} : undefined)
-			expect(r.status, `probe ${method} ${realPath}`).not.toBe(200)
-			expect(r.status, `probe oracle ${method} ${realPath}`).toBe(f.status)
-			expect(r.body, `probe oracle body ${method} ${realPath}`).toBe(f.body)
-		}
-		// Global lists for a zero-membership user: open access-mode may
-		// return 200 — but the payload must contain zero site entities.
-		for (const p of ['/rounds', '/incidents', '/sites', '/drive-segments']) {
-			const r = await fire(req, 'GET', api(p), probeHdrs)
-			if (r.status === 200) {
-				const body = JSON.parse(r.body)
-				expect(body.data ?? [], `probe ${p} returned entities`).toEqual([])
+		// Seed a scratch fixture graph — every "real" id in the matrix is
+		// foreign to BOTH lower tiers by construction (shared_fixture_race:
+		// killed probe runs can leave stale memberships, so enumerating a
+		// shared site could pick member-visible ids and false-fail).
+		const scratch = await req.post(api('/sites'), { headers: ah, data: { name: `RT-scope-${Date.now()}` } })
+		expect(scratch.status(), 'scratch site create as admin').toBe(201)
+		const siteId = (await scratch.json()).data.id
+		const scratchId = siteId
+		try {
+			const seed = async (method, p, data) => {
+				const r = await fire(req, method, api(p), ah, data)
+				expect(r.status, `seed ${method} ${p}: ${r.body.slice(0, 140)}`).toBeLessThan(300)
+				return JSON.parse(r.body).data ?? {}
 			}
-		}
-		const dash = await fire(req, 'GET', api('/dashboard'), probeHdrs)
-		if (dash.status === 200) {
-			const d = JSON.parse(dash.body).data
-			expect(d.sites, 'probe dashboard sites').toEqual([])
-			expect(d.rounds.next, 'probe dashboard rounds').toEqual([])
-		}
+			const cpRes = await seed('POST', `/sites/${siteId}/checkpoints`, { name: 'rt-cp' })
+			const cpId = (cpRes.checkpoint ?? cpRes).id
+			const planId = (await seed('POST', `/sites/${siteId}/plans`, {
+				name: 'rt-plan', checkpoints: [{ checkpoint_id: cpId, sort: 0 }],
+				recurrence: { type: 'interval', anchor: new Date(Date.now() + 90_000).toISOString().replace(/\.\d{3}Z$/, 'Z'), interval_hours: 24, duration_min: 60 },
+				tolerance_min: 15,
+			})).id
+			await seed('POST', `/plans/${planId}/activate`)
+			const seededRounds = await req.get(api(`/rounds?site_id=${siteId}&status=scheduled`), { headers: ah }).then(r => r.json())
+			const roundId = (seededRounds.data ?? []).find((r) => r.siteId === siteId)?.id ?? 1
+			const incidentId = (await seed('POST', '/incidents', {
+				site_id: siteId, category: 'damage', severity: 'low', title: 'rt-inc', note: 'n',
+			})).id
+			const stationRes = await seed('POST', `/sites/${siteId}/stations`, { label: 'rt-station' })
+			const stationId = (stationRes.station ?? stationRes).id
+			const keyId = (await seed('POST', `/sites/${siteId}/keys`, { label: 'rt-key' })).id
+			const rep = await seed('POST', `/sites/${siteId}/reports`, { period: new Date().toISOString().slice(0, 7), audience: 'internal' })
+			const reportId = (rep.delivery ?? rep).id
+			const live = await seed('POST', `/sites/${siteId}/live-links`, { label: 'rt-live' })
+			const liveId = (live.link ?? live).id
 
-		// ── Tier 2: app access, zero site membership ───────────────────
-		await login(page, EMPTY)
-		const eh = await hdr(page)
-		for (const row of matrix) {
-			const [method, realPath, fakePath] = row
-			const r = await fire(req, method, api(realPath), eh, method === 'PUT' ? {} : undefined)
-			const f = await fire(req, method, api(fakePath), eh, method === 'PUT' ? {} : undefined)
-			expect(r.status, `empty ${method} ${realPath}`).not.toBe(200)
-			expect(r.status, `empty oracle ${method} ${realPath}`).toBe(f.status)
-			expect(r.body, `empty oracle body ${method} ${realPath}`).toBe(f.body)
-		}
+			// Build the attack matrix: every id-bearing route, real + 999999 fake.
+			const F = 999999
+			const matrix = [
+				['GET', `/sites/${siteId}`, `/sites/${F}`],
+				['GET', `/checkpoints/${cpId}`, `/checkpoints/${F}`, 'PUT'],
+				['GET', `/plans/${planId}`, `/plans/${F}`],
+				['GET', `/rounds/${roundId}`, `/rounds/${F}`],
+				['GET', `/incidents/${incidentId}`, `/incidents/${F}`],
+				['GET', `/reports/${reportId}/download`, `/reports/${F}/download`],
+				['GET', `/stations/${stationId}/members`, `/stations/${F}/members`],
+				['POST', `/stations/${stationId}/revoke`, `/stations/${F}/revoke`],
+				['POST', `/keys/${keyId}/take`, `/keys/${F}/take`],
+				['POST', `/live-links/${liveId}/revoke`, `/live-links/${F}/revoke`],
+				['POST', `/rounds/${roundId}/skip`, `/rounds/${F}/skip`],
+				['GET', `/sites/${siteId}/journal`, `/sites/${F}/journal`],
+				['GET', `/sites/${siteId}/export`, `/sites/${F}/export`],
+				['GET', `/sites/${siteId}/keys`, `/sites/${F}/keys`],
+				['GET', `/sites/${siteId}/report-schedules`, `/sites/${F}/report-schedules`],
+			]
 
-		// Global list endpoints must not leak ANY site entities to a
-		// zero-membership user — parse the payload, don't substring-grep.
-		for (const p of ['/rounds', '/incidents', '/sites']) {
-			const r = await fire(req, 'GET', api(p), eh)
-			if (r.status === 200) {
-				expect(JSON.parse(r.body).data ?? [], `global ${p} returned entities`).toEqual([])
+			// ── Tier 1: zero app access ────────────────────────────────
+			await login(page, PROBE)
+			const ph = await hdr(page).catch(() => null)
+			// Probe may not even reach the app page → no requesttoken: use an
+			// explicit bogus token — a missing token must still not 200.
+			const probeHdrs = ph ?? { requesttoken: 'bogus', ...J }
+			for (const row of matrix) {
+				const [method, realPath, fakePath] = row
+				const r = await fire(req, method, api(realPath), probeHdrs, method === 'PUT' ? {} : undefined)
+				const f = await fire(req, method, api(fakePath), probeHdrs, method === 'PUT' ? {} : undefined)
+				expect(r.status, `probe ${method} ${realPath}`).not.toBe(200)
+				expect(r.status, `probe oracle ${method} ${realPath}`).toBe(f.status)
+				expect(r.body, `probe oracle body ${method} ${realPath}`).toBe(f.body)
 			}
-		}
-		const dash2 = await fire(req, 'GET', api('/dashboard'), eh)
-		if (dash2.status === 200) {
-			const d = JSON.parse(dash2.body).data
-			expect(d.sites, 'empty-user dashboard sites').toEqual([])
-			expect(d.rounds.next, 'empty-user dashboard rounds').toEqual([])
-		}
-		const ds = await fire(req, 'GET', api('/drive-segments'), eh)
-		expect([403, 404], 'worker drive-segments').toContain(ds.status)
+			// Global lists for a zero-membership user: open access-mode may
+			// return 200 — every entity must belong to a site the caller can
+			// see (subset-containment), and the scratch non-member site must
+			// stay invisible. Killed probe runs can leave stale memberships
+			// that legitimately fill these lists — the invariant is scope,
+			// not emptiness.
+			const pSites = JSON.parse((await fire(req, 'GET', api('/sites'), probeHdrs)).body || '{}').data ?? []
+			const pVisible = new Set(pSites.map((s) => s.id))
+			expect(pVisible.has(scratchId), 'probe /sites leaks non-member site').toBe(false)
+			for (const p of ['/rounds', '/incidents']) {
+				const r = await fire(req, 'GET', api(p), probeHdrs)
+				if (r.status === 200) {
+					for (const row of JSON.parse(r.body).data ?? []) {
+						expect(pVisible.has(row.siteId), `probe ${p} leaked foreign-site entity ${row.id}`).toBe(true)
+					}
+				}
+			}
+			const dsProbe = await fire(req, 'GET', api('/drive-segments'), probeHdrs)
+			if (dsProbe.status === 200) {
+				expect(JSON.parse(dsProbe.body).data?.segments ?? [], 'probe drive-segments').toEqual([])
+			}
+			const dash = await fire(req, 'GET', api('/dashboard'), probeHdrs)
+			if (dash.status === 200) {
+				const d = JSON.parse(dash.body).data
+				for (const s of d.sites) {
+					expect(pVisible.has(s.id), 'probe dashboard leaked foreign site').toBe(true)
+				}
+				for (const r of d.rounds.next) {
+					expect(pVisible.has(r.siteId ?? r.site_id), 'probe dashboard leaked foreign round').toBe(true)
+				}
+			}
 
-		// Admin endpoints must be admin-only.
-		for (const [m, p] of [['GET', '/admin/settings'], ['GET', '/admin/users/search?q=atlas'], ['POST', '/admin/license']]) {
-			const r = await fire(req, m, api(p), eh)
-			expect([403, 404], `worker hit admin ${m} ${p}`).toContain(r.status)
+			// ── Tier 2: app access, zero site membership ───────────────
+			await login(page, EMPTY)
+			const eh = await hdr(page)
+			for (const row of matrix) {
+				const [method, realPath, fakePath] = row
+				const r = await fire(req, method, api(realPath), eh, method === 'PUT' ? {} : undefined)
+				const f = await fire(req, method, api(fakePath), eh, method === 'PUT' ? {} : undefined)
+				expect(r.status, `empty ${method} ${realPath}`).not.toBe(200)
+				expect(r.status, `empty oracle ${method} ${realPath}`).toBe(f.status)
+				expect(r.body, `empty oracle body ${method} ${realPath}`).toBe(f.body)
+			}
+
+			// Same scope invariant for the worker tier — parse the payload,
+			// never substring-grep; containment against EMPTY's own /sites.
+			const eSites = JSON.parse((await fire(req, 'GET', api('/sites'), eh)).body || '{}').data ?? []
+			const eVisible = new Set(eSites.map((s) => s.id))
+			expect(eVisible.has(scratchId), 'empty /sites leaks non-member site').toBe(false)
+			for (const p of ['/rounds', '/incidents']) {
+				const r = await fire(req, 'GET', api(p), eh)
+				if (r.status === 200) {
+					for (const row of JSON.parse(r.body).data ?? []) {
+						expect(eVisible.has(row.siteId), `empty ${p} leaked foreign-site entity ${row.id}`).toBe(true)
+					}
+				}
+			}
+			const dash2 = await fire(req, 'GET', api('/dashboard'), eh)
+			if (dash2.status === 200) {
+				const d = JSON.parse(dash2.body).data
+				for (const s of d.sites) {
+					expect(eVisible.has(s.id), 'empty-user dashboard leaked foreign site').toBe(true)
+				}
+				for (const r of d.rounds.next) {
+					expect(eVisible.has(r.siteId ?? r.site_id), 'empty-user dashboard leaked foreign round').toBe(true)
+				}
+			}
+			const ds = await fire(req, 'GET', api('/drive-segments'), eh)
+			expect([403, 404], 'worker drive-segments').toContain(ds.status)
+
+			// Admin endpoints must be admin-only.
+			for (const [m, p] of [['GET', '/admin/settings'], ['GET', '/admin/users/search?q=atlas'], ['POST', '/admin/license']]) {
+				const r = await fire(req, m, api(p), eh)
+				expect([403, 404], `worker hit admin ${m} ${p}`).toContain(r.status)
+			}
+		} finally {
+			await login(page, ADMIN)
+			const ah2 = await hdr(page)
+			await req.delete(api(`/sites/${scratchId}`), { headers: ah2 })
 		}
 	})
 

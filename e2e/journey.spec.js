@@ -2,6 +2,7 @@
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import { login } from './helpers/auth.js'
+import { apiFetch, gotoApp } from './helpers/app.js'
 
 /**
  * Full core-loop journey — every previously-dead control must now work:
@@ -11,12 +12,52 @@ import { login } from './helpers/auth.js'
 const CREDS = { username: 'tck_atlas', password: 'TckAtlas2026!' }
 const SITE_NAME = `E2E Site ${Date.now()}`
 const INC_TITLE = `E2E broken lock ${Date.now()}`
+// Fixture sites created by the UI journey must not outlive the run
+// (test_teardown_orphan_leak) — DELETE archives them + frees stations.
+const createdSiteIds = []
 
 test.beforeEach(async ({ page }) => {
   page.on('dialog', (d) => d.accept())
   await login(page, CREDS)
 })
 
+test.afterAll(async ({ browser }) => {
+  if (!createdSiteIds.length) { return }
+  const page = await browser.newPage()
+  try {
+    await login(page, CREDS)
+    await gotoApp(page, '/index.php/apps/tourcheck/dashboard')
+    for (const id of createdSiteIds) {
+      await apiFetch(page, 'DELETE', `/api/sites/${id}`)
+    }
+  } finally {
+    await page.close()
+  }
+})
+
+/** Capture the site id out of the post-create redirect URL. */
+function trackCreatedSite(page) {
+  const m = page.url().match(/\/sites\/(\d+)/)
+  if (m) { createdSiteIds.push(m[1]) }
+}
+
+// Destructive actions open the styled <dialog data-tck-confirm-dialog>
+// first (native confirm() is banned) — confirm it, then wait for reload.
+/**
+ * @param {import('@playwright/test').Page} page
+ * @param {import('@playwright/test').Locator} loc
+ */
+async function clickConfirmAndReload(page, loc) {
+  await loc.click()
+  const dlg = page.locator('dialog[data-tck-confirm-dialog][open]')
+  await expect(dlg).toBeVisible()
+  await clickAndReload(page, dlg.locator('[data-tck-confirm-ok]'))
+}
+
+/**
+ * @param {import('@playwright/test').Page} page
+ * @param {import('@playwright/test').Locator} loc
+ */
 async function clickAndReload(page, loc) {
   // Every mutating action in app.js ends in location.reload(); the only
   // deterministic wait is the reload navigation itself — never a sleep.
@@ -26,6 +67,10 @@ async function clickAndReload(page, loc) {
   ])
 }
 
+/**
+ * @param {import('@playwright/test').Page} page
+ * @param {string} label
+ */
 async function axe(page, label) {
   const res = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
   const appOnly = res.violations.filter(
@@ -43,6 +88,7 @@ test('core loop: site → checkpoint → plan → member → incident → report
   await page.fill('#tck-site-name', SITE_NAME)
   await clickAndReload(page, page.locator('#tck-site-form [type="submit"]'))
   await expect(page).toHaveURL(/\/apps\/tourcheck\/sites\/\d+/)
+  trackCreatedSite(page)
   await expect(page.locator('#tck-page-title')).toContainText(SITE_NAME)
   await axe(page, 'new site detail')
 
@@ -100,7 +146,7 @@ test('core loop: site → checkpoint → plan → member → incident → report
   await page.locator('#tck-mem-role').selectOption('worker')
   await clickAndReload(page, page.locator('#tck-member-form [type="submit"]'))
   await expect(page.locator('[data-tck-remove-member="admin"]')).toBeVisible()
-  await clickAndReload(page, page.locator('[data-tck-remove-member="admin"]'))
+  await clickConfirmAndReload(page, page.locator('[data-tck-remove-member="admin"]'))
   await expect(page.locator('[data-tck-remove-member="admin"]')).toHaveCount(0)
 
   // ── 4. Incidents: create → corrective action → done → verify → closed ──
@@ -142,16 +188,13 @@ test('core loop: site → checkpoint → plan → member → incident → report
   await expect(incRow.locator('form[data-tck-corr-form]')).toHaveCount(0)
   await axe(page, 'incidents')
 
-  // Close-confirm: closing a second incident must fire a dialog (the
-  // status is terminal). beforeEach auto-accepts — assert it fired.
+  // Close-confirm: closing a second incident must fire the styled
+  // confirm dialog (the status is terminal).
   await page.locator('[data-tck-new-incident]').click()
   await page.fill('#tck-inc-form-title', INC_TITLE + ' B')
   await clickAndReload(page, page.locator('#tck-incident-form [type="submit"]'))
   const rowB = page.locator('.tck-incident', { has: page.locator('.tck-list__title', { hasText: INC_TITLE + ' B' }) })
-  let dialogSeen = false
-  page.on('dialog', () => { dialogSeen = true })
-  await clickAndReload(page, rowB.locator('[data-tck-close-incident]'))
-  expect(dialogSeen, 'close must confirm — closed is terminal').toBe(true)
+  await clickConfirmAndReload(page, rowB.locator('[data-tck-close-incident]'))
 
   // ── 5. Reports: generate ──
   await page.goto('/index.php/apps/tourcheck/reports', { waitUntil: 'domcontentloaded' })
@@ -167,6 +210,7 @@ test('no dead controls: every data-tck-* button on a page has a live target', as
     await page.goto(path, { waitUntil: 'domcontentloaded' })
     const dead = await page.evaluate(() => {
       // "New" toggles must open a sibling form; state buttons must carry an id.
+      /** @type {string[]} */
       const out = []
       document.querySelectorAll('button[data-tck-new-site],button[data-tck-new-incident],button[data-tck-new-report]').forEach((b) => {
         // Hidden create form OR an auto-opened one (empty-state guidance).
@@ -199,6 +243,7 @@ test('edge cases: interval plan, weekly-days guard, ghost-uid rejection, picker'
   await page.fill('#tck-site-name', SITE_NAME + ' B')
   await clickAndReload(page, page.locator('#tck-site-form [type="submit"]'))
   await expect(page).toHaveURL(/\/apps\/tourcheck\/sites\/\d+/)
+  trackCreatedSite(page)
   await page.locator('[data-tck-new-cp]').click()
   await page.fill('#tck-cp-name', 'Gate B')
   await clickAndReload(page, page.locator('#tck-cp-form [type="submit"]'))
@@ -264,6 +309,7 @@ test('NH-10 key board: register → take → return round-trip', async ({ page }
   await page.fill('#tck-site-name', SITE_NAME + ' Keys')
   await clickAndReload(page, page.locator('#tck-site-form [type="submit"]'))
   await expect(page).toHaveURL(/\/apps\/tourcheck\/sites\/\d+/)
+  trackCreatedSite(page)
 
   // Register — empty label must surface an inline field error instantly
   // (client-side required check, no request fired), and no row may appear.

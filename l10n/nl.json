@@ -690,6 +690,9 @@
 		"Report is now visible in the client portal.": "Het rapport is nu zichtbaar in het klantportaal.",
 		"Report hidden from the client portal.": "Het rapport is niet meer zichtbaar in het klantportaal.",
 		"No reports shared yet — your service provider publishes them here.": "Nog geen rapporten gedeeld — uw dienstverlener publiceert ze hier.",
-		"Request failed.": "Verzoek mislukt."
+		"Request failed.": "Verzoek mislukt.",
+		"Please confirm": "Bevestig alstublieft",
+		"Resolve alert": "Melding oplossen",
+		"Required — at least %s characters.": "Vereist — minimaal %s tekens."
 	}
 }

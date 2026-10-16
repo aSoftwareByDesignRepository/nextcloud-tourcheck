@@ -107,5 +107,25 @@ include __DIR__ . '/common/navigation.php';
 			</div>
 		</main>
 		<?php include __DIR__ . '/common/feedback.php'; ?>
+		<dialog class="tck-dialog" data-tck-confirm-dialog aria-labelledby="tck-confirm-dialog-title">
+			<h2 id="tck-confirm-dialog-title" class="tck-dialog__title"><?php p($l->t('Please confirm')); ?></h2>
+			<p class="tck-dialog__text" data-tck-confirm-text></p>
+			<div class="tck-dialog__actions">
+				<button type="button" class="tck-btn" data-tck-confirm-cancel><?php p($l->t('Cancel')); ?></button>
+				<button type="button" class="tck-btn tck-btn--danger" data-tck-confirm-ok><?php p($l->t('Confirm')); ?></button>
+			</div>
+		</dialog>
+		<dialog class="tck-dialog" data-tck-note-dialog aria-labelledby="tck-note-dialog-title">
+			<h2 id="tck-note-dialog-title" class="tck-dialog__title" data-tck-note-title></h2>
+			<label class="tck-dialog__label">
+				<span data-tck-note-label></span>
+				<textarea data-tck-note-input rows="3" maxlength="2000"></textarea>
+			</label>
+			<p class="tck-field-error" data-tck-note-error hidden></p>
+			<div class="tck-dialog__actions">
+				<button type="button" class="tck-btn" data-tck-note-cancel><?php p($l->t('Cancel')); ?></button>
+				<button type="button" class="tck-btn tck-btn--primary" data-tck-note-ok><?php p($l->t('Confirm')); ?></button>
+			</div>
+		</dialog>
 	</div>
 </div>

@@ -691,6 +691,9 @@ OC.L10N.register(
 	"Report is now visible in the client portal." : "Il report è ora visibile nel portale clienti.",
 	"Report hidden from the client portal." : "Il report non è più visibile nel portale clienti.",
 	"No reports shared yet — your service provider publishes them here." : "Nessun report condiviso — il fornitore li pubblica qui.",
-	"Request failed." : "Richiesta non riuscita."
+	"Request failed." : "Richiesta non riuscita.",
+	"Please confirm" : "Confermare",
+	"Resolve alert" : "Risolvi avviso",
+	"Required — at least %s characters." : "Obbligatorio — almeno %s caratteri."
 	}
 );

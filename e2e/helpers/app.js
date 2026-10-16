@@ -45,3 +45,21 @@ export async function apiJson(page, buildFetch, { retries = 2 } = {}) {
 	}
 	return last
 }
+
+/**
+ * Minimal app-API fetch for spec teardown (afterAll cleanup). Uses the
+ * page's session cookies + the requesttoken from the currently loaded
+ * app page — call gotoApp first so the token exists.
+ */
+export async function apiFetch(page, method, path, data) {
+	const token = await page.evaluate(() =>
+		(window.OC && window.OC.requestToken)
+		|| document.querySelector('head[data-requesttoken]')?.getAttribute('data-requesttoken')
+		|| '')
+	const res = await page.request.fetch(`/index.php/apps/tourcheck${path}`, {
+		method,
+		data,
+		headers: { requesttoken: token, 'OCS-APIREQUEST': 'true', 'Content-Type': 'application/json' },
+	})
+	return res.json().catch(() => ({ success: false }))
+}

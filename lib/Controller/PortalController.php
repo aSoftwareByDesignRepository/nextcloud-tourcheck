@@ -88,7 +88,13 @@ class PortalController extends Controller
 			$ids = $this->portal->sitesFor($uid);
 			$out = [];
 			foreach ($ids as $sid) {
-				$out[] = $this->portal->overview($uid, $sid)['site'];
+				try {
+					$out[] = $this->portal->overview($uid, $sid)['site'];
+				} catch (NotFoundException) {
+					// Stale grant to an archived/deleted site must not kill
+					// the whole portal index — skip it, keep live grants.
+					continue;
+				}
 			}
 			return $this->ok(['sites' => $out]);
 		} catch (\Throwable $e) {

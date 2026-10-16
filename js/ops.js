@@ -79,11 +79,17 @@
 				var res = document.createElement('button');
 				res.type = 'button'; res.className = 'tck-btn tck-btn--danger'; res.textContent = t('Resolve');
 				res.addEventListener('click', function () {
-					var note = window.prompt(t('Resolution note (required, min. 10 characters)'));
-					if (note === null) { return; }
-					res.disabled = true;
-					api('POST', '/api/alerts/' + a.id + '/resolve', { note: note }).then(function (j2) {
-						if (j2.success) { toast('ok', t('Resolved')); loadAlerts(); } else { res.disabled = false; toast('error', j2.message || t('Error')); }
+					TCK.note({
+						title: t('Resolve alert'),
+						label: t('Resolution note (required, min. 10 characters)'),
+						minLength: 10,
+						submitLabel: t('Resolve'),
+					}).then(function (note) {
+						if (note === null) { return; }
+						res.disabled = true;
+						api('POST', '/api/alerts/' + a.id + '/resolve', { note: note }).then(function (j2) {
+							if (j2.success) { toast('ok', t('Resolved')); loadAlerts(); } else { res.disabled = false; toast('error', j2.message || t('Error')); }
+						});
 					});
 				});
 				actions.appendChild(res);
@@ -237,9 +243,11 @@
 				var del = document.createElement('button');
 				del.type = 'button'; del.className = 'tck-btn'; del.textContent = t('Delete');
 				del.addEventListener('click', function () {
-					if (!window.confirm(t('Delete this geofence?'))) { return; }
-					api('DELETE', '/api/geofences/' + g.id).then(function (j2) {
-						if (j2.success) { toast('ok', t('Deleted')); loadGeofences(); loadMap(); }
+					TCK.confirm(t('Delete this geofence?')).then(function (ok) {
+						if (!ok) { return; }
+						api('DELETE', '/api/geofences/' + g.id).then(function (j2) {
+							if (j2.success) { toast('ok', t('Deleted')); loadGeofences(); loadMap(); }
+						});
 					});
 				});
 				row.appendChild(del); list.appendChild(row);

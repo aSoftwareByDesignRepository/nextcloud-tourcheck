@@ -691,6 +691,9 @@ OC.L10N.register(
 	"Report is now visible in the client portal." : "Rapporten er nå synlig i kundeportalen.",
 	"Report hidden from the client portal." : "Rapporten er nå skjult i kundeportalen.",
 	"No reports shared yet — your service provider publishes them here." : "Ingen rapporter delt ennå — tjenesteleverandøren publiserer dem her.",
-	"Request failed." : "Forespørselen mislyktes."
+	"Request failed." : "Forespørselen mislyktes.",
+	"Please confirm" : "Bekreft",
+	"Resolve alert" : "Løs varsel",
+	"Required — at least %s characters." : "Påkrevd — minst %s tegn."
 	}
 );

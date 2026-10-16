@@ -183,6 +183,9 @@ class WebhookService
 	public function recentDeliveries(int $webhookId): array
 	{
 		$this->acl->assertAppAdmin();
+		if ($this->webhooks->find($webhookId) === null) {
+			throw new NotFoundException();
+		}
 		return $this->deliveries->findRecent($webhookId);
 	}
 }

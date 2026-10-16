@@ -24,6 +24,8 @@ final class DriveSegmentsIntegrationTest extends TestCase
 	private string $prefix;
 	private array $creds;
 	private array $roundIds = [];
+	private array $planIds = [];
+	private array $siteIds = [];
 
 	protected function setUp(): void
 	{
@@ -50,6 +52,14 @@ final class DriveSegmentsIntegrationTest extends TestCase
 			$p = $this->prefix;
 			foreach ($this->roundIds as $id) {
 				$pdo->exec("DELETE FROM `{$p}tck_round` WHERE id = " . (int)$id);
+			}
+			// test_teardown_orphan_leak: plan + site rows seeded per test must
+			// go too — child-first order (round → plan → site).
+			foreach ($this->planIds as $id) {
+				$pdo->exec("DELETE FROM `{$p}tck_plan` WHERE id = " . (int)$id);
+			}
+			foreach ($this->siteIds as $id) {
+				$pdo->exec("DELETE FROM `{$p}tck_site` WHERE id = " . (int)$id);
 			}
 		}
 		parent::tearDown();
@@ -88,7 +98,9 @@ final class DriveSegmentsIntegrationTest extends TestCase
 		$keys = implode(',', array_keys($vals));
 		$ph = implode(',', array_fill(0, count($vals), '?'));
 		$pdo->prepare("INSERT INTO `{$p}tck_site` ({$keys}) VALUES ({$ph})")->execute(array_values($vals));
-		return (int)$pdo->lastInsertId();
+		$id = (int)$pdo->lastInsertId();
+		$this->siteIds[] = $id;
+		return $id;
 	}
 
 	private function seedPlan(int $siteId): int
@@ -111,7 +123,9 @@ final class DriveSegmentsIntegrationTest extends TestCase
 		$keys = implode(',', array_keys($vals));
 		$ph = implode(',', array_fill(0, count($vals), '?'));
 		$pdo->prepare("INSERT INTO `{$p}tck_plan` ({$keys}) VALUES ({$ph})")->execute(array_values($vals));
-		return (int)$pdo->lastInsertId();
+		$id = (int)$pdo->lastInsertId();
+		$this->planIds[] = $id;
+		return $id;
 	}
 
 	private function seedRound(int $siteId, int $planId, array $r): void

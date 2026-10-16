@@ -64,6 +64,14 @@ class StationService
 	/** @return array{0: Station, 1: string} raw secret — shown exactly once */
 	private function createEnrolled(int $siteId, string $label, ?int $checkpointId, string $uid): array
 	{
+		// Re-check under the enroll lock: create()'s getVisible ran BEFORE
+		// lock acquisition — a concurrent archive() may have deactivated the
+		// site (and its stations) in between. Without this recheck the insert
+		// leaks an active station — and a license seat — onto a dead site.
+		$site = $this->sites->findById($siteId);
+		if ($site === null || (int)$site->getActive() !== 1) {
+			throw new NotFoundException();
+		}
 		$this->license->requireStationLicense($this->stations->countActive() + 1);
 		$secret = 'tcks_' . rtrim(strtr(base64_encode(random_bytes(24)), '+/', '-_'), '=');
 		$s = new Station();

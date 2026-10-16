@@ -8,6 +8,7 @@ use OCA\TourCheck\Db\Webhook;
 use OCA\TourCheck\Db\WebhookDelivery;
 use OCA\TourCheck\Db\WebhookDeliveryMapper;
 use OCA\TourCheck\Db\WebhookMapper;
+use OCA\TourCheck\Exception\NotFoundException;
 use OCA\TourCheck\Exception\ValidationException;
 use OCA\TourCheck\Service\AccessControlService;
 use OCA\TourCheck\Service\WebhookService;
@@ -147,6 +148,22 @@ final class WebhookServiceTest extends TestCase
 		$this->http->expects($this->never())->method('newClient');
 		$this->assertSame(['sent' => 0, 'failed' => 0], $this->svc->sweepDeliveries());
 		$this->assertSame('cancelled', $d->getStatus());
+	}
+
+	public function testRecentDeliveriesRejectsGhostEndpoint(): void
+	{
+		$this->webhooks->method('find')->willReturn(null);
+		$this->deliveries->expects($this->never())->method('findRecent');
+		$this->expectException(NotFoundException::class);
+		$this->svc->recentDeliveries(999999);
+	}
+
+	public function testRecentDeliveriesReturnsRowsForKnownEndpoint(): void
+	{
+		$this->webhooks->method('find')->with(5)->willReturn($this->endpoint());
+		$d = new WebhookDelivery();
+		$this->deliveries->expects($this->once())->method('findRecent')->with(5)->willReturn([$d]);
+		$this->assertSame([$d], $this->svc->recentDeliveries(5));
 	}
 
 	public function testSweepSchedulesRetryThenDeadLetters(): void

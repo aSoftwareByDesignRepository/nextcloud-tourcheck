@@ -87,6 +87,162 @@
 		if (region) { region.textContent = text; }
 	}
 
+	/* Keep Tab/Shift+Tab inside a modal <dialog>: Chrome lets Shift+Tab from
+	 * the first control escape backwards onto <body>, after which Escape no
+	 * longer reaches the dialog. */
+	var DIALOG_FOCUSABLE = 'a[href],input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),button:not([disabled]),[tabindex]:not([tabindex="-1"])';
+	function trapTab(ev, dlg) {
+		if (ev.key !== 'Tab') { return; }
+		var list = Array.prototype.filter.call(
+			dlg.querySelectorAll(DIALOG_FOCUSABLE),
+			function (node) { return node.offsetParent !== null || node === document.activeElement; }
+		);
+		if (list.length === 0) { ev.preventDefault(); return; }
+		var first = list[0];
+		var last = list[list.length - 1];
+		if (ev.shiftKey && document.activeElement === first) {
+			ev.preventDefault();
+			last.focus();
+		} else if (!ev.shiftKey && document.activeElement === last) {
+			ev.preventDefault();
+			first.focus();
+		}
+	}
+
+	/* --- confirm dialog: shared <dialog> (§3.9), never window.confirm ---
+	 * Resolves true only on an explicit Confirm tap; Esc/Cancel resolve
+	 * false. Focus returns to the invoker. Destructive actions must be
+	 * gated through this — a native confirm() is unstyled, unlocalised
+	 * chrome and bypasses our busy/dirty conventions. */
+	function tckConfirm(message) {
+		return new Promise(function (resolve) {
+			var dlg = document.querySelector('dialog[data-tck-confirm-dialog]');
+			if (!dlg || typeof dlg.showModal !== 'function') {
+				// ds-allow-native-fallback: <dialog> unsupported/absent
+				resolve(window.confirm(message));
+				return;
+			}
+			var textEl = dlg.querySelector('[data-tck-confirm-text]');
+			var okBtn = dlg.querySelector('[data-tck-confirm-ok]');
+			var cancelBtn = dlg.querySelector('[data-tck-confirm-cancel]');
+			var invoker = document.activeElement;
+			var done = false;
+			function finish(val) {
+				if (done) { return; }
+				done = true;
+				dlg.removeEventListener('cancel', onEsc);
+				dlg.removeEventListener('keydown', onKeydown);
+				okBtn.removeEventListener('click', onOk);
+				cancelBtn.removeEventListener('click', onCancelBtn);
+				if (dlg.open) { dlg.close(); }
+				if (invoker && document.contains(invoker)) { invoker.focus(); }
+				resolve(val);
+			}
+			function onEsc(ev) { ev.preventDefault(); finish(false); }
+			// NC's notifications app preventDefault()s global Escape keydown,
+			// which suppresses the native cancel event — close explicitly.
+			function onKeydown(ev) {
+				if (ev.key === 'Escape') {
+					ev.preventDefault();
+					ev.stopPropagation();
+					finish(false);
+					return;
+				}
+				trapTab(ev, dlg);
+			}
+			function onOk() { finish(true); }
+			function onCancelBtn() { finish(false); }
+			textEl.textContent = message;
+			dlg.addEventListener('cancel', onEsc);
+			dlg.addEventListener('keydown', onKeydown);
+			okBtn.addEventListener('click', onOk);
+			cancelBtn.addEventListener('click', onCancelBtn);
+			dlg.showModal();
+			okBtn.focus();
+		});
+	}
+
+	/* --- note dialog: labelled textarea + min-length gate (replaces
+	 * window.prompt — ops resolution notes must be typed in a real,
+	 * styled, Escape-safe form). Resolves the trimmed note or null. --- */
+	function tckNote(opts) {
+		opts = opts || {};
+		var min = opts.minLength || 1;
+		return new Promise(function (resolve) {
+			var dlg = document.querySelector('dialog[data-tck-note-dialog]');
+			if (!dlg || typeof dlg.showModal !== 'function') {
+				// ds-allow-native-fallback: <dialog> unsupported/absent
+				var raw = window.prompt(opts.title || '', '');
+				resolve(raw !== null && raw.trim().length >= min ? raw.trim() : null);
+				return;
+			}
+			var titleEl = dlg.querySelector('[data-tck-note-title]');
+			var labelEl = dlg.querySelector('[data-tck-note-label]');
+			var input = dlg.querySelector('[data-tck-note-input]');
+			var errEl = dlg.querySelector('[data-tck-note-error]');
+			var okBtn = dlg.querySelector('[data-tck-note-ok]');
+			var cancelBtn = dlg.querySelector('[data-tck-note-cancel]');
+			var invoker = document.activeElement;
+			var done = false;
+			function finish(val) {
+				if (done) { return; }
+				done = true;
+				dlg.removeEventListener('cancel', onEsc);
+				dlg.removeEventListener('keydown', onKeydown);
+				input.removeEventListener('input', onInput);
+				okBtn.removeEventListener('click', onOk);
+				cancelBtn.removeEventListener('click', onCancelBtn);
+				if (dlg.open) { dlg.close(); }
+				if (invoker && document.contains(invoker)) { invoker.focus(); }
+				resolve(val);
+			}
+			function onEsc(ev) { ev.preventDefault(); finish(null); }
+			// Same suppressed-cancel workaround as tckConfirm.
+			function onKeydown(ev) {
+				if (ev.key === 'Escape') {
+					ev.preventDefault();
+					ev.stopPropagation();
+					finish(null);
+					return;
+				}
+				trapTab(ev, dlg);
+			}
+			function onInput() {
+				input.removeAttribute('aria-invalid');
+				errEl.hidden = true;
+			}
+			function onOk() {
+				var v = input.value.trim();
+				if (v.length < min) {
+					input.setAttribute('aria-invalid', 'true');
+					errEl.textContent = t('Required — at least %s characters.').replace('%s', String(min));
+					errEl.hidden = false;
+					input.focus();
+					return;
+				}
+				finish(v);
+			}
+			function onCancelBtn() { finish(null); }
+			titleEl.textContent = opts.title || '';
+			labelEl.textContent = opts.label || '';
+			okBtn.textContent = opts.submitLabel || t('Confirm');
+			input.value = '';
+			input.removeAttribute('aria-invalid');
+			errEl.hidden = true;
+			dlg.addEventListener('cancel', onEsc);
+			dlg.addEventListener('keydown', onKeydown);
+			input.addEventListener('input', onInput);
+			okBtn.addEventListener('click', onOk);
+			cancelBtn.addEventListener('click', onCancelBtn);
+			dlg.showModal();
+			input.focus();
+		});
+	}
+
+	/* Shared with sibling page bundles (ops.js): same confirm + note
+	 * dialogs, same <dialog> elements in templates/main.php. */
+	window.TCK = { confirm: tckConfirm, note: tckNote };
+
 	/* --- field errors: aria-invalid + inline, per _shared/field-errors contract.
 	 * Form-scoped variant: site.php hosts multiple forms sharing input names
 	 * (name, label), so the document-scoped canonical module would mark the
@@ -312,24 +468,26 @@
 			if (!validateRequired(eraseForm)) { return; }
 			var uidInput = eraseForm.querySelector('input[name="uid"]');
 			var target = uidInput ? uidInput.value.trim() : '';
-			if (!confirm(t('Erase all personal data for "%s" on this site? This is journaled and irreversible.').replace('%s', target))) { return; }
-			clearFieldErrors(eraseForm);
-			var btn = eraseForm.querySelector('[type="submit"]');
-			if (btn) { btn.disabled = true; }
-			api('POST', '/api/sites/' + eraseForm.getAttribute('data-site-id') + '/erase', serializeForm(eraseForm)).then(function (json) {
-				if (btn) { btn.disabled = false; }
-				if (json.success) {
-					var n = (json.data && typeof json.data.rows === 'number') ? json.data.rows : 0;
-					// Row count surfaced — 0 means the uid had no data (typo guard).
-					toast('ok', t('Erased %s personal-data rows — journaled.').replace('%s', String(n)));
-					announce(t('Saved'));
-					setTimeout(function () { location.reload(); }, 900);
-				} else {
-					handleError(eraseForm, json);
-				}
-			}).catch(function () {
-				if (btn) { btn.disabled = false; }
-				toast('error', t('Network error'));
+			tckConfirm(t('Erase all personal data for "%s" on this site? This is journaled and irreversible.').replace('%s', target)).then(function (ok) {
+				if (!ok) { return; }
+				clearFieldErrors(eraseForm);
+				var btn = eraseForm.querySelector('[type="submit"]');
+				if (btn) { btn.disabled = true; }
+				api('POST', '/api/sites/' + eraseForm.getAttribute('data-site-id') + '/erase', serializeForm(eraseForm)).then(function (json) {
+					if (btn) { btn.disabled = false; }
+					if (json.success) {
+						var n = (json.data && typeof json.data.rows === 'number') ? json.data.rows : 0;
+						// Row count surfaced — 0 means the uid had no data (typo guard).
+						toast('ok', t('Erased %s personal-data rows — journaled.').replace('%s', String(n)));
+						announce(t('Saved'));
+						setTimeout(function () { location.reload(); }, 900);
+					} else {
+						handleError(eraseForm, json);
+					}
+				}).catch(function () {
+					if (btn) { btn.disabled = false; }
+					toast('error', t('Network error'));
+				});
 			});
 		});
 	}
@@ -404,9 +562,11 @@
 	}
 	document.querySelectorAll('[data-tck-archive-cp]').forEach(function (btn) {
 		btn.addEventListener('click', function () {
-			if (!confirm(t('Archive this checkpoint? Its codes stop working.'))) { return; }
-			api('DELETE', '/api/checkpoints/' + btn.getAttribute('data-tck-archive-cp')).then(function (json) {
-				if (json.success) { location.reload(); } else { handleError(null, json); }
+			tckConfirm(t('Archive this checkpoint? Its codes stop working.')).then(function (ok) {
+				if (!ok) { return; }
+				api('DELETE', '/api/checkpoints/' + btn.getAttribute('data-tck-archive-cp')).then(function (json) {
+					if (json.success) { location.reload(); } else { handleError(null, json); }
+				});
 			});
 		});
 	});
@@ -484,11 +644,13 @@
 	}
 	document.querySelectorAll('[data-tck-revoke-live]').forEach(function (btn) {
 		btn.addEventListener('click', function () {
-			if (!confirm(t('Revoke this live link? Its URL stops working immediately.'))) { return; }
-			api('POST', '/api/live-links/' + btn.getAttribute('data-tck-revoke-live') + '/revoke', {}).then(function (json) {
-				if (json.success) { toast('ok', t('Revoked')); setTimeout(function () { location.reload(); }, 600); }
-				else { handleError(null, json); }
-			}).catch(function () { toast('error', t('Network error')); });
+			tckConfirm(t('Revoke this live link? Its URL stops working immediately.')).then(function (ok) {
+				if (!ok) { return; }
+				api('POST', '/api/live-links/' + btn.getAttribute('data-tck-revoke-live') + '/revoke', {}).then(function (json) {
+					if (json.success) { toast('ok', t('Revoked')); setTimeout(function () { location.reload(); }, 600); }
+					else { handleError(null, json); }
+				}).catch(function () { toast('error', t('Network error')); });
+			});
 		});
 	});
 
@@ -609,11 +771,13 @@
 	/* --- station revoke --- */
 	document.querySelectorAll('[data-tck-revoke-station]').forEach(function (btn) {
 		btn.addEventListener('click', function () {
-			if (!confirm(t('Revoke this station? It stops working immediately.'))) { return; }
-			api('POST', '/api/stations/' + btn.getAttribute('data-tck-revoke-station') + '/revoke', {}).then(function (json) {
-				if (json.success) { toast('ok', t('Revoked')); setTimeout(function () { location.reload(); }, 600); }
-				else { handleError(null, json); }
-			}).catch(function () { toast('error', t('Network error')); });
+			tckConfirm(t('Revoke this station? It stops working immediately.')).then(function (ok) {
+				if (!ok) { return; }
+				api('POST', '/api/stations/' + btn.getAttribute('data-tck-revoke-station') + '/revoke', {}).then(function (json) {
+					if (json.success) { toast('ok', t('Revoked')); setTimeout(function () { location.reload(); }, 600); }
+					else { handleError(null, json); }
+				}).catch(function () { toast('error', t('Network error')); });
+			});
 		});
 	});
 
@@ -742,11 +906,13 @@
 	document.querySelectorAll('[data-tck-remove-member]').forEach(function (btn) {
 		btn.addEventListener('click', function () {
 			var uid = btn.getAttribute('data-tck-remove-member');
-			if (!confirm(t('Remove this member from the site?'))) { return; }
-			api('DELETE', '/api/sites/' + btn.getAttribute('data-site-id') + '/members/' + encodeURIComponent(uid)).then(function (json) {
-				if (json.success) { toast('ok', t('Member removed')); setTimeout(function () { location.reload(); }, 600); }
-				else { handleError(null, json); }
-			}).catch(function () { toast('error', t('Network error')); });
+			tckConfirm(t('Remove this member from the site?')).then(function (ok) {
+				if (!ok) { return; }
+				api('DELETE', '/api/sites/' + btn.getAttribute('data-site-id') + '/members/' + encodeURIComponent(uid)).then(function (json) {
+					if (json.success) { toast('ok', t('Member removed')); setTimeout(function () { location.reload(); }, 600); }
+					else { handleError(null, json); }
+				}).catch(function () { toast('error', t('Network error')); });
+			});
 		});
 	});
 
@@ -768,16 +934,18 @@
 		btn.addEventListener('click', function () {
 			// 'closed' is a terminal status — same confirm bar as the other
 			// irreversible actions (archive checkpoint, revoke link).
-			if (!confirm(t('Close this incident? It cannot be reopened.'))) { return; }
-			btn.disabled = true;
-			api('PUT', '/api/incidents/' + btn.getAttribute('data-tck-close-incident'), {
-				status: 'closed',
-				revision: parseInt(btn.getAttribute('data-revision'), 10)
-			}).then(function (json) {
-				btn.disabled = false;
-				if (json.success) { toast('ok', t('Incident closed')); setTimeout(function () { location.reload(); }, 600); }
-				else { if (json._status === 409) { setTimeout(function () { location.reload(); }, 900); } handleError(null, json); }
-			}).catch(function () { btn.disabled = false; toast('error', t('Network error')); });
+			tckConfirm(t('Close this incident? It cannot be reopened.')).then(function (ok) {
+				if (!ok) { return; }
+				btn.disabled = true;
+				api('PUT', '/api/incidents/' + btn.getAttribute('data-tck-close-incident'), {
+					status: 'closed',
+					revision: parseInt(btn.getAttribute('data-revision'), 10)
+				}).then(function (json) {
+					btn.disabled = false;
+					if (json.success) { toast('ok', t('Incident closed')); setTimeout(function () { location.reload(); }, 600); }
+					else { if (json._status === 409) { setTimeout(function () { location.reload(); }, 900); } handleError(null, json); }
+				}).catch(function () { btn.disabled = false; toast('error', t('Network error')); });
+			});
 		});
 	});
 
@@ -1100,11 +1268,13 @@
 	var clearLic = document.querySelector('[data-tck-clear-license]');
 	if (clearLic) {
 		clearLic.addEventListener('click', function () {
-			if (!confirm(t('Remove this license? Stations and the companion app stop working.'))) { return; }
-			api('DELETE', '/api/admin/license').then(function (json) {
-				if (json.success) { toast('ok', t('License removed')); setTimeout(function () { location.reload(); }, 600); }
-				else { handleError(null, json); }
-			}).catch(function () { toast('error', t('Network error')); });
+			tckConfirm(t('Remove this license? Stations and the companion app stop working.')).then(function (ok) {
+				if (!ok) { return; }
+				api('DELETE', '/api/admin/license').then(function (json) {
+					if (json.success) { toast('ok', t('License removed')); setTimeout(function () { location.reload(); }, 600); }
+					else { handleError(null, json); }
+				}).catch(function () { toast('error', t('Network error')); });
+			});
 		});
 	}
 

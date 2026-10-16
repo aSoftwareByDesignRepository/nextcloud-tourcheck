@@ -65,23 +65,27 @@ class RoundMapper extends QBMapper
 	/**
 	 * Worker "today" list: scheduled/active/missed rounds on the given sites
 	 * (or all when $unrestricted), window not older than 24 h, near-future.
+	 * Rounds on archived sites are excluded — site.active=0 rejects every
+	 * write (getVisible 404), so surfacing them invites evidence that can
+	 * never sync.
 	 * @param list<int> $siteIds
 	 * @return list<Round>
 	 */
 	public function findOpen(array $siteIds, bool $unrestricted, \DateTimeInterface $now): array
 	{
 		$qb = $this->db->getQueryBuilder();
-		$qb->select('*')->from($this->getTableName())
-			->where($qb->expr()->in('status', $qb->createNamedParameter(['scheduled', 'active', 'missed'], \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_STR_ARRAY)))
-			->andWhere($qb->expr()->gte('window_end', $qb->createNamedParameter((new \DateTime())->setTimestamp($now->getTimestamp() - 86400), 'datetime')))
-			->andWhere($qb->expr()->lte('scheduled_start', $qb->createNamedParameter((new \DateTime())->setTimestamp($now->getTimestamp() + 7 * 86400), 'datetime')))
-			->orderBy('scheduled_start', 'ASC')
+		$qb->select('r.*')->from($this->getTableName(), 'r')
+			->innerJoin('r', 'tck_site', 's', 's.id = r.site_id AND s.active = 1')
+			->where($qb->expr()->in('r.status', $qb->createNamedParameter(['scheduled', 'active', 'missed'], \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($qb->expr()->gte('r.window_end', $qb->createNamedParameter((new \DateTime())->setTimestamp($now->getTimestamp() - 86400), 'datetime')))
+			->andWhere($qb->expr()->lte('r.scheduled_start', $qb->createNamedParameter((new \DateTime())->setTimestamp($now->getTimestamp() + 7 * 86400), 'datetime')))
+			->orderBy('r.scheduled_start', 'ASC')
 			->setMaxResults(200);
 		if (!$unrestricted) {
 			if ($siteIds === []) {
 				return [];
 			}
-			$qb->andWhere($qb->expr()->in('site_id', $qb->createNamedParameter(array_map('intval', $siteIds), \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_INT_ARRAY)));
+			$qb->andWhere($qb->expr()->in('r.site_id', $qb->createNamedParameter(array_map('intval', $siteIds), \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_INT_ARRAY)));
 		}
 		return $this->findEntities($qb);
 	}

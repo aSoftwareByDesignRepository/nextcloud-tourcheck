@@ -801,8 +801,9 @@ class CompanionController extends Controller
 	 * NH-10 kiosk key board: list this station's site keys. The station
 	 * token scopes the site — no cross-site leakage by construction.
 	 */
-	#[NoAdminRequired]
+	#[PublicPage]
 	#[NoCSRFRequired]
+	#[BruteForceProtection(action: 'tck_station')]
 	public function stationKeys(): JSONResponse
 	{
 		try {
@@ -819,8 +820,9 @@ class CompanionController extends Controller
 	 * (lockout budget burns identically — a key tap is not a cheaper probe).
 	 * Custody identity is the verified member, never a client-supplied name.
 	 */
-	#[NoAdminRequired]
+	#[PublicPage]
 	#[NoCSRFRequired]
+	#[BruteForceProtection(action: 'tck_station_pin')]
 	public function stationKeyAction(): JSONResponse
 	{
 		try {

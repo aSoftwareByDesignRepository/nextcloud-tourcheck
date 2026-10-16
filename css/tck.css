@@ -37,6 +37,11 @@
    never on .tck-page-stack: header/main/footer all center together. */
 #app-content.tck-app #app-content-wrapper.tck-shell--constrained,
 .tck-shell--constrained { max-width: var(--tck-shell-max); margin-inline: auto; width: 100%; }
+/* [hidden] must always win over component display (flex/grid) — recipe-A/B
+   filters + JS toggles set .hidden on rows and whole list containers;
+   without this guard a filtered list still paints every row. */
+.tck-app [hidden] { display: none !important; }
+
 .tck-main { flex: 1; padding: var(--tck-space-5) var(--tck-space-5) var(--tck-space-7); outline: none; }
 .tck-page-stack { display: flex; flex-direction: column; gap: var(--tck-space-6); width: 100%; }
 
@@ -161,7 +166,7 @@
    them here (load order lets these rules win, keep it minimal). */
 .tck-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--tck-space-2); }
 .tck-list__row { display: flex; align-items: center; gap: var(--tck-space-3); flex-wrap: wrap; min-height: var(--tck-touch); padding: var(--tck-space-2) var(--tck-space-3); border: 1px solid var(--color-border); border-radius: var(--tck-radius-md); background: var(--color-main-background); }
-.tck-list__main { flex: 1; display: flex; flex-direction: column; min-width: 0; color: var(--color-main-text); text-decoration: none; }
+.tck-list__main { flex: 1; display: flex; flex-direction: column; justify-content: center; align-self: stretch; min-width: 0; color: var(--color-main-text); text-decoration: none; }
 .tck-list__title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
 .tck-list__aside { display: flex; align-items: center; gap: var(--tck-space-2); flex-wrap: wrap; }
 .tck-list__sub { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
@@ -919,3 +924,52 @@
 .tck-kpi__sub { font-size: var(--tck-fs-xs); color: var(--color-text-maxcontrast); }
 .tck-kpi-range { display: flex; gap: var(--tck-space-2); align-items: center; flex-wrap: wrap; }
 .tck-kpi-range input[type="date"] { min-height: var(--tck-touch); padding: 0 var(--tck-space-2); border: 1px solid var(--tck-form-border, var(--color-border-maxcontrast)); border-radius: var(--tck-radius-sm); }
+
+/* ── Confirm dialog (§3.9 — NC forces display:block; guard required) ── */
+/* UNSCOPED: the element renders in the top layer — scoping under
+   #app-content would make these dead selectors for any body-appended
+   dialog. Never reach for window.confirm: tckConfirm() in app.js. */
+dialog.tck-dialog:not([open]) { display: none !important; }
+dialog.tck-dialog[open] {
+	margin: auto;
+	max-width: min(36rem, calc(100vw - 2rem));
+	max-height: min(90dvh, calc(100vh - 2rem));
+	padding: var(--tck-space-5);
+	border: 1px solid var(--tck-border-strong, var(--color-border-maxcontrast));
+	border-radius: var(--tck-radius-md);
+	background: var(--tck-bg-card);
+	color: var(--color-main-text);
+	box-shadow: var(--tck-shadow-md);
+}
+dialog.tck-dialog::backdrop { background: var(--tck-scrim); }
+.tck-dialog__title { margin: 0 0 var(--tck-space-2); font-size: var(--tck-fs-lg); }
+.tck-dialog__text { margin: 0; color: var(--color-main-text); }
+.tck-dialog__actions {
+	display: flex;
+	gap: var(--tck-space-2);
+	justify-content: flex-end;
+	margin-top: var(--tck-space-4);
+}
+@media (max-width: 767px) {
+	.tck-dialog__actions { flex-direction: column-reverse; }
+	.tck-dialog__actions .tck-btn { width: 100%; }
+}
+.tck-dialog__label {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tck-space-1);
+	font-weight: 600;
+	margin-top: var(--tck-space-3);
+}
+.tck-dialog__label textarea {
+	min-height: 5rem;
+	resize: vertical;
+	border: 1px solid var(--tck-form-border);
+	border-radius: var(--tck-radius-sm);
+	padding: var(--tck-space-2);
+	font: inherit;
+	color: inherit;
+	background: var(--color-main-background);
+}
+.tck-dialog__label textarea[aria-invalid='true'] { border-color: var(--tck-danger-ink); }
+.tck-dialog .tck-field-error { margin: var(--tck-space-1) 0 0; }

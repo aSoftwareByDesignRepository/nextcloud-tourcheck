@@ -8,11 +8,14 @@ use OCA\TourCheck\Constants;
 use OCA\TourCheck\Db\Site;
 use OCA\TourCheck\Db\SiteMapper;
 use OCA\TourCheck\Db\SiteMemberMapper;
+use OCA\TourCheck\Db\StationMapper;
 use OCA\TourCheck\Exception\ConflictException;
 use OCA\TourCheck\Exception\NotFoundException;
 use OCA\TourCheck\Exception\ValidationException;
+use OCA\TourCheck\Support\LockGuard;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IDBConnection;
+use OCP\Lock\ILockingProvider;
 
 /** Site CRUD with CAS + privileged-mutation journaling (kind=admin). */
 class SiteService
@@ -20,10 +23,12 @@ class SiteService
 	public function __construct(
 		private readonly SiteMapper $sites,
 		private readonly SiteMemberMapper $members,
+		private readonly StationMapper $stations,
 		private readonly AccessControlService $acl,
 		private readonly ChainService $chain,
 		private readonly ITimeFactory $timeFactory,
 		private readonly IDBConnection $db,
+		private readonly ILockingProvider $locking,
 	) {
 	}
 
@@ -186,21 +191,38 @@ class SiteService
 		$uid = $this->acl->assertCanManageSite($siteId);
 		// Lock the row: a concurrent update() holds it too — without the
 		// lock archive could write back a stale active=1 read.
-		$this->db->beginTransaction();
-		try {
-			$site = $this->sites->findForUpdate($siteId);
-			if ($site === null || (int)$site->getActive() !== 1) {
-				throw new NotFoundException();
+		// Serialize against enrollment on tck.station.enroll: archive must
+		// free the site's station device seats — a station on an archived
+		// site can never be revoked (assertCanManageSite 404s), so its
+		// license seat would leak permanently.
+		$revoked = LockGuard::run($this->locking, 'tck.station.enroll', function () use ($siteId) {
+			$revoked = [];
+			$this->db->beginTransaction();
+			try {
+				$site = $this->sites->findForUpdate($siteId);
+				if ($site === null || (int)$site->getActive() !== 1) {
+					throw new NotFoundException();
+				}
+				$site->setActive(0);
+				$site->setRevision((int)$site->getRevision() + 1);
+				$site->setUpdatedAt($this->timeFactory->getDateTime());
+				$site = $this->sites->update($site);
+				$now = $this->timeFactory->getDateTime();
+				foreach ($this->stations->findForSite($siteId) as $st) {
+					if ((int)$st->getActive() === 1) {
+						$st->setActive(0);
+						$st->setRevokedAt($now);
+						$this->stations->update($st);
+						$revoked[] = (int)$st->getId();
+					}
+				}
+				$this->db->commit();
+			} catch (\Throwable $e) {
+				$this->db->rollBack();
+				throw $e;
 			}
-			$site->setActive(0);
-			$site->setRevision((int)$site->getRevision() + 1);
-			$site->setUpdatedAt($this->timeFactory->getDateTime());
-			$site = $this->sites->update($site);
-			$this->db->commit();
-		} catch (\Throwable $e) {
-			$this->db->rollBack();
-			throw $e;
-		}
+			return $revoked;
+		});
 		$this->chain->append($siteId, [
 			'kind' => Constants::KIND_ADMIN,
 			'actorUid' => $uid,
@@ -208,6 +230,15 @@ class SiteService
 			'payloadRef' => 'site:' . $siteId,
 			'payloadFields' => ['site' => $siteId],
 		]);
+		foreach ($revoked as $stationId) {
+			$this->chain->append($siteId, [
+				'kind' => Constants::KIND_ADMIN,
+				'actorUid' => $uid,
+				'body' => 'station_revoked',
+				'payloadRef' => 'station:' . $stationId,
+				'payloadFields' => ['station' => $stationId, 'site' => $siteId, 'via' => 'site_archived'],
+			]);
+		}
 	}
 
 	/** Fail-closed CAS: missing/unknown base revision → 409, never merge. */

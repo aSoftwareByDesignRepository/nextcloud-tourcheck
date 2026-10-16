@@ -13,6 +13,7 @@ use OCA\TourCheck\Db\IncidentMapper;
 use OCA\TourCheck\Db\Site;
 use OCA\TourCheck\Db\SiteMapper;
 use OCA\TourCheck\Db\SiteMemberMapper;
+use OCA\TourCheck\Db\StationMapper;
 use OCA\TourCheck\Db\RoundMapper;
 use OCA\TourCheck\Exception\ConflictException;
 use OCA\TourCheck\Service\AccessControlService;
@@ -24,6 +25,7 @@ use OCA\TourCheck\Service\PhotoService;
 use OCA\TourCheck\Service\SiteService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IDBConnection;
+use OCP\Lock\ILockingProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 use Test\TestCase;
@@ -64,7 +66,16 @@ final class CasUpdateLockTest extends TestCase
 
 	private function siteService(SiteMapper&MockObject $mapper, SiteMemberMapper&MockObject $members): SiteService
 	{
-		return new SiteService($mapper, $members, $this->acl, $this->chain, $this->time, $this->db);
+		return new SiteService(
+			$mapper,
+			$members,
+			$this->createMock(StationMapper::class),
+			$this->acl,
+			$this->chain,
+			$this->time,
+			$this->db,
+			$this->createMock(ILockingProvider::class),
+		);
 	}
 
 	public function testSiteUpdateLocksRowBeforeCas(): void
@@ -138,6 +149,60 @@ final class CasUpdateLockTest extends TestCase
 		$svc->archive(5);
 
 		self::assertSame(['begin', 'findForUpdate', 'update', 'commit'], $this->order);
+	}
+
+	/**
+	 * License seat leak: a station on an archived site can never be revoked
+	 * (assertCanManageSite 404s on inactive sites), so archive() must retire
+	 * the site's active stations in the same transaction — or every archived
+	 * site permanently burns device seats (redteam e2e hit cap=2 on 2026-10-15).
+	 */
+	public function testSiteArchiveRevokesActiveStations(): void
+	{
+		$mapper = $this->createMock(SiteMapper::class);
+		$site = new Site();
+		$site->setId(5);
+		$site->setActive(1);
+		$site->setRevision(3);
+		$mapper->method('find')->willReturn($site);
+		$mapper->method('findForUpdate')->willReturn($site);
+		$mapper->method('update')->willReturnArgument(0);
+		$this->acl->method('assertCanViewSite')->willReturn('boss');
+		$this->acl->method('assertCanManageSite')->willReturn('boss');
+
+		$active = new \OCA\TourCheck\Db\Station();
+		$active->setId(11);
+		$active->setSiteId(5);
+		$active->setActive(1);
+		$inactive = new \OCA\TourCheck\Db\Station();
+		$inactive->setId(12);
+		$inactive->setSiteId(5);
+		$inactive->setActive(0);
+		$stationMapper = $this->createMock(StationMapper::class);
+		$stationMapper->method('findForSite')->willReturn([$active, $inactive]);
+		$stationMapper->expects($this->once())->method('update')
+			->with(self::callback(fn ($s) => $s === $active && (int)$s->getActive() === 0 && $s->getRevokedAt() !== null));
+
+		$journaled = [];
+		$chain = $this->createMock(ChainService::class);
+		$chain->method('append')->willReturnCallback(function ($siteId, $entry) use (&$journaled) {
+			$journaled[] = $entry['body'];
+			return new \OCA\TourCheck\Db\JournalEntry();
+		});
+
+		$svc = new SiteService(
+			$mapper,
+			$this->createMock(SiteMemberMapper::class),
+			$stationMapper,
+			$this->acl,
+			$chain,
+			$this->time,
+			$this->db,
+			$this->createMock(ILockingProvider::class),
+		);
+		$svc->archive(5);
+
+		self::assertSame(['site_archived', 'station_revoked'], $journaled);
 	}
 
 	public function testCheckpointUpdateLocksRowBeforeCas(): void

@@ -42,9 +42,27 @@ async function api(
 	return res.json().catch(() => ({ success: false }))
 }
 
+// Seeded fixture sites must not outlive the run
+// (test_teardown_orphan_leak) — DELETE archives them.
+const createdSiteIds = []
+
 test.beforeEach(async ({ page }) => {
 	page.on('dialog', (d) => d.accept())
 	await login(page, CREDS)
+})
+
+test.afterAll(async ({ browser }) => {
+	if (!createdSiteIds.length) { return }
+	const page = await browser.newPage()
+	try {
+		await login(page, CREDS)
+		await gotoApp(page, '/index.php/apps/tourcheck/dashboard')
+		for (const id of createdSiteIds) {
+			await api(page, 'DELETE', `/api/sites/${id}`)
+		}
+	} finally {
+		await page.close()
+	}
 })
 
 test('visual design: seeded lists all carry a canonical filter recipe', async ({ page }) => {
@@ -55,6 +73,7 @@ test('visual design: seeded lists all carry a canonical filter recipe', async ({
 	const site = await api(page, 'POST', '/api/sites', { name: `${MARK} site`, tz: 'Europe/Berlin' })
 	expect(site.success, `site seed failed: ${JSON.stringify(site)}`).toBe(true)
 	const siteId = site.data.id
+	createdSiteIds.push(siteId)
 
 	const cp = await api(page, 'POST', `/api/sites/${siteId}/checkpoints`, { name: `${MARK} gate`, kind: 'qr', sort: 1 })
 	expect(cp.success, `checkpoint seed failed: ${JSON.stringify(cp)}`).toBe(true)
@@ -177,6 +196,7 @@ test('mobile card transform: journal table stacks with row labels at 375px', asy
 	await gotoApp(page, '/index.php/apps/tourcheck/dashboard')
 	const site = await api(page, 'POST', '/api/sites', { name: `${MARK} mobile`, tz: 'Europe/Berlin' })
 	if (site.success) {
+		createdSiteIds.push(site.data.id)
 		await api(page, 'POST', '/api/journal', { site_id: site.data.id, body: `${MARK} mobile seed` })
 		await gotoApp(page, `/index.php/apps/tourcheck/journal?site=${site.data.id}`)
 	} else {

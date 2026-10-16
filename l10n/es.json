@@ -690,6 +690,9 @@
 		"Report is now visible in the client portal.": "El informe ya es visible en el portal del cliente.",
 		"Report hidden from the client portal.": "El informe ya no es visible en el portal del cliente.",
 		"No reports shared yet — your service provider publishes them here.": "Aún no se han compartido informes — su proveedor los publica aquí.",
-		"Request failed.": "La solicitud falló."
+		"Request failed.": "La solicitud falló.",
+		"Please confirm": "Confirme",
+		"Resolve alert": "Resolver alerta",
+		"Required — at least %s characters.": "Obligatorio: al menos %s caracteres."
 	}
 }
