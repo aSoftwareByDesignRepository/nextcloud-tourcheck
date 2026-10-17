@@ -4,3 +4,6 @@ test-results*/
 e2e/.auth/
 .phpunit.result.cache
 build/
+
+# Composer dependencies (installed at build time, shipped via release tarball)
+/vendor/
