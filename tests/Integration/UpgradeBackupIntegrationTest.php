@@ -23,11 +23,11 @@ final class UpgradeBackupIntegrationTest extends TestCase
 
 	public function testCreateListAndRestoreRoundTrip(): void
 	{
-		if (!$this->db->tableExists('tck_anchor')) {
+		if (!$this->db->tableExists('tck_alert')) {
 			self::markTestSkipped('TourCheck tables not present in this instance.');
 		}
 
-		$before = $this->countRows('tck_anchor');
+		$before = $this->countRows('tck_alert');
 
 		$result = $this->backupService->createSnapshot('integration-test');
 		$snapshotId = $result['id'];
@@ -40,12 +40,12 @@ final class UpgradeBackupIntegrationTest extends TestCase
 		self::assertContains($snapshotId, $ids, 'listSnapshots must find the snapshot just created');
 
 		$this->db->getQueryBuilder()
-			->delete('tck_anchor')
+			->delete('tck_alert')
 			->executeStatement();
-		self::assertSame(0, $this->countRows('tck_anchor'));
+		self::assertSame(0, $this->countRows('tck_alert'));
 
 		$this->backupService->restoreSnapshot($snapshotId, false);
-		self::assertSame($before, $this->countRows('tck_anchor'));
+		self::assertSame($before, $this->countRows('tck_alert'));
 	}
 
 	public function testRestoreRejectsInvalidSnapshotId(): void

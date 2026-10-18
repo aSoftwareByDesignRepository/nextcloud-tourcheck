@@ -148,6 +148,13 @@ $pills = [
 								</div>
 							</form>
 						<?php endif; ?>
+						<?php if (!empty($i['woRef'])): ?>
+							<p class="tck-hint"><?php p($l->t('Maintenance work order:')); ?> <span class="tck-badge"><?php p((string)$i['woRef']); ?></span></p>
+						<?php elseif (!$closed && !empty($i['canSupervise']) && !empty($_['mnInstalled'])): ?>
+							<div class="tck-form-actions">
+								<button type="button" class="tck-btn" data-tck-wo-handoff="<?php p((string)$i['id']); ?>"><?php p($l->t('Create maintenance work order')); ?></button>
+							</div>
+						<?php endif; ?>
 					</div>
 				</li>
 			<?php endforeach; ?>

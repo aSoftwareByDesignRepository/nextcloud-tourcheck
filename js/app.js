@@ -1073,6 +1073,27 @@
 			submitForm(form, '/api/incidents/' + form.getAttribute('data-tck-corr-form') + '/actions');
 		});
 	});
+	// F18: defect → MaintenanceCheck draft WO. The button disables while the
+	// call runs; a soft-fail code keeps the incident usable instead of
+	// pretending a dead sibling worked.
+	document.querySelectorAll('[data-tck-wo-handoff]').forEach(function (btn) {
+		btn.addEventListener('click', function () {
+			btn.disabled = true;
+			api('POST', '/api/incidents/' + btn.getAttribute('data-tck-wo-handoff') + '/maintenance-draft', {}).then(function (json) {
+				var h = (json.data && json.data.handoff) || {};
+				if (json.success && h.ok && h.woNumber) {
+					toast('ok', h.already ? t('Work order already exists: %s').replace('%s', h.woNumber) : t('Work order created: %s').replace('%s', h.woNumber));
+					setTimeout(function () { location.reload(); }, 700);
+					return;
+				}
+				btn.disabled = false;
+				var msg = h.code === 'site_unresolved'
+					? t('No matching MaintenanceCheck site — name the site exactly as in MaintenanceCheck.')
+					: (h.code === 'maintenancecheck_unavailable' ? t('MaintenanceCheck is not available.') : t('Work order could not be created.'));
+				toast('error', msg);
+			}).catch(function () { btn.disabled = false; toast('error', t('Network error')); });
+		});
+	});
 
 	/* --- reports: generate --- */
 	var repForm = document.querySelector('[data-tck-report-form]');

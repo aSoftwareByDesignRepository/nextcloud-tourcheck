@@ -125,7 +125,11 @@
 .tck-field { display: flex; flex-direction: column; gap: var(--tck-space-1); margin-bottom: var(--tck-space-4); max-width: 30rem; }
 .tck-field label { font-weight: 600; font-size: var(--tck-fs-md); }
 .tck-form { margin-top: var(--tck-space-4); }
-.tck-field input[type="text"], .tck-field input[type="url"], .tck-field input[type="number"], .tck-field input[type="password"], .tck-field input[type="date"], .tck-field input[type="email"], .tck-field input[type="search"], .tck-field input[type="tel"], .tck-select {
+/* Every text-ish control fills its field — NC core pins inputs/selects/
+   textareas to width:130px (inputs.scss), and a type whitelist missed
+   month/datetime-local + un-classed selects (reports, schedules). */
+.tck-field input:not([type="checkbox"], [type="radio"], [type="hidden"], [type="range"], [type="color"], [type="file"], [type="image"], [type="submit"], [type="button"], [type="reset"]),
+.tck-field select, .tck-select {
 	min-height: var(--tck-touch); padding: 0 var(--tck-space-3);
 	border: 1px solid var(--tck-form-border); border-radius: var(--tck-radius-sm);
 	background: var(--color-main-background); color: var(--color-main-text);
@@ -923,7 +927,8 @@
 .tck-kpi__label { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
 .tck-kpi__sub { font-size: var(--tck-fs-xs); color: var(--color-text-maxcontrast); }
 .tck-kpi-range { display: flex; gap: var(--tck-space-2); align-items: center; flex-wrap: wrap; }
-.tck-kpi-range input[type="date"] { min-height: var(--tck-touch); padding: 0 var(--tck-space-2); border: 1px solid var(--tck-form-border, var(--color-border-maxcontrast)); border-radius: var(--tck-radius-sm); }
+/* width:auto — core pins date inputs to 130px, which truncates the value. */
+.tck-kpi-range input[type="date"] { width: auto; min-height: var(--tck-touch); padding: 0 var(--tck-space-2); border: 1px solid var(--tck-form-border, var(--color-border-maxcontrast)); border-radius: var(--tck-radius-sm); }
 
 /* ── Confirm dialog (§3.9 — NC forces display:block; guard required) ── */
 /* UNSCOPED: the element renders in the top layer — scoping under
@@ -962,6 +967,8 @@ dialog.tck-dialog::backdrop { background: var(--tck-scrim); }
 	margin-top: var(--tck-space-3);
 }
 .tck-dialog__label textarea {
+	width: 100%;
+	box-sizing: border-box;
 	min-height: 5rem;
 	resize: vertical;
 	border: 1px solid var(--tck-form-border);

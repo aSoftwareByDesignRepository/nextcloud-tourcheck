@@ -132,6 +132,22 @@ class RoundMapper extends QBMapper
 	}
 
 	/** @return list<Round> rounds of a site whose scheduled_start falls in [from,to) */
+	/**
+	 * F17: all rounds scheduled on a calendar day, any site — the link
+	 * picker in DutyCheck needs a cross-site list for one duty date.
+	 * @return list<Round>
+	 */
+	public function findScheduledOn(\DateTimeInterface $dayStart, \DateTimeInterface $dayEnd): array
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')->from($this->getTableName())
+			->where($qb->expr()->gte('scheduled_start', $qb->createNamedParameter($dayStart, 'datetime')))
+			->andWhere($qb->expr()->lt('scheduled_start', $qb->createNamedParameter($dayEnd, 'datetime')))
+			->orderBy('scheduled_start', 'ASC')
+			->setMaxResults(500);
+		return $this->findEntities($qb);
+	}
+
 	public function findScheduledBetween(int $siteId, \DateTimeInterface $from, \DateTimeInterface $to): array
 	{
 		$qb = $this->db->getQueryBuilder();

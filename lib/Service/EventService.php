@@ -46,6 +46,7 @@ class EventService
 		private readonly ?SiteService $sites = null,
 		private readonly ?TokenAnomalyService $anomaly = null,
 		private readonly ?\OCA\TourCheck\Db\WorkerQualMapper $workerQuals = null,
+		private readonly ?\OCA\TourCheck\Integration\ArbeitszeitStampPushService $azcStampPush = null,
 	) {
 	}
 
@@ -280,6 +281,7 @@ class EventService
 		$event->setCreatedAt($now);
 
 		$roundTransition = null;
+		$firstRoundScan = false;
 		$this->db->beginTransaction();
 		try {
 			if ($round !== null) {
@@ -301,6 +303,12 @@ class EventService
 				}
 			}
 			$event = $this->events->insert($event);
+			// F16: the first evidence row attached to a round marks its real
+			// start. Counted inside the txn while the round lock serializes
+			// concurrent scans — the sweep's scheduled→active transition is
+			// NOT a scan, so status-transition is the wrong signal here.
+			$firstRoundScan = $event->getRoundId() !== null
+				&& $this->events->countForRound((int)$event->getRoundId()) === 1;
 			$kind = $method === Constants::METHOD_ATTEST ? Constants::KIND_ATTEST : Constants::KIND_CHECK;
 			$reason = $method === Constants::METHOD_ATTEST ? trim((string)$event->getAttestationReason()) : '';
 			$this->chain->append($siteId, [
@@ -381,6 +389,13 @@ class EventService
 		// earlier, so a retried scan can never re-fire the trigger).
 		if ($roundTransition !== null && $round !== null) {
 			$this->rounds->emitRoundTransition($roundTransition, (int)$round->getId());
+		}
+		// F16: propose the round's first scan as a pending AZC draft stamp
+		// (worker confirms/dismisses there). Post-commit and fail-closed —
+		// AZC absent/broken can never roll evidence back; the
+		// 'round:{id}:start' sourceRef dedupes a lock-race double proposal.
+		if ($firstRoundScan && $this->azcStampPush !== null) {
+			$this->azcStampPush->proposeFirstScan($event);
 		}
 		return ['event' => $event, 'replayed' => false, 'mismatch' => false, 'attached' => $round !== null, 'progress' => $progress];
 	}

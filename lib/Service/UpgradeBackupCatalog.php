@@ -77,11 +77,14 @@ final class UpgradeBackupCatalog
 
 	/** @var list<string> */
 	public const RESTORE_TABLE_ORDER = [
+		'tck_alert',
+		'tck_alert_delivery',
 		'tck_anchor',
 		'tck_checkpoint',
 		'tck_client_grant',
 		'tck_corrective',
 		'tck_cp_token',
+		'tck_escalation_leg',
 		'tck_event',
 		'tck_geofence',
 		'tck_geofence_state',
@@ -108,12 +111,9 @@ final class UpgradeBackupCatalog
 		'tck_station_mbr',
 		'tck_task',
 		'tck_template',
-		'tck_worker_qual',
-		'tck_alert',
-		'tck_alert_delivery',
-		'tck_escalation_leg',
 		'tck_webhook',
 		'tck_webhook_delivery',
+		'tck_worker_qual',
 	];
 
 	public static function isBackupTable(string $table): bool

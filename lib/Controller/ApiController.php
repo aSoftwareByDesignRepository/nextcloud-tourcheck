@@ -68,12 +68,14 @@ class ApiController extends Controller
 		private readonly IGroupManager $groups,
 		private readonly \OCA\TourCheck\Db\ReportDeliveryMapper $deliveries,
 		private readonly \OCA\TourCheck\Service\DriveSegmentService $driveSegments,
+		private readonly \OCA\TourCheck\Service\MaintenanceHandoffService $maintenanceHandoff,
 		private readonly \OCA\TourCheck\Service\KeyService $keyService,
 		private readonly \OCA\TourCheck\Service\ErasureService $erasure,
 		private readonly \OCA\TourCheck\Service\TokenService $tokens,
 		private readonly \OCA\TourCheck\Service\QrSheetService $qr,
 		private readonly \OCP\IURLGenerator $urlGenerator,
 		private readonly RateLimitService $rateLimit,
+		private readonly \OCA\TourCheck\Integration\DutyShiftLinkService $dutyShiftLink,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -417,7 +419,11 @@ class ApiController extends Controller
 		try {
 			$round = $this->rounds->getVisible($id);
 			$cps = array_map(static fn ($c) => $c->jsonSerialize(), $this->rounds->checkpointsOf($id));
-			return $this->ok(['round' => $round->jsonSerialize(), 'checkpoints' => $cps]);
+			// F17: linked duty shifts come AFTER the ACL gate — the site-scoped
+			// viewer sees ids/times of shifts covering this round, never
+			// another company's roster.
+			$dutyShifts = $this->dutyShiftLink->shiftsForRound($id);
+			return $this->ok(['round' => $round->jsonSerialize(), 'checkpoints' => $cps, 'dutyShifts' => $dutyShifts]);
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}
@@ -597,6 +603,22 @@ class ApiController extends Controller
 	{
 		try {
 			return $this->ok($this->withNames($this->incidents->verifyCorrective($id)->jsonSerialize()));
+		} catch (\Throwable $e) {
+			return $this->fromThrowable($e);
+		}
+	}
+
+	/**
+	 * F18: defect → MaintenanceCheck draft WO. Soft-fail codes surface as
+	 * {ok:false, code} in the payload — a missing/sick sibling must never
+	 * 500 the incident workflow.
+	 */
+	#[NoAdminRequired]
+	public function handoffIncidentToMaintenance(int $id): JSONResponse
+	{
+		try {
+			$res = $this->maintenanceHandoff->handoff($id);
+			return $this->ok(['handoff' => $res]);
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}

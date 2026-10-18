@@ -60,6 +60,7 @@ class PageController extends Controller
 		private readonly \OCA\TourCheck\Service\AnchorService $anchors,
 		private readonly \OCA\TourCheck\Service\PositionService $positions,
 		private readonly \OCA\TourCheck\Service\TemplateService $templates,
+		private readonly \OCA\TourCheck\Service\MaintenanceHandoffService $maintenanceHandoff,
 		private readonly QrSheetService $qr,
 		private readonly SiteMemberMapper $siteMembers,
 		private readonly IUserManager $userManager,
@@ -542,10 +543,11 @@ class PageController extends Controller
 				'status' => $i->getStatus(),
 				'revision' => (int)$i->getRevision(),
 				'canSupervise' => in_array($role, [Constants::ROLE_ADMIN, Constants::ROLE_PLANNER, Constants::ROLE_SUPERVISOR], true),
+				'woRef' => $i->getWoRef(),
 				'timeLabel' => $i->getCreatedAt() ? $this->fmt($i->getCreatedAt()) : '',
 			];
 		}
-		return $this->shell('incidents', ['incidents' => $rows, 'uid' => $uid]);
+		return $this->shell('incidents', ['incidents' => $rows, 'uid' => $uid, 'mnInstalled' => $this->maintenanceHandoff->installed()]);
 	}
 
 	#[NoAdminRequired]

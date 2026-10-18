@@ -113,6 +113,14 @@ class Application extends App implements IBootstrap
 		// Suite flange F11 — advertise check:drive-segments to MobilityCheck.
 		$context->registerCapability(\OCA\TourCheck\Capabilities::class);
 
+		// F17: round status + link candidates for DutyCheck's shift↔round link.
+		$context->registerService(\OCA\TourCheck\Public\RoundLinkReadFacade::class, function ($c): \OCA\TourCheck\Public\RoundLinkReadFacade {
+			return new \OCA\TourCheck\Public\RoundLinkReadFacade(
+				$c->get(\OCA\TourCheck\Db\RoundMapper::class),
+				$c->get(\OCA\TourCheck\Db\SiteMapper::class),
+			);
+		});
+
 		// NH-04: instance Dashboard widget (missed/active rounds + open incidents).
 		$context->registerDashboardWidget(\OCA\TourCheck\Dashboard\TourCheckWidget::class);
 

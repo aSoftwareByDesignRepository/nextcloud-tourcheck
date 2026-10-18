@@ -77,6 +77,7 @@ return [
 		['name' => 'api#getIncident', 'url' => '/api/incidents/{id}', 'verb' => 'GET', 'requirements' => ['id' => '\d+']],
 		['name' => 'api#updateIncident', 'url' => '/api/incidents/{id}', 'verb' => 'PUT', 'requirements' => ['id' => '\d+']],
 		['name' => 'api#createCorrective', 'url' => '/api/incidents/{id}/actions', 'verb' => 'POST', 'requirements' => ['id' => '\d+']],
+		['name' => 'api#handoffIncidentToMaintenance', 'url' => '/api/incidents/{id}/maintenance-draft', 'verb' => 'POST', 'requirements' => ['id' => '\d+']],
 		['name' => 'api#updateCorrective', 'url' => '/api/actions/{id}', 'verb' => 'PUT', 'requirements' => ['id' => '\d+']],
 		['name' => 'api#verifyCorrective', 'url' => '/api/actions/{id}/verify', 'verb' => 'POST', 'requirements' => ['id' => '\d+']],
 
