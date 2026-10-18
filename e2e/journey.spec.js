@@ -120,7 +120,12 @@ test('core loop: site → checkpoint → plan → member → incident → report
   await expect(page.locator('#tck-skip-form')).toBeVisible()
   await page.fill('#tck-skip-reason', 'public holiday')
   await clickAndReload(page, page.locator('#tck-skip-form [type="submit"]'))
-  await expect(page.locator('.tck-badge', { hasText: /skip|über/i }).first()).toBeVisible()
+  // Locale-free durable postcondition: badge renders AND the API row
+  // really is 'skipped' — never match status label text (EN|DE|…).
+  await expect(page.locator('.tck-deflist .tck-badge').first()).toBeVisible()
+  const skippedRoundId = page.url().match(/rounds\/(\d+)/)?.[1]
+  const skippedRound = await apiFetch(page, 'GET', `/api/rounds/${skippedRoundId}`)
+  expect(skippedRound.data?.round?.status).toBe('skipped')
   await expect(page.locator('.tck-deflist')).toContainText('public holiday')
   // Terminal now: the skip control must not reappear (no re-skip relabel).
   await expect(page.locator('[data-tck-show="tck-skip-form"]')).toHaveCount(0)
@@ -162,27 +167,29 @@ test('core loop: site → checkpoint → plan → member → incident → report
   await incRow.locator('[data-tck-incident-toggle]').click()
   await expect(incRow.locator('.tck-incident__detail')).toBeVisible()
   await expect(incRow.locator('[data-tck-incident-toggle]')).toHaveAttribute('aria-expanded', 'true')
-  await expect(incRow.locator('[data-tck-corr-list]')).toContainText(/no actions|keine maßnahmen/i)
+  // Empty state is a .tck-hint node — structural, locale-free.
+  await expect(incRow.locator('[data-tck-corr-list] .tck-hint')).toBeVisible()
 
   // Add a corrective → incident moves to "In progress".
   await incRow.locator('form[data-tck-corr-form] input[name="text"]').fill('Replace lock cylinder')
   await clickAndReload(page, incRow.locator('form[data-tck-corr-form] [type="submit"]'))
   incRow = page.locator('.tck-incident', { has: page.locator('.tck-list__title', { hasText: INC_TITLE }) })
-  await expect(incRow.locator('.tck-badge', { hasText: /progress|bearbeitung/i })).toBeVisible()
+  await expect(incRow).toHaveAttribute('data-status', 'action')
 
   // Re-expand → corrective row visible → Mark done → incident "To verify".
   await incRow.locator('[data-tck-incident-toggle]').click()
   await expect(incRow.locator('[data-tck-corr-list]')).toContainText('Replace lock cylinder')
-  await clickAndReload(page, incRow.locator('[data-tck-corr-list] button', { hasText: /mark done|erledigt/i }))
+  // One status-gated action button per corrective row — never text-match it.
+  await clickAndReload(page, incRow.locator('[data-tck-corr-list] .tck-list__aside .tck-btn'))
   incRow = page.locator('.tck-incident', { has: page.locator('.tck-list__title', { hasText: INC_TITLE }) })
-  await expect(incRow.locator('.tck-badge', { hasText: /verify|prüfen|abnehmen/i })).toBeVisible()
+  await expect(incRow).toHaveAttribute('data-status', 'verify')
 
   // Re-expand → Verify → no open actions left → incident auto-closes.
   await incRow.locator('[data-tck-incident-toggle]').click()
   await expect(incRow.locator('[data-tck-corr-list]')).toContainText('Replace lock cylinder')
-  await clickAndReload(page, incRow.locator('[data-tck-corr-list] button', { hasText: /verify|abnehmen/i }))
+  await clickAndReload(page, incRow.locator('[data-tck-corr-list] .tck-list__aside .tck-btn'))
   incRow = page.locator('.tck-incident', { has: page.locator('.tck-list__title', { hasText: INC_TITLE }) })
-  await expect(incRow.locator('.tck-badge', { hasText: /closed|geschlossen/i })).toBeVisible()
+  await expect(incRow).toHaveAttribute('data-status', 'closed')
   // Terminal state: no close button, no add-action form.
   await expect(incRow.locator('[data-tck-close-incident]')).toHaveCount(0)
   await expect(incRow.locator('form[data-tck-corr-form]')).toHaveCount(0)

@@ -12,6 +12,38 @@ import { login } from './helpers/auth.js'
  */
 const CREDS = { username: 'tck_atlas', password: 'TckAtlas2026!' }
 
+/**
+ * Kiosk specs must never lean on seeded station ids — fixture rows get
+ * revoked by parallel lanes/teardown. Seed our own station + member and
+ * revoke in `finally` (active stations consume license seats).
+ * @returns {Promise<{stationId: number, secret: string, memberId: number}>}
+ */
+async function seedKioskStation(page, apiHeaders, pin) {
+	const mk = await page.request.post('/index.php/apps/tourcheck/api/sites/1/stations', {
+		headers: apiHeaders,
+		data: { label: `ux-kiosk-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` },
+	})
+	expect(mk.ok(), 'seed kiosk station').toBeTruthy()
+	const st = (await mk.json()).data
+	// kiosk/confirm counts against the station's BOUND checkpoint — an
+	// unbound station can never reach the confirm stage.
+	const bind = await page.request.post(`/index.php/apps/tourcheck/api/stations/${st.station.id}/checkpoint`, {
+		headers: apiHeaders,
+		data: { site_id: 1, checkpoint_id: 1 },
+	})
+	expect(bind.ok(), 'bind station checkpoint').toBeTruthy()
+	const up = await page.request.put(`/index.php/apps/tourcheck/api/stations/${st.station.id}/members`, {
+		headers: apiHeaders,
+		data: { display_name: 'Atlas Wache', pin },
+	})
+	expect(up.ok(), 'seed member PIN').toBeTruthy()
+	return { stationId: st.station.id, secret: st.secret, memberId: (await up.json()).data.id }
+}
+
+async function revokeKioskStation(page, apiHeaders, stationId) {
+	await page.request.post(`/index.php/apps/tourcheck/api/stations/${stationId}/revoke`, { headers: apiHeaders }).catch(() => {})
+}
+
 test.beforeEach(async ({ page }) => {
 	page.on('dialog', (d) => d.accept())
 	await login(page, CREDS)
@@ -55,21 +87,11 @@ test('kiosk: configured PIN length renders N dots and auto-submits — no dead p
 		})
 		expect(cfg.ok(), 'set pin_length=4 via settings API').toBeTruthy()
 
-		// Fresh station secret for the kiosk URL (rotation is a normal admin op).
-		const rot = await page.request.post('/index.php/apps/tourcheck/api/stations/2/rotate', { headers: apiHeaders })
-		expect(rot.ok(), 'rotate station token').toBeTruthy()
-		const secret = (await rot.json()).data.secret
-
-		// Member 1 (Atlas Wache, station 2) gets a 4-digit PIN.
-		const up = await page.request.put('/index.php/apps/tourcheck/api/stations/2/members', {
-			headers: { ...apiHeaders, 'Content-Type': 'application/json' },
-			data: { member_id: 1, display_name: 'Atlas Wache', pin: '1234' },
-		})
-		expect(up.ok(), 'set member PIN').toBeTruthy()
-
-		await page.goto(`/index.php/apps/tourcheck/kiosk?station_token=${encodeURIComponent(secret)}`, { waitUntil: 'domcontentloaded' })
+		const stn = await seedKioskStation(page, apiHeaders, '1234')
+		try {
+		await page.goto(`/index.php/apps/tourcheck/kiosk?station_token=${encodeURIComponent(stn.secret)}`, { waitUntil: 'domcontentloaded' })
 		await expect(page.locator('[data-tck-kiosk]')).toHaveAttribute('data-pin-len', '4')
-		await page.locator('[data-tck-member="1"]').click()
+		await page.locator(`[data-tck-member="${stn.memberId}"]`).click()
 		await expect(page.locator('[data-tck-stage="pin"]')).toBeVisible()
 		await expect(page.locator('[data-tck-dots] > *')).toHaveCount(4)
 		for (const d of ['1', '2', '3', '4']) {
@@ -81,6 +103,9 @@ test('kiosk: configured PIN length renders N dots and auto-submits — no dead p
 		await expect(page.locator('[data-tck-stage="sign"]')).toBeVisible({ timeout: 15000 })
 		await page.locator('[data-tck-sign-skip]').click()
 		await expect(page.locator('[data-tck-stage="confirm"]')).toBeVisible({ timeout: 15000 })
+		} finally {
+			await revokeKioskStation(page, apiHeaders, stn.stationId)
+		}
 	} finally {
 		// Restore the default through the same API so the FPM-side
 		// appconfig cache is updated (occ would leave a stale 4 cached).
@@ -100,17 +125,10 @@ test('kiosk signature: drawn ink rides the confirm POST (NH-06 web parity)', asy
 		|| '')
 	const apiHeaders = { requesttoken: token, 'OCS-APIREQUEST': 'true', 'Content-Type': 'application/json' }
 
-	const rot = await page.request.post('/index.php/apps/tourcheck/api/stations/2/rotate', { headers: apiHeaders })
-	expect(rot.ok(), 'rotate station token').toBeTruthy()
-	const secret = (await rot.json()).data.secret
-	const up = await page.request.put('/index.php/apps/tourcheck/api/stations/2/members', {
-		headers: apiHeaders,
-		data: { member_id: 1, display_name: 'Atlas Wache', pin: '123456' },
-	})
-	expect(up.ok(), 'set member PIN').toBeTruthy()
-
-	await page.goto(`/index.php/apps/tourcheck/kiosk?station_token=${encodeURIComponent(secret)}`, { waitUntil: 'domcontentloaded' })
-	await page.locator('[data-tck-member="1"]').click()
+	const stn = await seedKioskStation(page, apiHeaders, '123456')
+	try {
+	await page.goto(`/index.php/apps/tourcheck/kiosk?station_token=${encodeURIComponent(stn.secret)}`, { waitUntil: 'domcontentloaded' })
+	await page.locator(`[data-tck-member="${stn.memberId}"]`).click()
 	for (const d of ['1', '2', '3', '4', '5', '6']) {
 		await page.locator(`[data-tck-key="${d}"]`).click()
 	}
@@ -136,25 +154,29 @@ test('kiosk signature: drawn ink rides the confirm POST (NH-06 web parity)', asy
 	await confirmBtn.click()
 	await expect(page.locator('[data-tck-stage="confirm"]')).toBeVisible({ timeout: 15000 })
 	expect(posted?.signature_b64, 'signature_b64 must ride the confirm body').toMatch(/^[A-Za-z0-9+/=]{100,}$/)
+	} finally {
+		await revokeKioskStation(page, apiHeaders, stn.stationId)
+	}
 })
 
 test('kiosk a11y: member grid + signature stage pass axe (public surface)', async ({ page }) => {
 	await page.goto('/index.php/apps/tourcheck/dashboard', { waitUntil: 'domcontentloaded' })
 	const token = await page.evaluate(() => window.OC?.requestToken || '')
 	const apiHeaders = { requesttoken: token, 'OCS-APIREQUEST': 'true', 'Content-Type': 'application/json' }
-	const rot = await page.request.post('/index.php/apps/tourcheck/api/stations/2/rotate', { headers: apiHeaders })
-	expect(rot.ok()).toBeTruthy()
-	const secret = (await rot.json()).data.secret
-
-	await page.goto(`/index.php/apps/tourcheck/kiosk?station_token=${encodeURIComponent(secret)}`, { waitUntil: 'domcontentloaded' })
+	const stn = await seedKioskStation(page, apiHeaders, '123456')
+	try {
+	await page.goto(`/index.php/apps/tourcheck/kiosk?station_token=${encodeURIComponent(stn.secret)}`, { waitUntil: 'domcontentloaded' })
 	const gridScan = await new AxeBuilder({ page }).include('[data-tck-kiosk]').analyze()
 	expect(gridScan.violations, JSON.stringify(gridScan.violations, null, 2)).toEqual([])
 
-	await page.locator('[data-tck-member="1"]').click()
+	await page.locator(`[data-tck-member="${stn.memberId}"]`).click()
 	await page.locator('[data-tck-pin-input]').fill('123456')
 	await expect(page.locator('[data-tck-stage="sign"]')).toBeVisible({ timeout: 15000 })
 	const signScan = await new AxeBuilder({ page }).include('[data-tck-stage="sign"]').analyze()
 	expect(signScan.violations, JSON.stringify(signScan.violations, null, 2)).toEqual([])
+	} finally {
+		await revokeKioskStation(page, apiHeaders, stn.stationId)
+	}
 })
 
 test('schedule toggle: a live schedule can be silenced — no orphan dead end', async ({ page }) => {
@@ -209,7 +231,8 @@ test('capture: network drop surfaces an error — no silent dead scan', async ({
 	await page.locator('[data-tck-scan-input]').fill('deadbeef')
 	await page.locator('[data-tck-scan-input]').press('Enter')
 	await expect(page.locator('[data-tck-reject]')).toBeVisible()
-	await expect(page.locator('[data-tck-reject]')).toContainText(/network|netzwerk/i)
+	// Any non-empty localized error text counts — never match EN|DE literals.
+	await expect(page.locator('[data-tck-reject]')).toContainText(/\S/)
 })
 
 test('required fields: instant inline error, no network round-trip', async ({ page }) => {
