@@ -10,7 +10,9 @@ use OCA\TourCheck\Db\SiteMember;
 use OCA\TourCheck\Db\SiteMemberMapper;
 use OCA\TourCheck\Service\AccessControlService;
 use OCA\TourCheck\Service\SettingsService;
+use OCP\Authentication\Token\IProvider;
 use OCP\IGroupManager;
+use OCP\IRequest;
 use OCP\IUserManager;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -25,6 +27,10 @@ final class AccessControlScopeTest extends TestCase
 {
 	private IGroupManager&MockObject $groups;
 	private SiteMemberMapper&MockObject $members;
+	private IUserSession&MockObject $userSession;
+	private IUserManager&MockObject $users;
+	private IRequest&MockObject $request;
+	private IProvider&MockObject $tokens;
 	private AccessControlService $acl;
 
 	protected function setUp(): void
@@ -33,12 +39,18 @@ final class AccessControlScopeTest extends TestCase
 		$this->groups = $this->createMock(IGroupManager::class);
 		$this->groups->method('isAdmin')->willReturn(false);
 		$this->members = $this->createMock(SiteMemberMapper::class);
+		$this->userSession = $this->createMock(IUserSession::class);
+		$this->users = $this->createMock(IUserManager::class);
+		$this->request = $this->createMock(IRequest::class);
+		$this->tokens = $this->createMock(IProvider::class);
 		$settings = $this->createMock(SettingsService::class);
 		$settings->method('getAppAdmins')->willReturn([]);
 		$this->acl = new AccessControlService(
-			$this->createMock(IUserSession::class),
-			$this->createMock(IUserManager::class),
+			$this->userSession,
+			$this->users,
 			$this->groups,
+			$this->request,
+			$this->tokens,
 			$this->createMock(SiteMapper::class),
 			$this->members,
 			$settings,
@@ -99,5 +111,67 @@ final class AccessControlScopeTest extends TestCase
 		$this->groupMap([]);
 		$this->members->method('findByUidAndRole')->willReturn([]);
 		self::assertFalse($this->acl->canManageAnySite('nobody'));
+	}
+
+	/**
+	 * Companion cookie-shadow regression: the RN cookie jar survives
+	 * sign-out, so a stale session cookie can accompany a Basic credential
+	 * for a *different* user. The explicit credential must win everywhere
+	 * uid resolution happens — otherwise incidents/positions journal under
+	 * the cookie user.
+	 */
+	private function basicHeader(string $login, string $secret): void
+	{
+		$this->request->method('getHeader')
+			->willReturnCallback(static fn (string $h) =>
+				strtolower($h) === 'authorization'
+					? 'Basic ' . base64_encode("$login:$secret") : '');
+	}
+
+	public function testBasicAppPasswordResolvesTokenOwnerNotSession(): void
+	{
+		$this->basicHeader('worker', 'apptoken');
+		$sessionUser = $this->createMock(\OCP\IUser::class);
+		$sessionUser->method('getUID')->willReturn('stale-user');
+		$this->userSession->method('getUser')->willReturn($sessionUser);
+		$token = $this->createMock(\OCP\Authentication\Token\IToken::class);
+		$token->method('getUID')->willReturn('worker');
+		$token->method('getLoginName')->willReturn('worker');
+		$this->tokens->method('getToken')->with('apptoken')->willReturn($token);
+		self::assertSame('worker', $this->acl->currentUid());
+	}
+
+	public function testBasicAccountPasswordResolvesLoginNotSession(): void
+	{
+		$this->basicHeader('worker', 'accountpw');
+		$sessionUser = $this->createMock(\OCP\IUser::class);
+		$sessionUser->method('getUID')->willReturn('stale-user');
+		$this->userSession->method('getUser')->willReturn($sessionUser);
+		$this->tokens->method('getToken')->willThrowException(
+			new \OCP\Authentication\Exceptions\InvalidTokenException());
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn('worker');
+		$this->users->method('checkPassword')->with('worker', 'accountpw')->willReturn($user);
+		self::assertSame('worker', $this->acl->currentUid());
+	}
+
+	public function testUnverifiableBasicDeniesDespiteValidSession(): void
+	{
+		$this->basicHeader('worker', 'bogus');
+		$sessionUser = $this->createMock(\OCP\IUser::class);
+		$sessionUser->method('getUID')->willReturn('stale-user');
+		$this->userSession->method('getUser')->willReturn($sessionUser);
+		$this->tokens->method('getToken')->willThrowException(
+			new \OCP\Authentication\Exceptions\InvalidTokenException());
+		$this->users->method('checkPassword')->willReturn(false);
+		self::assertNull($this->acl->currentUid());
+	}
+
+	public function testNoAuthorizationFallsBackToSession(): void
+	{
+		$sessionUser = $this->createMock(\OCP\IUser::class);
+		$sessionUser->method('getUID')->willReturn('sess-user');
+		$this->userSession->method('getUser')->willReturn($sessionUser);
+		self::assertSame('sess-user', $this->acl->currentUid());
 	}
 }

@@ -88,6 +88,24 @@ class Application extends App implements IBootstrap
 			);
 		});
 
+		// Session-CSRF guard: ambient cookie-session mutations must prove a
+		// valid requesttoken even when the client sets `OCS-APIRequest`
+		// (core passesCSRFCheck short-circuits on that client-controlled
+		// header — dutycheck 2026-09-29 lesson).
+		$context->registerService(\OCA\TourCheck\Service\CsrfTokenValidator::class, function ($c): \OCA\TourCheck\Service\CsrfTokenValidator {
+			return new \OCA\TourCheck\Service\CsrfTokenValidator(
+				$c->query(\OC\Security\CSRF\CsrfTokenManager::class),
+			);
+		});
+		$context->registerService(\OCA\TourCheck\Middleware\SessionCsrfMiddleware::class, function ($c): \OCA\TourCheck\Middleware\SessionCsrfMiddleware {
+			return new \OCA\TourCheck\Middleware\SessionCsrfMiddleware(
+				$c->query(\OCP\IRequest::class),
+				$c->query(\OCP\IUserSession::class),
+				$c->query(\OCA\TourCheck\Service\CsrfTokenValidator::class),
+			);
+		});
+		$context->registerMiddleware(\OCA\TourCheck\Middleware\SessionCsrfMiddleware::class);
+
 		// Without a registered INotifier every notifySite notification is
 		// unpreparable — the server drops it on fetch (silent dead alerts).
 		$context->registerNotifierService(\OCA\TourCheck\Notification\Notifier::class);

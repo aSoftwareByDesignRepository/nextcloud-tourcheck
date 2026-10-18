@@ -22,12 +22,24 @@ const PROBE = { username: 'tck_probe1', password: 'TckProbe2026!' }
 
 const J = { 'OCS-APIREQUEST': 'true', 'Content-Type': 'application/json' }
 
+// login() auths via the request context and never navigates `page`, so the
+// DOM attribute lookup reads about:blank and yields nothing. The session CSRF
+// middleware (412 CSRF_FAILED) actually validates the token now — fetch the
+// app page through the request context and take its data-requesttoken.
 async function rt(page) {
-	return await page.evaluate(() => document.querySelector('head')?.dataset.requesttoken
-		|| document.querySelector('head[data-requesttoken]')?.getAttribute('data-requesttoken'))
+	const res = await page.context().request.get('/index.php/apps/tourcheck/').catch(() => null)
+	if (!res || !res.ok()) {
+		return null
+	}
+	const m = (await res.text()).match(/data-requesttoken="([^"]+)"/)
+	return m ? decodeURIComponent(m[1]) : null
 }
 async function hdr(page) {
-	return { requesttoken: await rt(page), ...J }
+	const token = await rt(page)
+	if (!token) {
+		throw new Error('no requesttoken on app page')
+	}
+	return { requesttoken: token, ...J }
 }
 const api = (p) => `/index.php/apps/tourcheck/api${p}`
 
@@ -261,6 +273,20 @@ test.describe('redteam: authorization boundary matrix', () => {
 			data: JSON.stringify({ name: 'csrf-probe' }),
 		})
 		expect([403, 412], 'missing requesttoken on POST').toContain(res.status())
+
+		// The OCS-APIRequest header short-circuits core passesCSRFCheck — a
+		// session request that sets it but carries no token must STILL be
+		// rejected by SessionCsrfMiddleware (dutycheck 2026-09-29 class).
+		const ocs = await req.post(api('/sites'), {
+			headers: { 'Content-Type': 'application/json', 'OCS-APIREQUEST': 'true' },
+			data: JSON.stringify({ name: 'csrf-ocs-probe' }),
+		})
+		expect([403, 412], 'OCS header + no token must not bypass CSRF').toContain(ocs.status())
+		const badToken = await req.post(api('/sites'), {
+			headers: { 'Content-Type': 'application/json', 'OCS-APIREQUEST': 'true', requesttoken: 'bogus-token' },
+			data: JSON.stringify({ name: 'csrf-bad-token' }),
+		})
+		expect([403, 412], 'OCS header + invalid token must not bypass CSRF').toContain(badToken.status())
 	})
 
 	test('input boundary: strictId garbage rejected uniformly, never 500', async ({ page }) => {

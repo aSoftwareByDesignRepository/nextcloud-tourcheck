@@ -30,7 +30,9 @@ $tckKeyLog = (array)($_['keyLog'] ?? []);
 <section id="tck-sec-checkpoints" aria-labelledby="tck-cp-title">
 	<div class="tck-list-head">
 		<h2 id="tck-cp-title" class="tck-list-head__title"><?php p($l->t('Checkpoints')); ?></h2>
-		<span class="tck-list-head__count"><?php p($l->t('%n in walk order', ['%n' => count($checkpoints)])); ?></span>
+		<?php if ($checkpoints !== []): ?>
+			<span class="tck-list-head__count"><?php p($l->t('%d in walk order', [count($checkpoints)])); ?></span>
+		<?php endif; ?>
 		<div class="tck-list-head__actions">
 			<?php if ($canManage && $checkpoints !== []): ?>
 				<a class="tck-btn" href="<?php p($urlGenerator->linkToRoute('tourcheck.page.qrSheet', ['siteId' => $site->getId()])); ?>" target="_blank" rel="noopener"><?php p($l->t('Print QR sheet')); ?></a>
@@ -145,7 +147,9 @@ $tckKeyLog = (array)($_['keyLog'] ?? []);
 <section id="tck-sec-plans" aria-labelledby="tck-plan-title">
 	<div class="tck-list-head">
 		<h2 id="tck-plan-title" class="tck-list-head__title"><?php p($l->t('Plans')); ?></h2>
-		<span class="tck-list-head__count"><?php p($l->t('%n configured', ['%n' => count($plans)])); ?></span>
+		<?php if ($plans !== []): ?>
+			<span class="tck-list-head__count"><?php p($l->t('%d configured', [count($plans)])); ?></span>
+		<?php endif; ?>
 		<?php if ($canManage): ?>
 			<div class="tck-list-head__actions">
 				<button type="button" class="tck-btn tck-btn--primary" data-tck-new-plan><?php p($l->t('New plan')); ?></button>
@@ -246,7 +250,9 @@ $tckKeyLog = (array)($_['keyLog'] ?? []);
 <section id="tck-sec-keys" aria-labelledby="tck-keys-title">
 	<div class="tck-list-head">
 		<h2 id="tck-keys-title" class="tck-list-head__title"><?php p($l->t('Keys')); ?></h2>
-		<span class="tck-list-head__count"><?php p($l->t('%n registered', ['%n' => count($tckKeys)])); ?></span>
+		<?php if ($tckKeys !== []): ?>
+			<span class="tck-list-head__count"><?php p($l->t('%d registered', [count($tckKeys)])); ?></span>
+		<?php endif; ?>
 		<?php if ($canManage): ?>
 			<div class="tck-list-head__actions">
 				<button type="button" class="tck-btn tck-btn--primary" data-tck-new-key><?php p($l->t('Register key')); ?></button>
@@ -309,7 +315,9 @@ $tckKeyLog = (array)($_['keyLog'] ?? []);
 <section id="tck-sec-members" aria-labelledby="tck-mem-title">
 	<div class="tck-list-head">
 		<h2 id="tck-mem-title" class="tck-list-head__title"><?php p($l->t('Members')); ?></h2>
-		<span class="tck-list-head__count"><?php p($l->t('%n assigned', ['%n' => count($members)])); ?></span>
+		<?php if ($members !== []): ?>
+			<span class="tck-list-head__count"><?php p($l->t('%d assigned', [count($members)])); ?></span>
+		<?php endif; ?>
 		<?php if ($canManage): ?>
 			<div class="tck-list-head__actions">
 				<button type="button" class="tck-btn tck-btn--primary" data-tck-new-member><?php p($l->t('Add member')); ?></button>
@@ -366,7 +374,9 @@ $tckKeyLog = (array)($_['keyLog'] ?? []);
 <section id="tck-sec-live" aria-labelledby="tck-live-title">
 	<div class="tck-list-head">
 		<h2 id="tck-live-title" class="tck-list-head__title"><?php p($l->t('Live links')); ?></h2>
-		<span class="tck-list-head__count"><?php p($l->t('%n shared', ['%n' => count($liveLinks)])); ?></span>
+		<?php if ($liveLinks !== []): ?>
+			<span class="tck-list-head__count"><?php p($l->t('%d shared', [count($liveLinks)])); ?></span>
+		<?php endif; ?>
 		<div class="tck-list-head__actions">
 			<button type="button" class="tck-btn tck-btn--primary" data-tck-new-live><?php p($l->t('New live link')); ?></button>
 		</div>

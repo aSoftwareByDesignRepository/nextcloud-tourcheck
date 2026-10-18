@@ -68,7 +68,7 @@ $openIncidents = (array)($dash['openIncidents'] ?? []);
 	<div class="tck-list-head">
 		<h2 id="tck-next-title" class="tck-list-head__title"><?php p($l->t('Next rounds')); ?></h2>
 		<?php if ($nextRounds !== []): ?>
-			<span class="tck-list-head__count"><?php p($l->t('%n shown', ['%n' => count($nextRounds)])); ?></span>
+			<span class="tck-list-head__count"><?php p($l->t('%d shown', [count($nextRounds)])); ?></span>
 		<?php endif; ?>
 	</div>
 	<?php if ($nextRounds === []): ?>
@@ -98,7 +98,7 @@ $openIncidents = (array)($dash['openIncidents'] ?? []);
 	<div class="tck-list-head">
 		<h2 id="tck-inc-title" class="tck-list-head__title"><?php p($l->t('Open incidents')); ?></h2>
 		<?php if ($openIncidents !== []): ?>
-			<span class="tck-list-head__count"><?php p($l->t('%n shown', ['%n' => count($openIncidents)])); ?></span>
+			<span class="tck-list-head__count"><?php p($l->t('%d shown', [count($openIncidents)])); ?></span>
 		<?php endif; ?>
 	</div>
 	<?php if ($openIncidents === []): ?>

@@ -4,8 +4,15 @@
 	'use strict';
 	if (!document.querySelector('[data-tck-page="ops"]')) { return; }
 
-	function t(key, vars) {
-		try { return OC.L10N.translate('tourcheck', key, vars) || key; } catch (e) { return key; }
+	function t(key) {
+		try { return OC.L10N.translate('tourcheck', key) || key; } catch (e) { return key; }
+	}
+	/* OC.L10N.translate does not sprintf — positional %d/%s in a translated
+	 * string must be substituted here or users read raw placeholders. */
+	function tf(key, vars) {
+		var str = t(key);
+		(vars || []).forEach(function (v) { str = str.replace(/%[ds]/, v === null || v === undefined ? '—' : String(v)); });
+		return str;
 	}
 	function badge(label, variant) {
 		return '<span class="tck-badge' + (variant ? ' tck-badge--' + variant : '') + '">' +
@@ -14,7 +21,8 @@
 	var ROUND_BADGE = { scheduled: '', active: 'info', missed: 'danger', completed: 'success', partial: 'warning', skipped: 'warning' };
 	function route(p) { return OC.generateUrl('/apps/tourcheck' + p); }
 	function api(method, path, body) {
-		var h = { 'Content-Type': 'application/json', 'OCS-APIREQUEST': 'true' };
+		/* No OCS-APIRequest — session mutations ride requesttoken (CSRF). */
+		var h = { 'Content-Type': 'application/json' };
 		if (OC.requestToken) { h.requesttoken = OC.requestToken; }
 		return fetch(route(path), { method: method, headers: h, credentials: 'same-origin', body: body === undefined ? undefined : JSON.stringify(body) })
 			.then(function (res) { return res.json().catch(function () { return { success: false, message: res.statusText }; }).then(function (j) { j._status = res.status; return j; }); });
@@ -119,7 +127,7 @@
 				card.className = 'tck-ops-card tck-ops-card--' + s.severity;
 				var sev = { ok: [t('OK'), 'success'], attention: [t('Needs attention'), 'warning'], critical: [t('Critical'), 'danger'] }[s.severity] || [t('OK'), 'success'];
 				var rounds = s.rounds.map(function (r) {
-					var extra = r.overdueCheckpoints > 0 ? ' · ' + t('%d overdue', [r.overdueCheckpoints]) : '';
+					var extra = r.overdueCheckpoints > 0 ? ' · ' + tf('%d overdue', [r.overdueCheckpoints]) : '';
 					return '<li class="tck-ops-round">' + badge(t(STATUS_LABEL[r.status] || r.status), ROUND_BADGE[r.status] || '') +
 						' <span>' + esc((r.scheduledStart || '').slice(11, 16)) + '–' + esc((r.windowEnd || '').slice(11, 16)) + '</span>' +
 						(r.worker ? ' <span>' + esc(r.worker) + '</span>' : '') + esc(extra) + '</li>';
@@ -127,7 +135,7 @@
 				card.innerHTML =
 					'<header class="tck-ops-card__head"><h3>' + esc(s.site.name) + '</h3>' + badge(sev[0], sev[1]) + '</header>' +
 					(rounds !== '' ? '<ul class="tck-ops-rounds">' + rounds + '</ul>' : '<p class="tck-hint">' + esc(t('No rounds in the window.')) + '</p>') +
-					'<footer class="tck-ops-card__foot"><span>' + esc(t('%d open alert(s), %d open task(s)', [s.alerts.length, s.openTasks])) + '</span>' +
+					'<footer class="tck-ops-card__foot"><span>' + esc(tf('%d open alert(s), %d open task(s)', [s.alerts.length, s.openTasks])) + '</span>' +
 					'<button type="button" class="tck-btn" data-ops-map="' + s.site.id + '">' + esc(t('Map')) + '</button></footer>';
 				card.querySelector('[data-ops-map]').addEventListener('click', function () {
 					if (siteSel) { siteSel.value = String(s.site.id); siteSel.dispatchEvent(new Event('change')); }
@@ -203,7 +211,7 @@
 				(j.data.positions || []).forEach(function (p) {
 					if (seen[p.roundId]) { return; }
 					seen[p.roundId] = true;
-					opts += '<option value="' + p.roundId + '">' + esc(t('Round #%d', [p.roundId]) + ' · ' + (p.worker || '')) + '</option>';
+					opts += '<option value="' + p.roundId + '">' + esc(tf('Round #%d', [p.roundId]) + ' · ' + (p.worker || '')) + '</option>';
 				});
 				sel.innerHTML = '<option value="">' + esc(t('Round…')) + '</option>' + opts;
 				sel.value = prev; sel.hidden = opts === '';
@@ -274,7 +282,7 @@
 				if (mapLayers.trail) { map.removeLayer(mapLayers.trail); }
 				mapLayers.trail = L.polyline(pts, { color: '#7c3aed', weight: 3 }).addTo(map);
 				map.fitBounds(mapLayers.trail.getBounds(), { padding: [30, 30] });
-				announce(t('Trail loaded — %d points.', [pts.length]));
+				announce(tf('Trail loaded — %d points.', [pts.length]));
 			});
 		});
 	}
@@ -311,7 +319,7 @@
 				var li = document.createElement('li');
 				li.className = 'tck-list__row';
 				li.innerHTML = '<div class="tck-list__main"><span class="tck-list__title">' + esc(tk.title) + '</span>' +
-					'<span class="tck-list__sub">' + esc(tk.assigneeName || tk.assigneeUid || t('Unassigned')) + (tk.dueAt ? ' · ' + esc(t('due %s', [fmtTs(tk.dueAt)])) : '') + '</span></div>';
+					'<span class="tck-list__sub">' + esc(tk.assigneeName || tk.assigneeUid || t('Unassigned')) + (tk.dueAt ? ' · ' + esc(tf('due %s', [fmtTs(tk.dueAt)])) : '') + '</span></div>';
 				var aside = document.createElement('div');
 				aside.className = 'tck-list__aside';
 				var TASK_BADGE = { open: 'warning', done: 'success', cancelled: 'info' };
@@ -351,7 +359,7 @@
 				li.innerHTML = '<div class="tck-list__main"><span class="tck-list__title">' +
 					(e.pinned ? '📌 ' : '') + esc(kindLabel) + ' — ' + esc(e.body.slice(0, 140)) + (e.body.length > 140 ? '…' : '') + '</span>' +
 					'<span class="tck-list__sub">' + esc(e.authorName || e.authorUid) + ' · ' + esc(fmtTs(e.createdAt)) +
-					' · ' + esc(t('%d acked', [(e.ackedBy || []).length])) + '</span></div>';
+					' · ' + esc(tf('%d acked', [(e.ackedBy || []).length])) + '</span></div>';
 				var aside = document.createElement('div');
 				aside.className = 'tck-list__aside';
 				var ack = document.createElement('button');
@@ -378,10 +386,10 @@
 			if (!j.success) { toast('error', j.message || t('Error')); return; }
 			var d = j.data;
 			var cards = [
-				[t('Checkpoint hit rate'), d.hit_rate_pct === null ? '—' : d.hit_rate_pct + '%', t('Target: %d percent', [d.sla_hit_target_pct])],
-				[t('Punctuality'), d.punctuality_pct === null ? '—' : d.punctuality_pct + '%', t('within %d min', [d.sla_punctuality_min])],
+				[t('Checkpoint hit rate'), d.hit_rate_pct === null ? '—' : d.hit_rate_pct + '%', tf('Target: %d percent', [d.sla_hit_target_pct])],
+				[t('Punctuality'), d.punctuality_pct === null ? '—' : d.punctuality_pct + '%', tf('within %d min', [d.sla_punctuality_min])],
 				[t('Coverage'), d.coverage_pct === null ? '—' : d.coverage_pct + '%', t('rounds not missed')],
-				[t('Open incidents'), String(d.open_incidents), d.oldest_open_incident_h !== null ? t('oldest %d h', [d.oldest_open_incident_h]) : ''],
+				[t('Open incidents'), String(d.open_incidents), d.oldest_open_incident_h !== null ? tf('oldest %d h', [d.oldest_open_incident_h]) : ''],
 			];
 			grid.innerHTML = '';
 			if (d.insufficient) {

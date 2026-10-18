@@ -5,12 +5,20 @@
 	var root = document.querySelector('[data-tck-portal-site]');
 	if (!root) { return; }
 
-	function t(key, vars) {
-		try { return OC.L10N.translate('tourcheck', key, vars) || key; } catch (e) { return key; }
+	function t(key) {
+		try { return OC.L10N.translate('tourcheck', key) || key; } catch (e) { return key; }
+	}
+	/* OC.L10N.translate does not sprintf — positional %d/%s in a translated
+	 * string must be substituted here or users read raw placeholders. */
+	function tf(key, vars) {
+		var str = t(key);
+		(vars || []).forEach(function (v) { str = str.replace(/%[ds]/, v === null || v === undefined ? '—' : String(v)); });
+		return str;
 	}
 	function route(p) { return OC.generateUrl('/apps/tourcheck' + p); }
 	function api(method, path) {
-		var h = { 'OCS-APIREQUEST': 'true' };
+		/* No OCS-APIRequest — session mutations ride requesttoken (CSRF). */
+		var h = {};
 		if (OC.requestToken) { h.requesttoken = OC.requestToken; }
 		return fetch(route(path), { method: method, headers: h, credentials: 'same-origin' })
 			.then(function (res) { return res.json().catch(function () { return { success: false, message: res.statusText }; }).then(function (j) { j._status = res.status; return j; }); });
@@ -85,8 +93,8 @@
 			if (!j.success || !grid) { return; }
 			var d = j.data;
 			grid.innerHTML = '';
-			grid.appendChild(kpiCard(t('Checkpoint hit rate'), d.hit_rate_pct === null ? '—' : d.hit_rate_pct + '%', t('Target: %d percent', [d.sla_hit_target_pct])));
-			grid.appendChild(kpiCard(t('Punctuality'), d.punctuality_pct === null ? '—' : d.punctuality_pct + '%', t('within %d min', [d.sla_punctuality_min])));
+			grid.appendChild(kpiCard(t('Checkpoint hit rate'), d.hit_rate_pct === null ? '—' : d.hit_rate_pct + '%', tf('Target: %d percent', [d.sla_hit_target_pct])));
+			grid.appendChild(kpiCard(t('Punctuality'), d.punctuality_pct === null ? '—' : d.punctuality_pct + '%', tf('within %d min', [d.sla_punctuality_min])));
 			grid.appendChild(kpiCard(t('Coverage'), d.coverage_pct === null ? '—' : d.coverage_pct + '%', t('rounds not missed')));
 			grid.appendChild(kpiCard(t('Open incidents'), String(d.open_incidents)));
 			if (d.insufficient) {

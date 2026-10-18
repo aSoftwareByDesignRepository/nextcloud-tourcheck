@@ -26,7 +26,6 @@ use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
-use OCP\IUserSession;
 
 /**
  * Companion API — the native app's only surface.
@@ -55,7 +54,6 @@ class CompanionController extends Controller
 		private readonly \OCA\TourCheck\Service\TokenService $tokens,
 		private readonly LicenseService $license,
 		private readonly RateLimitService $rateLimit,
-		private readonly IUserSession $userSession,
 		private readonly \Psr\Log\LoggerInterface $logger,
 		private readonly \OCA\TourCheck\Db\TourPlanMapper $plans,
 		private readonly \OCA\TourCheck\Integration\PoolVehicleService $poolVehicles,
@@ -72,11 +70,11 @@ class CompanionController extends Controller
 
 	private function workerUid(): string
 	{
-		$uid = $this->userSession->getUser()?->getUID();
-		if ($uid === null) {
-			throw new NotFoundException();
-		}
-		return $uid;
+		// Identity resolution lives in AccessControlService::currentUid —
+		// an explicit Basic credential is the actor, not the ambient session
+		// (a stale companion cookie must never shadow the request credential
+		// and attribute writes to the wrong user).
+		return $this->acl->requireUid();
 	}
 
 	private function stationFromBearer(): \OCA\TourCheck\Db\Station

@@ -243,8 +243,12 @@ test.describe('SCREENSHOT_MATRIX capture', () => {
 			return clientPage
 		}
 
+		// The theme is per-user server state — a killed dark run leaves the
+		// fixture user dark, and the light pass would silently capture dark.
+		// Navigate first: setUserTheme evaluates in-page and needs a real URL.
+		await gotoApp(page, `${APP}/dashboard`, { contentSel: '#tck-main-content' })
 		for (const theme of ['light', 'dark']) {
-			if (theme === 'dark') { await setUserTheme(page, 'dark') }
+			await setUserTheme(page, theme)
 			for (const { surface, state, vp } of matrixCells(theme)) {
 				const target = await pageFor(surface)
 				await target.setViewportSize({ width: vp.width, height: vp.height })

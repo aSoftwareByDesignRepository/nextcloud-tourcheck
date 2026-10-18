@@ -10,7 +10,9 @@ use OCA\TourCheck\Exception\NotFoundException;
 use OCA\TourCheck\Exception\ValidationException;
 use OCA\TourCheck\Service\AccessControlService;
 use OCA\TourCheck\Service\SettingsService;
+use OCP\Authentication\Token\IProvider;
 use OCP\IGroupManager;
+use OCP\IRequest;
 use OCP\IUserManager;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -35,6 +37,8 @@ class GhostGrantTest extends TestCase
 			$this->createMock(IUserSession::class),
 			$this->userManager,
 			$this->groupManager,
+			$this->createMock(IRequest::class),
+			$this->createMock(IProvider::class),
 			$this->createMock(SiteMapper::class),
 			$this->createMock(SiteMemberMapper::class),
 			$this->createMock(SettingsService::class),

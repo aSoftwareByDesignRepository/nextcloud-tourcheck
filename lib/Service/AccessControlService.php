@@ -9,7 +9,10 @@ use OCA\TourCheck\Db\SiteMapper;
 use OCA\TourCheck\Db\SiteMemberMapper;
 use OCA\TourCheck\Exception\NotFoundException;
 use OCA\TourCheck\Exception\ValidationException;
+use OCP\Authentication\Exceptions\InvalidTokenException;
+use OCP\Authentication\Token\IProvider;
 use OCP\IGroupManager;
+use OCP\IRequest;
 use OCP\IUserManager;
 use OCP\IUserSession;
 
@@ -27,6 +30,8 @@ class AccessControlService
 		private readonly IUserSession $userSession,
 		private readonly IUserManager $userManager,
 		private readonly IGroupManager $groupManager,
+		private readonly IRequest $request,
+		private readonly IProvider $tokenProvider,
 		private readonly SiteMapper $siteMapper,
 		private readonly SiteMemberMapper $members,
 		private readonly SettingsService $settings,
@@ -35,7 +40,42 @@ class AccessControlService
 
 	public function currentUid(): ?string
 	{
+		// An explicit Basic credential is the actor, not the ambient session.
+		// The companion's HTTP stack shares a persistent cookie jar (sign-out
+		// does not clear it), so a stale session cookie would otherwise
+		// shadow the credential and attribute every companion write — check-
+		// ins, incidents, positions — to the wrong user.
+		$auth = trim((string)$this->request->getHeader('Authorization'));
+		if (preg_match('/^Basic\s+(\S+)$/i', $auth, $m) === 1) {
+			$decoded = base64_decode($m[1], true);
+			if ($decoded !== false && str_contains($decoded, ':')) {
+				[$login, $secret] = explode(':', $decoded, 2);
+				if ($login !== '' && $secret !== '') {
+					return $this->uidFromBasicCredential($login, $secret);
+				}
+			}
+		}
 		return $this->userSession->getUser()?->getUID();
+	}
+
+	/**
+	 * Validate `login:secret` and return the uid it authenticates as —
+	 * Login Flow / CLI app password via the token provider (the token's
+	 * owner is authoritative, never the claimed login), or account password
+	 * via the user backends. Null = credential does not authenticate.
+	 */
+	private function uidFromBasicCredential(string $login, string $secret): ?string
+	{
+		try {
+			$token = $this->tokenProvider->getToken($secret);
+			if (hash_equals($token->getUID(), $login) || hash_equals($token->getLoginName(), $login)) {
+				return $token->getUID();
+			}
+		} catch (InvalidTokenException) {
+			// not a token — try the password backends below
+		}
+		$user = $this->userManager->checkPassword($login, $secret);
+		return $user === false ? null : $user->getUID();
 	}
 
 	public function requireUid(): string

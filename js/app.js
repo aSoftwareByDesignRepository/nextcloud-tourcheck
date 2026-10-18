@@ -22,7 +22,9 @@
 	}
 
 	function headers(extra) {
-		var h = { 'Content-Type': 'application/json', 'OCS-APIREQUEST': 'true' };
+		/* No OCS-APIRequest: that header opts the request out of core CSRF +
+		 * strict-cookie checks. Session mutations must ride requesttoken. */
+		var h = { 'Content-Type': 'application/json' };
 		if (typeof OC !== 'undefined' && OC.requestToken) { h.requesttoken = OC.requestToken; }
 		return Object.assign(h, extra || {});
 	}
