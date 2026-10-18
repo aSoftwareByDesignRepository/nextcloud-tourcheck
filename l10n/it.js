@@ -589,7 +589,7 @@ OC.L10N.register(
 	"{n} of {m} reports" : "{n} report su {m}",
 	"{n} of {m} rounds" : "{n} giri su {m}",
 	"{n} of {m} sites" : "{n} siti su {m}",
-	"{n} report" : "{n} report",
+	"{n} report" : "{n} rapporto",
 	"{n} reports" : "{n} report",
 	"{n} round" : "{n} giro",
 	"{n} rounds" : "{n} giri",

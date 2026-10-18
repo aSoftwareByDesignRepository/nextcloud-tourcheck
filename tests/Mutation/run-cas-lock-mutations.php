@@ -55,8 +55,8 @@ function targets(string $appRoot): array
 					'to' => '$site = $this->sites->find($siteId);',
 				],
 				'site_archive_unlocked' => [
-					'from' => "\$site = \$this->sites->findForUpdate(\$siteId);\n\t\t\tif (\$site === null || (int)\$site->getActive() !== 1) {\n\t\t\t\tthrow new NotFoundException();\n\t\t\t}\n\t\t\t\$site->setActive(0);",
-					'to' => "\$site = \$this->sites->find(\$siteId);\n\t\t\tif (\$site === null || (int)\$site->getActive() !== 1) {\n\t\t\t\tthrow new NotFoundException();\n\t\t\t}\n\t\t\t\$site->setActive(0);",
+					'from' => "\$site = \$this->sites->findForUpdate(\$siteId);\n\t\t\t\tif (\$site === null || (int)\$site->getActive() !== 1) {\n\t\t\t\t\tthrow new NotFoundException();\n\t\t\t\t}\n\t\t\t\t\$site->setActive(0);",
+					'to' => "\$site = \$this->sites->find(\$siteId);\n\t\t\t\tif (\$site === null || (int)\$site->getActive() !== 1) {\n\t\t\t\t\tthrow new NotFoundException();\n\t\t\t\t}\n\t\t\t\t\$site->setActive(0);",
 				],
 			],
 		],

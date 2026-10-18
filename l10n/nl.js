@@ -355,7 +355,7 @@ OC.L10N.register(
 	"Open" : "Open",
 	"Open GitHub Issues" : "GitHub Issues openen",
 	"Open for all users" : "Open voor alle gebruikers",
-	"Open incident — %s" : "Open incident — %s",
+	"Open incident — %s" : "Openstaand incident — %s",
 	"Open incidents" : "Open incidenten",
 	"Open navigation menu" : "Navigatiemenu openen",
 	"Open site" : "Locatie openen",

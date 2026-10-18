@@ -695,6 +695,5 @@ OC.L10N.register(
 	"{n} site" : "{n} site",
 	"{n} sites" : "{n} sites",
 	"±%d m" : "±%d m"
-	},
-	"nplurals=2; plural=(n != 1);"
+	}
 );
