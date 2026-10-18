@@ -48,6 +48,12 @@
 	function announce(txt) { var r = document.getElementById('tck-live-region'); if (r) { r.textContent = txt; } }
 	function esc(s) { var d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
 	// ISO → locale datetime (de: 18.10.2026, 11:30); falls back to ISO slice
+	// Local calendar day as YYYY-MM-DD — toISOString().slice(0,10) is UTC
+	// and lands on the wrong day for negative-offset timezones.
+	function ymdLocal(d) {
+		return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+			+ '-' + String(d.getDate()).padStart(2, '0');
+	}
 	function fmtTs(ts) {
 		var d = new Date(ts);
 		return isNaN(d) ? String(ts || '').slice(0, 16).replace('T', ' ')
@@ -450,8 +456,8 @@
 	// default range: last 30 days
 	var kf = document.getElementById('tck-kpi-from'), kt = document.getElementById('tck-kpi-to');
 	if (kf && kt) {
-		var d = new Date(); kt.value = d.toISOString().slice(0, 10);
-		d.setDate(d.getDate() - 30); kf.value = d.toISOString().slice(0, 10);
+		var d = new Date(); kt.value = ymdLocal(d);
+		d.setDate(d.getDate() - 30); kf.value = ymdLocal(d);
 	}
 
 	/* ── boot + site switch + light polling ─────────────────────────── */

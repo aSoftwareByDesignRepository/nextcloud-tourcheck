@@ -30,6 +30,11 @@
 		return isNaN(d) ? String(ts || '').slice(0, 16).replace('T', ' ')
 			: d.toLocaleString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 	}
+	// Local calendar day as YYYY-MM-DD — toISOString().slice(0,10) is UTC.
+	function ymdLocal(d) {
+		return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+			+ '-' + String(d.getDate()).padStart(2, '0');
+	}
 	function badge(label, variant) {
 		return '<span class="tck-badge' + (variant ? ' tck-badge--' + variant : '') + '">' +
 			'<span class="tck-badge__dot" aria-hidden="true"></span>' + esc(label) + '</span>';
@@ -148,8 +153,8 @@
 
 	var kf = document.getElementById('tck-portal-kpi-from'), kt = document.getElementById('tck-portal-kpi-to');
 	if (kf && kt) {
-		var d = new Date(); kt.value = d.toISOString().slice(0, 10);
-		d.setDate(d.getDate() - 30); kf.value = d.toISOString().slice(0, 10);
+		var d = new Date(); kt.value = ymdLocal(d);
+		d.setDate(d.getDate() - 30); kf.value = ymdLocal(d);
 	}
 	var kpiBtn = document.getElementById('tck-portal-kpi-load');
 	if (kpiBtn) { kpiBtn.addEventListener('click', loadKpis); }
