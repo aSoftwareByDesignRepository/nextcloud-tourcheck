@@ -16,6 +16,12 @@
 			.then(function (res) { return res.json().catch(function () { return { success: false, message: res.statusText }; }).then(function (j) { j._status = res.status; return j; }); });
 	}
 	function esc(s) { var d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+	// ISO → locale datetime (de: 18.10.2026, 11:30); falls back to ISO slice
+	function fmtTs(ts) {
+		var d = new Date(ts);
+		return isNaN(d) ? String(ts || '').slice(0, 16).replace('T', ' ')
+			: d.toLocaleString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+	}
 	function badge(label, variant) {
 		return '<span class="tck-badge' + (variant ? ' tck-badge--' + variant : '') + '">' +
 			'<span class="tck-badge__dot" aria-hidden="true"></span>' + esc(label) + '</span>';
@@ -106,7 +112,7 @@
 				var li = document.createElement('li');
 				li.className = 'tck-list__row';
 				li.innerHTML = '<div class="tck-list__main"><span class="tck-list__title">' + esc(i.title || '#') + '</span>' +
-					'<span class="tck-list__sub">' + esc((i.createdAt || '').replace('T', ' ').slice(0, 16)) + '</span></div>' +
+					'<span class="tck-list__sub">' + esc(fmtTs(i.createdAt)) + '</span></div>' +
 					'<div class="tck-list__aside">' + badge(t(INC_LABEL[i.status] || i.status), INC_BADGE[i.status] || 'info') + '</div>';
 				ul.appendChild(li);
 			});
@@ -125,7 +131,7 @@
 				var li = document.createElement('li');
 				li.className = 'tck-list__row';
 				li.innerHTML = '<div class="tck-list__main"><span class="tck-list__title">' + esc(r.period || '#') + '</span>' +
-					'<span class="tck-list__sub">' + esc((r.createdAt || '').replace('T', ' ').slice(0, 16)) + '</span></div>' +
+					'<span class="tck-list__sub">' + esc(fmtTs(r.createdAt)) + '</span></div>' +
 					'<div class="tck-list__aside"><a class="tck-btn" href="' + esc(route('/api/portal/reports/' + r.id + '/download')) + '">' + esc(t('Download')) + '</a></div>';
 				ul.appendChild(li);
 			});

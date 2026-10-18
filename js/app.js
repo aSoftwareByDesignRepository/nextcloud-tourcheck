@@ -965,7 +965,7 @@
 		title.textContent = c.text;
 		main.appendChild(title);
 		var meta = [];
-		if (c.assigneeUid) { meta.push(t('assigned to %s').replace('%s', c.assigneeUid)); }
+		if (c.assigneeUid) { meta.push(t('assigned to %s').replace('%s', c.assigneeName || c.assigneeUid)); }
 		if (c.dueAt) { meta.push(t('due %s').replace('%s', String(c.dueAt).slice(0, 10))); }
 		if (c.resolution) { meta.push(c.resolution); }
 		if (meta.length) {

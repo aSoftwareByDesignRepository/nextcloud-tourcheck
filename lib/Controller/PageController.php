@@ -188,6 +188,13 @@ class PageController extends Controller
 		return $this->l->l('datetime', $d->getTimestamp());
 	}
 
+	/** uid → display name; unknown/deleted users fall back to the raw uid. */
+	private function actorName(?string $uid): ?string
+	{
+		if ($uid === null || $uid === '') { return null; }
+		return $this->userManager->get($uid)?->getDisplayName() ?? $uid;
+	}
+
 	private function roundRow(\OCA\TourCheck\Db\Round $r): array
 	{
 		return [
@@ -422,7 +429,7 @@ class PageController extends Controller
 			foreach ($this->positions->trailFor($roundId) as $p) {
 				$trail[] = [
 					'timeLabel' => $p->getServerReceivedAt() !== null ? $this->fmt($p->getServerReceivedAt()) : '',
-					'actor' => $p->getActorUid(),
+					'actor' => $this->actorName($p->getActorUid()),
 					'lat' => $p->getLat(),
 					'lon' => $p->getLon(),
 					'accuracy' => $p->getAccuracyM(),
@@ -500,7 +507,7 @@ class PageController extends Controller
 					$entries[] = [
 						'timeLabel' => $e->getServerTs() ? $this->fmt($e->getServerTs()) : '',
 						'what' => $e->getBody(),
-						'actor' => $e->getActorUid() ?? ($e->getMemberId() !== null ? $this->l->t('member #%d', [(int)$e->getMemberId()]) : '—'),
+						'actor' => $this->actorName($e->getActorUid()) ?? ($e->getMemberId() !== null ? $this->l->t('member #%d', [(int)$e->getMemberId()]) : '—'),
 						'method' => $e->getKind(),
 						'flag' => '',
 					];

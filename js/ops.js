@@ -39,6 +39,12 @@
 	}
 	function announce(txt) { var r = document.getElementById('tck-live-region'); if (r) { r.textContent = txt; } }
 	function esc(s) { var d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+	// ISO → locale datetime (de: 18.10.2026, 11:30); falls back to ISO slice
+	function fmtTs(ts) {
+		var d = new Date(ts);
+		return isNaN(d) ? String(ts || '').slice(0, 16).replace('T', ' ')
+			: d.toLocaleString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+	}
 
 	var siteSel = document.getElementById('tck-site-select');
 	function currentSite() { return siteSel ? parseInt(siteSel.value, 10) : parseInt((document.getElementById('tck-alerts') || {}).dataset.siteId || '0', 10); }
@@ -62,7 +68,7 @@
 				var typeLabel = { mandown: t('Man-down'), sos: t('SOS'), zone_violation: t('Zone violation'), coverage_gap: t('Coverage gap') }[a.type] || a.type;
 				card.innerHTML =
 					'<div class="tck-alert-card__main"><strong>' + esc(typeLabel) + '</strong>' +
-					'<span class="tck-alert-card__meta">' + esc(a.workerUid || '—') + ' · ' + esc((a.firedAt || '').replace('T', ' ').slice(0, 16)) + '</span></div>' +
+					'<span class="tck-alert-card__meta">' + esc(a.workerName || a.workerUid || '—') + ' · ' + esc(fmtTs(a.firedAt)) + '</span></div>' +
 					'<div class="tck-alert-card__actions"></div>';
 				var actions = card.querySelector('.tck-alert-card__actions');
 				if (a.state === 'fired' || a.state === 'escalating') {
@@ -305,7 +311,7 @@
 				var li = document.createElement('li');
 				li.className = 'tck-list__row';
 				li.innerHTML = '<div class="tck-list__main"><span class="tck-list__title">' + esc(tk.title) + '</span>' +
-					'<span class="tck-list__sub">' + esc(tk.assigneeUid || t('Unassigned')) + (tk.dueAt ? ' · ' + esc(t('due %s', [tk.dueAt.slice(0, 16).replace('T', ' ')])) : '') + '</span></div>';
+					'<span class="tck-list__sub">' + esc(tk.assigneeName || tk.assigneeUid || t('Unassigned')) + (tk.dueAt ? ' · ' + esc(t('due %s', [fmtTs(tk.dueAt)])) : '') + '</span></div>';
 				var aside = document.createElement('div');
 				aside.className = 'tck-list__aside';
 				var TASK_BADGE = { open: 'warning', done: 'success', cancelled: 'info' };
@@ -344,7 +350,7 @@
 				var kindLabel = { note: t('Note'), handover: t('Handover'), hazard: t('Hazard') }[e.kind] || e.kind;
 				li.innerHTML = '<div class="tck-list__main"><span class="tck-list__title">' +
 					(e.pinned ? '📌 ' : '') + esc(kindLabel) + ' — ' + esc(e.body.slice(0, 140)) + (e.body.length > 140 ? '…' : '') + '</span>' +
-					'<span class="tck-list__sub">' + esc(e.authorUid) + ' · ' + esc((e.createdAt || '').replace('T', ' ').slice(0, 16)) +
+					'<span class="tck-list__sub">' + esc(e.authorName || e.authorUid) + ' · ' + esc(fmtTs(e.createdAt)) +
 					' · ' + esc(t('%d acked', [(e.ackedBy || []).length])) + '</span></div>';
 				var aside = document.createElement('div');
 				aside.className = 'tck-list__aside';

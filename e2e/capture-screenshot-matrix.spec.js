@@ -81,7 +81,7 @@ async function shot(/** @type {import('@playwright/test').Page} */ page, /** @ty
 	const shotH = Math.min(Math.max(contentH + 60, vpHeight), 8192)
 	if (shotH !== vpHeight) {
 		await page.setViewportSize({ width: page.viewportSize()?.width || 1280, height: shotH })
-		await page.waitForTimeout(150)
+		await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
 	}
 	const file = join(OUT, `${name}.png`)
 	await page.screenshot({ path: file })
@@ -252,7 +252,7 @@ test.describe('SCREENSHOT_MATRIX capture', () => {
 					contentSel: surface.settle || '#tck-main-content',
 				})
 				if (state === 'empty') { await applyEmptyState(target, surface.id) }
-				await target.waitForTimeout(350)
+				await target.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
 				await shot(target, shotName(surface.id, state, vp.name, theme), vp.height)
 			}
 		}

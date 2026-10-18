@@ -85,6 +85,27 @@ class ApiController extends Controller
 		return $params;
 	}
 
+	/**
+	 * uid → display name for UI surfaces; unknown/deleted users fall back
+	 * to the raw uid rather than vanishing.
+	 */
+	private function displayName(?string $uid): ?string
+	{
+		if ($uid === null || $uid === '') { return null; }
+		return $this->users->get($uid)?->getDisplayName() ?? $uid;
+	}
+
+	/** Decorate a serialized entity row with *Name labels beside *Uid fields. */
+	private function withNames(array $row): array
+	{
+		foreach (['workerUid' => 'workerName', 'assigneeUid' => 'assigneeName', 'authorUid' => 'authorName'] as $uk => $nk) {
+			if (array_key_exists($uk, $row)) {
+				$row[$nk] = $this->displayName($row[$uk] === null ? null : (string)$row[$uk]);
+			}
+		}
+		return $row;
+	}
+
 	// ── Dashboard ────────────────────────────────────────────────────────
 
 	#[NoAdminRequired]
@@ -530,7 +551,7 @@ class ApiController extends Controller
 	{
 		try {
 			$inc = $this->incidents->get($id);
-			$actions = array_map(static fn ($c) => $c->jsonSerialize(), $this->incidents->correctivesOf($id));
+			$actions = array_map(fn ($c) => $this->withNames($c->jsonSerialize()), $this->incidents->correctivesOf($id));
 			return $this->ok(['incident' => $inc->jsonSerialize(), 'actions' => $actions]);
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
@@ -554,7 +575,7 @@ class ApiController extends Controller
 		try {
 			$b = $this->body();
 			$c = $this->incidents->addCorrective($id, (string)($b['text'] ?? ''), $b['assignee_uid'] ?? null, $b['due_at'] ?? null);
-			return $this->ok($c->jsonSerialize(), Http::STATUS_CREATED);
+			return $this->ok($this->withNames($c->jsonSerialize()), Http::STATUS_CREATED);
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}
@@ -565,7 +586,7 @@ class ApiController extends Controller
 	{
 		try {
 			$b = $this->body();
-			return $this->ok($this->incidents->updateCorrective($id, $b, $this->revisionPrecondition($b))->jsonSerialize());
+			return $this->ok($this->withNames($this->incidents->updateCorrective($id, $b, $this->revisionPrecondition($b))->jsonSerialize()));
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}
@@ -575,7 +596,7 @@ class ApiController extends Controller
 	public function verifyCorrective(int $id): JSONResponse
 	{
 		try {
-			return $this->ok($this->incidents->verifyCorrective($id)->jsonSerialize());
+			return $this->ok($this->withNames($this->incidents->verifyCorrective($id)->jsonSerialize()));
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}

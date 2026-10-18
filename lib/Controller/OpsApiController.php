@@ -96,6 +96,27 @@ class OpsApiController extends Controller
 		}
 	}
 
+	/**
+	 * uid → display name for UI surfaces; unknown/deleted users fall back
+	 * to the raw uid rather than vanishing (audit trail stays legible).
+	 */
+	private function displayName(?string $uid): ?string
+	{
+		if ($uid === null || $uid === '') { return null; }
+		return $this->users->get($uid)?->getDisplayName() ?? $uid;
+	}
+
+	/** Decorate a serialized entity row with *Name labels beside *Uid fields. */
+	private function withNames(array $row): array
+	{
+		foreach (['workerUid' => 'workerName', 'assigneeUid' => 'assigneeName', 'authorUid' => 'authorName'] as $uk => $nk) {
+			if (array_key_exists($uk, $row)) {
+				$row[$nk] = $this->displayName($row[$uk] === null ? null : (string)$row[$uk]);
+			}
+		}
+		return $row;
+	}
+
 	private function siteCard(int $siteId): array
 	{
 		$site = $this->sites->findById($siteId);
@@ -145,7 +166,7 @@ class OpsApiController extends Controller
 			];
 		}
 
-		$openAlerts = array_map(static fn ($a) => $a->jsonSerialize(), $this->alerts->openFor([$siteId]));
+		$openAlerts = array_map(fn ($a) => $this->withNames($a->jsonSerialize()), $this->alerts->openFor([$siteId]));
 		$openTasks = $this->db->getQueryBuilder()
 			->select($qb->func()->count('id'))
 			->from('tck_task')
@@ -321,7 +342,7 @@ class OpsApiController extends Controller
 		try {
 			$status = $this->request->getParam('status');
 			$rows = $this->tasks->listForSite($siteId, is_string($status) && $status !== '' ? $status : null);
-			return $this->ok(['tasks' => array_map(static fn ($t) => $t->jsonSerialize(), $rows)]);
+			return $this->ok(['tasks' => array_map(fn ($t) => $this->withNames($t->jsonSerialize()), $rows)]);
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}
@@ -339,7 +360,7 @@ class OpsApiController extends Controller
 			$t = $this->tasks->create($siteId, (string)($b['title'] ?? ''), $b['body'] ?? null,
 				isset($b['assignee_uid']) && $b['assignee_uid'] !== '' ? (string)$b['assignee_uid'] : null,
 				$due, $this->uid());
-			return $this->ok($t->jsonSerialize(), Http::STATUS_CREATED);
+			return $this->ok($this->withNames($t->jsonSerialize()), Http::STATUS_CREATED);
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}
@@ -352,7 +373,7 @@ class OpsApiController extends Controller
 			$b = $this->request->getParams();
 			$baseRev = isset($b['revision']) && preg_match('/^\d+$/', (string)$b['revision']) === 1 ? (int)$b['revision'] : null;
 			$t = $this->tasks->update($id, $baseRev, $b, $this->uid());
-			return $this->ok($t->jsonSerialize());
+			return $this->ok($this->withNames($t->jsonSerialize()));
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}
@@ -364,7 +385,7 @@ class OpsApiController extends Controller
 		try {
 			$b = $this->request->getParams();
 			$t = $this->tasks->complete($id, $this->uid(), isset($b['note']) ? (string)$b['note'] : null);
-			return $this->ok($t->jsonSerialize());
+			return $this->ok($this->withNames($t->jsonSerialize()));
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}
@@ -377,7 +398,7 @@ class OpsApiController extends Controller
 	{
 		try {
 			$rows = $this->logbook->listForSite($siteId);
-			return $this->ok(['entries' => array_map(static fn ($l) => $l->jsonSerialize(), $rows)]);
+			return $this->ok(['entries' => array_map(fn ($l) => $this->withNames($l->jsonSerialize()), $rows)]);
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}
@@ -391,7 +412,7 @@ class OpsApiController extends Controller
 			$l = $this->logbook->create($siteId, $this->uid(),
 				(string)($b['kind'] ?? 'note'), (string)($b['body'] ?? ''),
 				($b['pinned'] ?? null) === '1' || ($b['pinned'] ?? null) === 'true' || ($b['pinned'] ?? null) === true);
-			return $this->ok($l->jsonSerialize(), Http::STATUS_CREATED);
+			return $this->ok($this->withNames($l->jsonSerialize()), Http::STATUS_CREATED);
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}
@@ -405,7 +426,7 @@ class OpsApiController extends Controller
 			$baseRev = isset($b['revision']) && preg_match('/^\d+$/', (string)$b['revision']) === 1 ? (int)$b['revision'] : null;
 			$l = $this->logbook->update($id, $this->uid(), $baseRev, (string)($b['body'] ?? ''),
 				array_key_exists('pinned', $b) ? (($b['pinned'] === '1' || $b['pinned'] === 'true' || $b['pinned'] === true)) : null);
-			return $this->ok($l->jsonSerialize());
+			return $this->ok($this->withNames($l->jsonSerialize()));
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}
@@ -446,7 +467,7 @@ class OpsApiController extends Controller
 	{
 		try {
 			$rows = $this->alerts->listForSite($siteId);
-			return $this->ok(['alerts' => array_map(static fn ($a) => $a->jsonSerialize(), $rows)]);
+			return $this->ok(['alerts' => array_map(fn ($a) => $this->withNames($a->jsonSerialize()), $rows)]);
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}
@@ -456,7 +477,7 @@ class OpsApiController extends Controller
 	public function ackAlert(int $id): JSONResponse
 	{
 		try {
-			return $this->ok($this->alerts->ack($id, $this->uid())->jsonSerialize());
+			return $this->ok($this->withNames($this->alerts->ack($id, $this->uid())->jsonSerialize()));
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}
@@ -468,7 +489,7 @@ class OpsApiController extends Controller
 		try {
 			$b = $this->request->getParams();
 			$falseAlarm = ($b['false_alarm'] ?? null) === '1' || ($b['false_alarm'] ?? null) === 'true' || ($b['false_alarm'] ?? null) === true;
-			return $this->ok($this->alerts->resolve($id, $this->uid(), (string)($b['note'] ?? ''), $falseAlarm)->jsonSerialize());
+			return $this->ok($this->withNames($this->alerts->resolve($id, $this->uid(), (string)($b['note'] ?? ''), $falseAlarm)->jsonSerialize()));
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}
