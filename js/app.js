@@ -36,7 +36,9 @@
 			credentials: 'same-origin',
 			body: body === undefined ? undefined : JSON.stringify(body)
 		}).then(function (res) {
-			return res.json().catch(function () { return { success: false, error: 'BAD_RESPONSE', message: res.statusText, fields: {} }; })
+			/* Never toast res.statusText — it is always English; renderers
+			   must fall back to the localized generic. */
+			return res.json().catch(function () { return { success: false, error: 'BAD_RESPONSE', message: '', fields: {}, _httpText: res.statusText }; })
 				.then(function (json) { json._status = res.status; return json; });
 		});
 	}
@@ -1121,7 +1123,7 @@
 				.then(function (json) {
 					btn.disabled = false;
 					if (!json.success) {
-						toast('err', json.message || t('Request failed.'));
+						toast('error', json.message || t('Request failed.'));
 						return;
 					}
 					btn.setAttribute('data-tck-on', next ? '1' : '0');

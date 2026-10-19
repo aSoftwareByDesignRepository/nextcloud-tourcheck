@@ -259,3 +259,30 @@ test('no raw sprintf placeholders on populated surfaces; count badges are real',
 	const dashText = await page.locator('#app-content').innerText()
 	expect(dashText, 'dashboard renders raw placeholder(s)').not.toMatch(/%[dsn]/)
 })
+
+test('F18 wo-handoff: button fires maintenance-draft POST, soft-fail toasts + re-enables', async ({ page }) => {
+	await gotoApp(page, '/index.php/apps/tourcheck/incidents')
+	// seeded open incident (incidentIds[0]) — supervisor + MN installed
+	// renders the button inside the collapsed detail panel.
+	const openId = incidentIds[0]
+	const row = page.locator(`li.tck-incident:has([data-tck-incident-detail="${openId}"])`)
+	await row.locator('[data-tck-incident-toggle]').click()
+	const btn = row.locator(`[data-tck-wo-handoff="${openId}"]`)
+	await expect(btn).toBeVisible()
+
+	// The seeded site name has no MaintenanceCheck twin → the endpoint
+	// answers ok:false site_unresolved; the UI must surface the soft-fail
+	// as an error toast and re-enable the button (no fake success, no
+	// stuck disabled control).
+	const respP = page.waitForResponse(r =>
+		r.url().includes(`/api/incidents/${openId}/maintenance-draft`)
+		&& r.request().method() === 'POST')
+	await btn.click()
+	const resp = await respP
+	expect(resp.ok(), 'handoff POST not 2xx').toBeTruthy()
+	const payload = await resp.json().catch(() => null)
+	expect(payload?.data?.handoff?.ok, 'unexpected WO success without MN twin').toBe(false)
+	const err = page.locator('#tck-toasts .tck-toast--error[role="alert"]')
+	await expect(err.first()).toBeVisible({ timeout: 10000 })
+	await expect(btn).toBeEnabled()
+})

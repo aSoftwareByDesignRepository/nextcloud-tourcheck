@@ -113,7 +113,7 @@ button.tck-stat-tile:hover, button.tck-stat-tile:focus-visible {
 	min-height: var(--tck-touch, 44px);
 	border-color: var(--tck-form-border, var(--color-border-maxcontrast));
 }
-@media (max-width: 768px) {
+@media (max-width: 768.98px) {
 	.tck-filter-grid--search { grid-template-columns: 1fr; }
 	.tck-filter-field--actions { flex-direction: column; align-items: stretch; }
 	.tck-filter-field--actions > * { width: 100%; }
@@ -236,7 +236,7 @@ button.tck-stat-tile:hover, button.tck-stat-tile:focus-visible {
 	margin: var(--tck-space-4, 16px) 0 0;
 }
 .tck-pagination__info { font-variant-numeric: var(--tck-tab-num, tabular-nums); color: var(--tck-muted, var(--color-text-maxcontrast)); }
-@media (max-width: 480px) {
+@media (max-width: 479.98px) {
 	.tck-pagination { flex-wrap: wrap; }
 	.tck-pagination > * { flex: 1 1 auto; }
 	.tck-pagination__info { text-align: center; order: -1; flex-basis: 100%; }
@@ -249,7 +249,7 @@ button.tck-stat-tile:hover, button.tck-stat-tile:focus-visible {
  * Cells without data-cell (action columns) render label-free.
  * The table keeps its normal scroll wrap; on desktop the modifier
  * changes nothing. */
-@media (max-width: 768px) {
+@media (max-width: 768.98px) {
 	.tck-table--cards thead {
 		position: absolute;
 		width: 1px; height: 1px;

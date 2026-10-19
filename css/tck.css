@@ -301,9 +301,9 @@
 
 /* --- toasts (app-owned, dedup kind+text) --- */
 .tck-toasts { position: fixed; bottom: var(--tck-space-5); right: var(--tck-space-5); display: flex; flex-direction: column; gap: var(--tck-space-2); z-index: 4000; max-width: min(24rem, 90vw); }
-.tck-toast { display: flex; align-items: flex-start; gap: var(--tck-space-3); padding: var(--tck-space-3) var(--tck-space-4); border-radius: var(--tck-radius-md); background: var(--color-main-background); border: 1px solid var(--color-border); box-shadow: var(--tck-shadow-md); font-size: var(--tck-fs-md); }
+.tck-toast { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--tck-space-3); padding: var(--tck-space-3) var(--tck-space-4); border-radius: var(--tck-radius-md); background: var(--color-main-background); border: 1px solid var(--color-border); box-shadow: var(--tck-shadow-md); font-size: var(--tck-fs-md); }
 .tck-toast--error { border-color: var(--tck-danger-ink); }
-.tck-toast__content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--tck-space-1); }
+.tck-toast__content { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; display: flex; flex-direction: column; gap: var(--tck-space-1); }
 .tck-toast__close { flex-shrink: 0; min-width: var(--tck-touch); min-height: var(--tck-touch); margin: calc(-1 * var(--tck-space-2)); padding: 0; border: none; background: transparent; color: var(--color-text-maxcontrast); font-size: var(--tck-fs-lg); line-height: 1; cursor: pointer; border-radius: var(--tck-radius-sm); }
 .tck-toast__close:hover { color: var(--color-main-text); background: var(--color-background-hover); }
 .tck-toast__close:focus-visible { outline: 2px solid var(--color-primary-element); outline-offset: 2px; }
@@ -355,7 +355,7 @@
 }
 
 /* <=768px: tighter padding + pinpad fits 320px (3×4rem + gaps + padding). */
-@media (max-width: 768px) {
+@media (max-width: 768.98px) {
 	.tck-page-header__main { gap: var(--tck-space-3); }
 	.tck-pinpad__keys { grid-template-columns: repeat(3, minmax(4rem, 6rem)); }
 	.tck-main { padding: var(--tck-space-4) var(--tck-space-3) var(--tck-space-6); }
@@ -852,7 +852,7 @@
 	border: 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768.98px) {
 	.tck-support-us__options {
 		grid-template-columns: 1fr;
 	}
@@ -955,7 +955,7 @@ dialog.tck-dialog::backdrop { background: var(--tck-scrim); }
 	justify-content: flex-end;
 	margin-top: var(--tck-space-4);
 }
-@media (max-width: 767px) {
+@media (max-width: 768.98px) {
 	.tck-dialog__actions { flex-direction: column-reverse; }
 	.tck-dialog__actions .tck-btn { width: 100%; }
 }

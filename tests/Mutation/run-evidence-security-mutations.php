@@ -81,6 +81,47 @@ function targets(string $appRoot): array
 			],
 		],
 		[
+			// F16: the round's first attached evidence proposes an AZC pending
+			// stamp — first-scan gate, count check, and post-commit call.
+			'file' => $appRoot . '/lib/Service/EventService.php',
+			'filter' => 'FirstScanStampPushTest',
+			'mutations' => [
+				'first_scan_always_true' => [
+					'from' => '$firstRoundScan = $event->getRoundId() !== null' . "\n"
+						. "\t\t\t\t&& \$this->events->countForRound((int)\$event->getRoundId()) === 1;",
+					'to' => '$firstRoundScan = true;',
+				],
+				'first_scan_count_relax' => [
+					'from' => "\$this->events->countForRound((int)\$event->getRoundId()) === 1;",
+					'to' => "\$this->events->countForRound((int)\$event->getRoundId()) >= 1;",
+				],
+				'post_commit_push_removed' => [
+					'from' => 'if ($firstRoundScan && $this->azcStampPush !== null) {',
+					'to' => 'if (false) {',
+				],
+			],
+		],
+		[
+			'file' => $appRoot . '/lib/Integration/ArbeitszeitStampPushService.php',
+			'filter' => 'ArbeitszeitStampPushTest',
+			'mutations' => [
+				'app_enable_check_removed' => [
+					'from' => 'return $this->appManager->isEnabledForUser(self::AZC_APP_ID)',
+					'to' => 'return true || $this->appManager->isEnabledForUser(self::AZC_APP_ID)',
+				],
+				'uid_round_or_gate_and' => [
+					// ||→&&: an orphan event (uid set, no round) would probe AZC —
+					// the never-probes assertions kill this mutant.
+					'from' => "if (\$actorUid === '' || \$roundId <= 0 || !\$this->isAvailable()) {",
+					'to' => "if (\$actorUid === '' && \$roundId <= 0 || !\$this->isAvailable()) {",
+				],
+				'facade_version_floor_raised' => [
+					'from' => 'ExternalStampDraftFacade::FACADE_VERSION >= 1;',
+					'to' => 'ExternalStampDraftFacade::FACADE_VERSION >= 999;',
+				],
+			],
+		],
+		[
 			'file' => $appRoot . '/lib/Service/EventService.php',
 			'filter' => 'GeoStampTest',
 			'mutations' => [

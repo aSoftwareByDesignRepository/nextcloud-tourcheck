@@ -21,7 +21,7 @@
 		var h = {};
 		if (OC.requestToken) { h.requesttoken = OC.requestToken; }
 		return fetch(route(path), { method: method, headers: h, credentials: 'same-origin' })
-			.then(function (res) { return res.json().catch(function () { return { success: false, message: res.statusText }; }).then(function (j) { j._status = res.status; return j; }); });
+			.then(function (res) { return res.json().catch(function () { return { success: false, message: '', _httpText: res.statusText }; }).then(function (j) { j._status = res.status; return j; }); });
 	}
 	function esc(s) { var d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
 	// ISO → locale datetime (de: 18.10.2026, 11:30); falls back to ISO slice
@@ -39,6 +39,26 @@
 		return '<span class="tck-badge' + (variant ? ' tck-badge--' + variant : '') + '">' +
 			'<span class="tck-badge__dot" aria-hidden="true"></span>' + esc(label) + '</span>';
 	}
+	/* Failed load must offer a way forward (same convention as app.js
+	   corrLoadError): inline error + retry, never a silent blank panel. */
+	function loadFail(container, retryFn) {
+		if (!container) { return; }
+		container.querySelectorAll('.tck-load-fail').forEach(function (n) { n.remove(); });
+		var inList = container.tagName === 'UL' || container.tagName === 'OL';
+		var host = inList ? document.createElement('li') : container;
+		if (inList) { host.className = 'tck-load-fail'; container.insertBefore(host, container.firstChild); }
+		var err = document.createElement('p');
+		err.className = 'tck-field-error' + (inList ? '' : ' tck-load-fail');
+		err.textContent = t('Could not load data.');
+		var retry = document.createElement('button');
+		retry.type = 'button'; retry.className = 'tck-btn' + (inList ? '' : ' tck-load-fail'); retry.textContent = t('Retry');
+		retry.addEventListener('click', function () {
+			container.querySelectorAll('.tck-load-fail').forEach(function (n) { n.remove(); });
+			retryFn();
+		});
+		if (inList) { host.appendChild(err); host.appendChild(retry); }
+		else { container.insertBefore(retry, container.firstChild); container.insertBefore(err, container.firstChild); }
+	}
 
 	var siteId = parseInt(root.getAttribute('data-tck-portal-site') || '0', 10);
 
@@ -55,7 +75,7 @@
 		var list = document.getElementById('tck-portal-site-list');
 		var empty = document.getElementById('tck-portal-empty');
 		api('GET', '/api/portal/sites').then(function (j) {
-			if (!j.success || !list) { return; }
+			if (!j.success || !list) { loadFail(list, loadSites); return; }
 			var sites = j.data.sites || [];
 			list.innerHTML = '';
 			if (empty) { empty.hidden = sites.length !== 0; }
@@ -79,7 +99,7 @@
 		api('GET', '/api/portal/sites/' + siteId + '/overview').then(function (j) {
 			var grid = document.getElementById('tck-portal-overview');
 			var nameEl = document.getElementById('tck-portal-site-name');
-			if (!j.success || !grid) { return; }
+			if (!j.success || !grid) { loadFail(grid, loadOverview); return; }
 			var d = j.data;
 			if (nameEl && d.site) { nameEl.textContent = d.site.name || ''; }
 			grid.innerHTML = '';
@@ -95,7 +115,7 @@
 		var to = document.getElementById('tck-portal-kpi-to').value;
 		api('GET', '/api/portal/sites/' + siteId + '/kpis' + (from && to ? '?from=' + from + '&to=' + to : '')).then(function (j) {
 			var grid = document.getElementById('tck-portal-kpis');
-			if (!j.success || !grid) { return; }
+			if (!j.success || !grid) { loadFail(grid, loadKpis); return; }
 			var d = j.data;
 			grid.innerHTML = '';
 			grid.appendChild(kpiCard(t('Checkpoint hit rate'), d.hit_rate_pct === null ? '—' : d.hit_rate_pct + '%', tf('Target: %d percent', [d.sla_hit_target_pct])));
@@ -117,7 +137,7 @@
 		var ul = document.getElementById('tck-portal-incidents');
 		var empty = document.getElementById('tck-portal-incidents-empty');
 		api('GET', '/api/portal/sites/' + siteId + '/incidents').then(function (j) {
-			if (!j.success || !ul) { return; }
+			if (!j.success || !ul) { loadFail(ul, loadIncidents); return; }
 			var rows = j.data.incidents || [];
 			ul.innerHTML = '';
 			if (empty) { empty.hidden = rows.length !== 0; }
@@ -136,7 +156,7 @@
 		var ul = document.getElementById('tck-portal-reports');
 		var empty = document.getElementById('tck-portal-reports-empty');
 		api('GET', '/api/portal/sites/' + siteId + '/reports').then(function (j) {
-			if (!j.success || !ul) { return; }
+			if (!j.success || !ul) { loadFail(ul, loadReports); return; }
 			var rows = j.data.reports || [];
 			ul.innerHTML = '';
 			if (empty) { empty.hidden = rows.length !== 0; }

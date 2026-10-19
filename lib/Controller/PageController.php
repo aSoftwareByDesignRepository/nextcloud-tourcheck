@@ -92,15 +92,20 @@ class PageController extends Controller
 		return $nav;
 	}
 
+	private ?array $scopeCache = null;
+
 	private function scope(): array
 	{
+		if ($this->scopeCache !== null) {
+			return $this->scopeCache;
+		}
 		$uid = $this->acl->requireUid();
 		$sites = $this->sites->listForCurrentUser();
 		$current = (int)$this->request->getParam('site', 0);
 		if ($current <= 0 && $sites !== []) {
 			$current = (int)$sites[0]->getId();
 		}
-		return [
+		return $this->scopeCache = [
 			'sites' => $sites,
 			'multiSite' => count($sites) > 1,
 			'currentSiteId' => $current,

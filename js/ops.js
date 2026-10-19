@@ -25,7 +25,9 @@
 		var h = { 'Content-Type': 'application/json' };
 		if (OC.requestToken) { h.requesttoken = OC.requestToken; }
 		return fetch(route(path), { method: method, headers: h, credentials: 'same-origin', body: body === undefined ? undefined : JSON.stringify(body) })
-			.then(function (res) { return res.json().catch(function () { return { success: false, message: res.statusText }; }).then(function (j) { j._status = res.status; return j; }); });
+			/* statusText stays out of `message` — always-English text must
+			   never reach a toast; renderers fall back to t('Error'). */
+			.then(function (res) { return res.json().catch(function () { return { success: false, message: '', _httpText: res.statusText }; }).then(function (j) { j._status = res.status; return j; }); });
 	}
 
 	/* Toast contract identical to app.js (dedup on kind+text, timer reset). */
@@ -39,11 +41,36 @@
 		el.className = 'tck-toast' + (kind === 'error' ? ' tck-toast--error' : '');
 		el.setAttribute('role', kind === 'error' ? 'alert' : 'status');
 		el.setAttribute('data-tck-toast-key', key);
-		var txt = document.createElement('span'); txt.textContent = String(text);
+		/* __content carries the wrap fix (min-width:0 + overflow-wrap) — a
+		   bare span can push the close button out on long unbreakable text. */
+		var content = document.createElement('span'); content.className = 'tck-toast__content';
+		var txt = document.createElement('span'); txt.className = 'tck-toast__text'; txt.textContent = String(text);
+		content.appendChild(txt);
 		var close = document.createElement('button'); close.type = 'button'; close.className = 'tck-toast__close'; close.setAttribute('aria-label', t('Dismiss')); close.textContent = '✕';
 		close.addEventListener('click', function () { clearTimeout(toastTimers[key]); delete toastTimers[key]; el.remove(); });
-		el.appendChild(txt); el.appendChild(close); toastBox.appendChild(el);
+		el.appendChild(content); el.appendChild(close); toastBox.appendChild(el);
 		toastTimers[key] = setTimeout(function () { el.remove(); delete toastTimers[key]; }, ttl);
+	}
+	/* Failed load must offer a way forward (same convention as app.js
+	   corrLoadError): inline error + retry when the surface is empty; a
+	   toast keeps last-good data honest on refresh failures. */
+	function loadFail(container, hasContentSel, retryFn) {
+		if (!container) { toast('error', t('Could not load data.')); return; }
+		if (hasContentSel && container.querySelector(hasContentSel)) { toast('error', t('Could not load data.')); return; }
+		container.querySelectorAll('.tck-load-fail').forEach(function (n) { n.remove(); });
+		var inList = container.tagName === 'UL' || container.tagName === 'OL';
+		var host = inList ? document.createElement('li') : container;
+		if (inList) { host.className = 'tck-load-fail'; container.appendChild(host); }
+		var err = document.createElement('p');
+		err.className = 'tck-field-error' + (inList ? '' : ' tck-load-fail');
+		err.textContent = t('Could not load data.');
+		var retry = document.createElement('button');
+		retry.type = 'button'; retry.className = 'tck-btn' + (inList ? '' : ' tck-load-fail'); retry.textContent = t('Retry');
+		retry.addEventListener('click', function () {
+			container.querySelectorAll('.tck-load-fail').forEach(function (n) { n.remove(); });
+			retryFn();
+		});
+		host.appendChild(err); host.appendChild(retry);
 	}
 	function announce(txt) { var r = document.getElementById('tck-live-region'); if (r) { r.textContent = txt; } }
 	function esc(s) { var d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
@@ -71,10 +98,10 @@
 			var box = document.getElementById('tck-alerts');
 			var empty = document.getElementById('tck-alerts-empty');
 			var count = document.getElementById('tck-alert-count');
-			if (!j.success) { return; }
+			if (!j.success) { loadFail(box, '.tck-alert-card', loadAlerts); return; }
 			var open = (j.data.alerts || []).filter(function (a) { return a.state !== 'resolved' && a.state !== 'resolved_false_alarm'; });
 			if (count) { count.textContent = open.length === 0 ? '' : String(open.length); }
-			box.querySelectorAll('.tck-alert-card').forEach(function (n) { n.remove(); });
+			box.querySelectorAll('.tck-alert-card, .tck-load-fail').forEach(function (n) { n.remove(); });
 			if (empty) { empty.hidden = open.length !== 0; }
 			open.forEach(function (a) {
 				var card = document.createElement('div');
@@ -124,8 +151,8 @@
 		api('GET', '/api/ops').then(function (j) {
 			var board = document.getElementById('tck-board');
 			var empty = document.getElementById('tck-board-empty');
-			if (!j.success) { return; }
-			board.querySelectorAll('.tck-ops-card').forEach(function (n) { n.remove(); });
+			if (!j.success) { loadFail(board, '.tck-ops-card', loadBoard); return; }
+			board.querySelectorAll('.tck-ops-card, .tck-load-fail').forEach(function (n) { n.remove(); });
 			var sites = j.data.sites || [];
 			if (empty) { empty.hidden = sites.length !== 0; }
 			sites.forEach(function (s) {
@@ -174,7 +201,7 @@
 		if (!siteId || typeof L === 'undefined') { return; }
 		ensureMap();
 		api('GET', '/api/ops/' + siteId + '/map').then(function (j) {
-			if (!j.success) { return; }
+			if (!j.success) { toast('error', t('Could not load data.')); return; }
 			var schematic = document.getElementById('tck-map-schematic');
 			if (j.data.tileUrl && !map._tckTiles) {
 				L.tileLayer(j.data.tileUrl, { maxZoom: 19, attribution: '© providers' }).addTo(map);
@@ -254,7 +281,7 @@
 		if (!siteId) { return; }
 		api('GET', '/api/sites/' + siteId + '/geofences').then(function (j) {
 			var list = document.getElementById('tck-gf-list');
-			if (!j.success || !list) { return; }
+			if (!j.success || !list) { loadFail(list, '.tck-ops-gfrow', loadGeofences); return; }
 			list.innerHTML = '';
 			(j.data.geofences || []).forEach(function (g) {
 				var row = document.createElement('div');
@@ -300,7 +327,7 @@
 		var sel = document.getElementById('tck-task-assignee');
 		if (!siteId || !sel) { return; }
 		api('GET', '/api/sites/' + siteId + '/members').then(function (j) {
-			if (!j.success) { return; }
+			if (!j.success) { toast('error', t('Could not load data.')); return; }
 			var cur = sel.value;
 			sel.innerHTML = '<option value="">' + esc(t('Unassigned')) + '</option>';
 			(j.data.members || []).forEach(function (m) {
@@ -317,7 +344,7 @@
 		var empty = document.getElementById('tck-tasks-empty');
 		if (!siteId || !ul) { return; }
 		api('GET', '/api/sites/' + siteId + '/tasks').then(function (j) {
-			if (!j.success) { return; }
+			if (!j.success) { loadFail(ul, '.tck-list__row', loadTasks); return; }
 			ul.innerHTML = '';
 			var tasks = j.data.tasks || [];
 			if (empty) { empty.hidden = tasks.length !== 0; }
@@ -354,7 +381,7 @@
 		var empty = document.getElementById('tck-log-empty');
 		if (!siteId || !ul) { return; }
 		api('GET', '/api/sites/' + siteId + '/logbook').then(function (j) {
-			if (!j.success) { return; }
+			if (!j.success) { loadFail(ul, '.tck-list__row', loadLogbook); return; }
 			ul.innerHTML = '';
 			var rows = j.data.entries || [];
 			if (empty) { empty.hidden = rows.length !== 0; }
@@ -389,7 +416,7 @@
 		var from = document.getElementById('tck-kpi-from').value;
 		var to = document.getElementById('tck-kpi-to').value;
 		api('GET', '/api/sites/' + siteId + '/kpis' + (from && to ? '?from=' + from + '&to=' + to : '')).then(function (j) {
-			if (!j.success) { toast('error', j.message || t('Error')); return; }
+			if (!j.success) { loadFail(grid, '.tck-kpi', loadKpis); return; }
 			var d = j.data;
 			var cards = [
 				[t('Checkpoint hit rate'), d.hit_rate_pct === null ? '—' : d.hit_rate_pct + '%', tf('Target: %d percent', [d.sla_hit_target_pct])],
