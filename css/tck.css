@@ -56,7 +56,7 @@
 	display: grid; place-items: center; flex-shrink: 0;
 	width: var(--tck-space-7); height: var(--tck-space-7);
 	border-radius: var(--tck-radius-md); background: var(--tck-tint-info);
-	color: var(--color-primary-element);
+	color: var(--tck-accent-ink, var(--color-primary-element));
 }
 .tck-page-header__icon svg { width: var(--tck-icon-xl); height: var(--tck-icon-xl); stroke: currentColor; }
 .tck-page-header__text h1 { margin: 0; font-size: var(--tck-fs-2xl); line-height: var(--tck-line-tight); }
