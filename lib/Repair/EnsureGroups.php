@@ -4,14 +4,28 @@ declare(strict_types=1);
 
 namespace OCA\TourCheck\Repair;
 
-use OCA\TourCheck\Constants;
 use OCP\IGroupManager;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
 
-/** Role groups the access door and site roles build on. Idempotent. */
+/**
+ * Role groups the access door and site roles build on. Idempotent.
+ *
+ * Group ids are inlined: repair steps run during the in-request app update
+ * while the previously installed `Constants` class may still be loaded, so
+ * referencing constants added in the same release can fatal with "Undefined
+ * constant" (arbeitszeitcheck 1.9.4 / GH #45 lesson).
+ */
 class EnsureGroups implements IRepairStep
 {
+	private const GROUP_IDS = [
+		'tourcheck_admin',
+		'tourcheck_planner',
+		'tourcheck_supervisor',
+		'tourcheck_worker',
+		'tourcheck_client',
+	];
+
 	public function __construct(
 		private readonly IGroupManager $groupManager,
 	) {
@@ -24,7 +38,7 @@ class EnsureGroups implements IRepairStep
 
 	public function run(IOutput $output): void
 	{
-		foreach ([Constants::GROUP_ADMIN, Constants::GROUP_PLANNER, Constants::GROUP_SUPERVISOR, Constants::GROUP_WORKER, Constants::GROUP_CLIENT] as $gid) {
+		foreach (self::GROUP_IDS as $gid) {
 			if (!$this->groupManager->groupExists($gid)) {
 				$this->groupManager->createGroup($gid);
 				$output->info('Created group ' . $gid);
