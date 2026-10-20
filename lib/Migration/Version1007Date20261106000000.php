@@ -10,7 +10,7 @@ use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 /**
- * Competitive-parity schema (planning/tourcheck-competitive-parity/SPEC.md):
+ * Competitive-parity schema (planning/features/tourcheck/competitive-parity/SPEC.md):
  * geofences + episode state, alerts + escalation legs, site tasks, logbook
  * + acks, client-portal site grants, webhooks + delivery log, worker
  * qualifications, per-worker position consent, GPS/BLE checkpoint columns.
