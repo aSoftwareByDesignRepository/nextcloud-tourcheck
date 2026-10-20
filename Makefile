@@ -40,7 +40,7 @@ release_exclude = \
 
 release: clean
 	@mkdir -p $(release_dir)
-	@tar -czf $(release_dir)/$(app_name).tar.gz \
+	@tar --mode='u+rwX,go+rX,go-w' --owner=0 --group=0 --numeric-owner -czf $(release_dir)/$(app_name).tar.gz \
 		$(release_exclude) \
 		--exclude='Makefile' \
 		--transform 's,^\.,$(app_name),' \
