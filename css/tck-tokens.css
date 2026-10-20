@@ -121,3 +121,14 @@ body {
 	--tck-radius-base: var(--tck-radius-md);
 	--tck-radius-pill: var(--border-radius-pill, 999px);
 }
+
+/* Accent ink for text-on-surface: --color-primary-element as text drops below
+   WCAG AA (~4.3:1) on dark themes — blend toward main-text there. */
+body {
+	--tck-accent-ink: var(--color-primary-element);
+}
+
+body[data-theme-dark],
+body[data-theme-dark-highcontrast] {
+	--tck-accent-ink: color-mix(in srgb, var(--color-primary-element) 70%, var(--color-main-text));
+}
