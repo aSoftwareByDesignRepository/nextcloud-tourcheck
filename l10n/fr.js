@@ -482,7 +482,7 @@ OC.L10N.register(
 	"Progress" : "Avancement",
 	"Punctuality" : "Ponctualité",
 	"QR and NFC scanners type the code for you — just scan." : "Les scanners QR et NFC saisissent le code pour vous — scannez simplement.",
-	"QR code" : "QR code",
+	"QR code" : "Code QR",
 	"QR scan" : "Scan QR",
 	"QR sheet" : "Feuille QR",
 	"Radius (m)" : "Rayon (m)",
