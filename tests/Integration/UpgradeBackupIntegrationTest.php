@@ -6,6 +6,7 @@ namespace OCA\TourCheck\Tests\Integration;
 
 use OCA\TourCheck\Exception\UpgradeBackupException;
 use OCA\TourCheck\Service\UpgradeBackupService;
+use OCA\TourCheck\Tests\Support\UpgradeBackupStateGuard;
 use OCP\IDBConnection;
 use Test\TestCase;
 
@@ -13,12 +14,24 @@ final class UpgradeBackupIntegrationTest extends TestCase
 {
 	private UpgradeBackupService $backupService;
 	private IDBConnection $db;
+	private UpgradeBackupStateGuard $backupStateGuard;
 
 	protected function setUp(): void
 	{
 		parent::setUp();
-		$this->backupService = \OC::$server->get(UpgradeBackupService::class);
-		$this->db = \OC::$server->get(IDBConnection::class);
+		// createSnapshot() writes a real snapshot under appdata and updates the
+		// upgrade_backup_last_snapshot_id registry — record the baseline first so
+		// the guard can sweep them in tearDown.
+		$this->backupStateGuard = new UpgradeBackupStateGuard();
+		$this->backupStateGuard->setUp();
+		$this->backupService = \OCP\Server::get(UpgradeBackupService::class);
+		$this->db = \OCP\Server::get(IDBConnection::class);
+	}
+
+	protected function tearDown(): void
+	{
+		$this->backupStateGuard->tearDown();
+		parent::tearDown();
 	}
 
 	public function testCreateListAndRestoreRoundTrip(): void

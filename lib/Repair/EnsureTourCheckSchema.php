@@ -17,25 +17,14 @@ use OCP\Migration\IRepairStep;
  * App id and config keys are inlined: repair steps run during the in-request
  * app update while the previously installed `Constants` class may still be
  * loaded, so referencing it can fatal with "Undefined constant"
- * (arbeitszeitcheck 1.9.4 / GH #45 lesson).
+ * (arbeitszeitcheck 1.9.4 / GH #45 lesson). The expected-table set delegates
+ * to {@see SchemaTableCatalog} — a class introduced with it, so no stale
+ * in-memory copy can exist.
  */
 class EnsureTourCheckSchema implements IRepairStep
 {
 	private const APP_ID = 'tourcheck';
 	private const CONFIG_CHAIN_SECRET = 'chain_secret';
-
-	private const TABLES = [
-		'tck_site', 'tck_checkpoint', 'tck_cp_token', 'tck_plan', 'tck_round',
-		'tck_round_cp', 'tck_event', 'tck_station', 'tck_station_mbr',
-		'tck_incident', 'tck_corrective', 'tck_position', 'tck_journal',
-		'tck_anchor', 'tck_report_sched', 'tck_report_dlv', 'tck_site_member',
-		'tck_template', 'tck_live_link', 'tck_notif', 'tck_license_state',
-		'tck_key', 'tck_key_log',
-		'tck_geofence', 'tck_geofence_state', 'tck_alert', 'tck_alert_delivery',
-		'tck_escalation_leg', 'tck_task', 'tck_logbook', 'tck_logbook_ack',
-		'tck_client_grant', 'tck_worker_qual', 'tck_position_consent',
-		'tck_mandown_state', 'tck_webhook', 'tck_webhook_delivery',
-	];
 
 	public function __construct(
 		private readonly IDBConnection $db,
@@ -51,7 +40,7 @@ class EnsureTourCheckSchema implements IRepairStep
 	public function run(IOutput $output): void
 	{
 		$missing = [];
-		foreach (self::TABLES as $table) {
+		foreach (SchemaTableCatalog::EXPECTED_TABLES as $table) {
 			if (!$this->db->tableExists($table)) {
 				$missing[] = $table;
 			}

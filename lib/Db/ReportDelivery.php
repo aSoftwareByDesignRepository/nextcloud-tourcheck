@@ -25,7 +25,7 @@ class ReportDelivery extends Entity
 		$this->addType('siteId', 'integer');
 		$this->addType('schedId', 'integer');
 		$this->addType('fileId', 'integer');
-		$this->addType('clientVisible', 'boolean');
+		$this->addType('clientVisible', 'integer');
 		$this->addType('createdAt', 'datetime');
 	}
 
