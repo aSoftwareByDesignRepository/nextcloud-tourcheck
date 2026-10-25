@@ -243,6 +243,7 @@ class OpsApiController extends Controller
 			return $this->ok([
 				'site' => ['id' => $siteId, 'name' => $site->getName(), 'tz' => $site->getTz()],
 				'tileUrl' => $this->settings->getTileUrl(), // '' = schematic fallback
+				'tileAttribution' => $this->settings->getTileAttributionEffective(),
 				'geofences' => array_map(static fn ($g) => $g->jsonSerialize(), $this->geofences->listForSite($siteId)),
 				'checkpoints' => $cps,
 				'positions' => array_values($latest),
@@ -625,7 +626,7 @@ class OpsApiController extends Controller
 		try {
 			$this->acl->assertAppAdmin();
 			$url = (string)$this->request->getParam('tile_url', '');
-			if ($url !== '' && preg_match('#^https://[^\s]+\{z\}#i', $url) !== 1) {
+			if ($url !== '' && !SettingsService::isValidTileTemplate($url)) {
 				throw new ValidationException(Constants::ERR_VALIDATION, 'Tile URL must be an https:// template containing {z}/{x}/{y}.', ['tile_url' => 'invalid']);
 			}
 			$this->settings->setTileUrl($url);

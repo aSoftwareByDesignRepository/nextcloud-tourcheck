@@ -135,6 +135,10 @@ button.tck-stat-tile:hover, button.tck-stat-tile:focus-visible {
 }
 .tck-filter-bar { display: flex; gap: var(--tck-space-1, 4px); flex-wrap: wrap; }
 #app-content .tck-filter {
+	/* inline-flex is load-bearing: an <a>/<button> stays inline without it
+	   and the 44px min-height silently dies (WCAG 2.5.8 target size). */
+	display: inline-flex;
+	align-items: center;
 	min-height: var(--tck-touch, 44px);
 	padding: var(--tck-space-1, 4px) var(--tck-space-3, 12px);
 	border: 1px solid var(--tck-form-border, var(--color-border-maxcontrast));
@@ -146,7 +150,10 @@ button.tck-stat-tile:hover, button.tck-stat-tile:focus-visible {
 	cursor: pointer;
 }
 .tck-filter:hover { background: var(--color-background-hover); }
-.tck-filter[aria-pressed='true'] {
+/* anchors must not carry aria-pressed (axe aria-allowed-attr) — link
+   pills mark the active item with aria-current instead */
+.tck-filter[aria-pressed='true'],
+.tck-filter[aria-current='true'] {
 	background: var(--tck-tint-info, var(--color-primary-element-light));
 	border-color: var(--color-primary-element);
 	color: var(--tck-text, var(--color-main-text));
@@ -255,7 +262,7 @@ button.tck-stat-tile:hover, button.tck-stat-tile:focus-visible {
 		width: 1px; height: 1px;
 		padding: 0; margin: -1px;
 		overflow: hidden;
-		clip: rect(0 0 0 0);
+		clip-path: inset(50%);
 		white-space: nowrap;
 		border: 0;
 	}

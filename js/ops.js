@@ -180,7 +180,7 @@
 	}
 
 	/* ── Map + geofences + trail ────────────────────────────────────── */
-	var map = null, mapLayers = { gf: [], cp: [], pos: [], trail: null };
+	var map = null, mapLayers = { tile: null, degraded: false, gf: [], cp: [], pos: [], trail: null };
 	function ensureMap() {
 		if (map || typeof L === 'undefined') { return; }
 		var el = document.getElementById('tck-map');
@@ -196,20 +196,74 @@
 		});
 	}
 	function clearLayers(key) { (mapLayers[key] || []).forEach(function (l) { map.removeLayer(l); }); mapLayers[key] = []; }
+
+	/* Schematic states: 'tiles' = provider basemap live; 'configured' =
+	   admin picked no provider; 'degraded' = provider unreachable so the
+	   local grid took over (SPEC AC-4: degrade, never blank). */
+	var schematicHint = document.getElementById('tck-map-schematic');
+	var schematicHintText = schematicHint ? schematicHint.textContent : '';
+	function setSchematic(mode) {
+		var el = document.getElementById('tck-map');
+		if (el) { el.classList.toggle('tck-map--schematic', mode !== 'tiles'); }
+		if (schematicHint) {
+			schematicHint.hidden = mode === 'tiles';
+			if (mode !== 'tiles') {
+				schematicHint.textContent = mode === 'degraded'
+					? t('Basemap unavailable — showing the built-in schematic view.')
+					: schematicHintText;
+			}
+		}
+	}
+	function createTileLayer(tileUrl, attribution) {
+		/* referrerPolicy: the page ships Referrer-Policy: no-referrer, but a
+		   public tile policy (e.g. OSM's) requires a valid Referer — the
+		   element attribute relaxes tile requests to origin-only, nothing
+		   beyond what the provider sees anyway. */
+		var layer = L.tileLayer(tileUrl, {
+			maxZoom: 19,
+			attribution: attribution,
+			referrerPolicy: 'strict-origin-when-cross-origin',
+		});
+		var stats = { ok: 0, err: 0 };
+		layer.on('tileload', function () {
+			stats.ok++;
+			if (mapLayers.degraded) { mapLayers.degraded = false; setSchematic('tiles'); }
+		});
+		layer.on('tileerror', function () {
+			stats.err++;
+			/* Degrade only when the provider never delivered a single tile —
+			   transient 404s on a working provider must not flap the view. */
+			if (stats.ok === 0 && stats.err >= 4 && mapLayers.tile === layer) {
+				map.removeLayer(layer);
+				mapLayers.tile = null;
+				mapLayers.degraded = true;
+				setSchematic('degraded');
+				toast('error', t('Basemap unavailable — showing the built-in schematic view.'));
+			}
+		});
+		return layer;
+	}
 	function loadMap() {
 		var siteId = currentSite();
-		if (!siteId || typeof L === 'undefined') { return; }
+		var mapEl = document.getElementById('tck-map');
+		if (!siteId || !mapEl) { return; }
+		/* Without Leaflet the whole surface is dead — say so + offer retry
+		   instead of a silent empty canvas. */
+		if (typeof L === 'undefined') { loadFail(mapEl, null, loadMap); return; }
 		ensureMap();
 		api('GET', '/api/ops/' + siteId + '/map').then(function (j) {
 			if (!j.success) { toast('error', t('Could not load data.')); return; }
-			var schematic = document.getElementById('tck-map-schematic');
-			if (j.data.tileUrl && !map._tckTiles) {
-				L.tileLayer(j.data.tileUrl, { maxZoom: 19, attribution: '© providers' }).addTo(map);
-				map._tckTiles = true;
-				if (schematic) { schematic.hidden = true; }
-			} else if (!j.data.tileUrl && schematic) {
-				schematic.hidden = false;
+			var tileUrl = j.data.tileUrl || '';
+			if (mapLayers.tile && mapLayers.tile._url !== tileUrl) {
+				map.removeLayer(mapLayers.tile);
+				mapLayers.tile = null;
+				mapLayers.degraded = false;
 			}
+			if (tileUrl !== '' && !mapLayers.tile) {
+				mapLayers.tile = createTileLayer(tileUrl, j.data.tileAttribution || '').addTo(map);
+			}
+			if (mapLayers.tile && !mapLayers.degraded) { setSchematic('tiles'); }
+			else { setSchematic(mapLayers.degraded ? 'degraded' : 'configured'); }
 			var bounds = [];
 			clearLayers('gf'); clearLayers('cp'); clearLayers('pos');
 			(j.data.geofences || []).forEach(function (g) {

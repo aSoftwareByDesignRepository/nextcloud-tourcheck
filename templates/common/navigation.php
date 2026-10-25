@@ -56,6 +56,7 @@ if (!empty($_['isAppAdmin'])) {
 		<div class="app-info tck-brand__text">
 			<h3 class="tck-brand__title"><?php p($l->t('TourCheck')); ?></h3>
 			<p class="tck-brand__subtitle"><?php p($l->t('Rounds and checkpoint documentation')); ?></p>
+			<span class="tck-badge tck-brand__role"><?php p($roleLabel); ?></span>
 		</div>
 	</div>
 	<?php $firstGroup = true; ?>
@@ -89,8 +90,5 @@ if (!empty($_['isAppAdmin'])) {
 			</ul>
 		</div>
 	<?php endforeach; ?>
-	<div class="tck-nav__footer">
-		<span class="tck-nav__role"><?php p($roleLabel); ?></span>
-	</div>
 	<?php include __DIR__ . '/../parts/feedback-nav-footer.php'; ?>
 </nav>

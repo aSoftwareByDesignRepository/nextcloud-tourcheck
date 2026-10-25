@@ -469,7 +469,7 @@ class PageController extends Controller
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function ops(): Response
+	public function ops(?int $siteId = null): Response
 	{
 		try {
 			$this->acl->assertAppAccess();
@@ -486,16 +486,34 @@ class PageController extends Controller
 		Util::addScript(Constants::APP_ID, 'vendor/leaflet/leaflet');
 		Util::addStyle(Constants::APP_ID, 'ops');
 		Util::addScript(Constants::APP_ID, 'ops');
-		return $this->shell('ops', [
+		$params = [
 			'canManage' => $this->acl->isAppAdmin() || $this->acl->canPlan($uid),
-		]);
+		];
+		// Deep links preselect the site — but only one the caller may scope;
+		// an out-of-scope id falls back to the default without disclosing it.
+		if ($siteId !== null) {
+			foreach ($this->scope()['sites'] as $site) {
+				if ((int)$site->getId() === $siteId) {
+					$params['currentSiteId'] = $siteId;
+					break;
+				}
+			}
+		}
+		$response = $this->shell('ops', $params);
+		// Leaflet pulls <img> tiles from the configured provider — img-src
+		// must name every host the template can resolve to, for every
+		// provider selection (schematic adds nothing).
+		foreach ($this->settings->getTileImageCspDomains() as $domain) {
+			$response->getContentSecurityPolicy()->addAllowedImageDomain($domain);
+		}
+		return $response;
 	}
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function opsSite(int $siteId): Response
 	{
-		return $this->ops();
+		return $this->ops($siteId);
 	}
 
 	#[NoAdminRequired]

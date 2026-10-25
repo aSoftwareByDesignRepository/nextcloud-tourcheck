@@ -15,6 +15,17 @@
 }
 .tck-map .leaflet-container { font: inherit; }
 
+/* Schematic fallback (no external basemap): a graph-paper grid so the
+   canvas reads as an intentional site plan — SPEC AC-4: degrade, never
+   blank. Theme-inked tints, no literal colours. */
+.tck-map--schematic {
+	background-image:
+		repeating-linear-gradient(0deg, var(--tck-border) 0 1px, transparent 1px 28px),
+		repeating-linear-gradient(90deg, var(--tck-border) 0 1px, transparent 1px 28px),
+		repeating-linear-gradient(0deg, color-mix(in srgb, var(--tck-muted) 30%, transparent) 0 1px, transparent 1px 140px),
+		repeating-linear-gradient(90deg, color-mix(in srgb, var(--tck-muted) 30%, transparent) 0 1px, transparent 1px 140px);
+}
+
 /* ── Site board ───────────────────────────────────────────────────────── */
 .tck-ops-board {
 	display: grid;

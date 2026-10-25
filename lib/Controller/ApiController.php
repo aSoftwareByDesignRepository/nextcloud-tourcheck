@@ -1081,6 +1081,30 @@ class ApiController extends Controller
 				}
 				$this->settings->setDefaultTimezone($tz);
 			}
+			/* Map tiles (Q2 opt-in): the provider pick resolves server-side —
+			 * schematic stores '' (privacy fallback), osm stores the canonical
+			 * template, custom must carry its own https {z}/{x}/{y} template. */
+			if (isset($b['tile_provider']) || isset($b['tile_url'])) {
+				$provider = trim((string)($b['tile_provider'] ?? Constants::TILE_PROVIDER_CUSTOM));
+				$url = match ($provider) {
+					'', Constants::TILE_PROVIDER_SCHEMATIC => '',
+					Constants::TILE_PROVIDER_OSM => Constants::TILE_URL_OPENSTREETMAP,
+					Constants::TILE_PROVIDER_CUSTOM => trim((string)($b['tile_url'] ?? '')),
+					default => throw new ValidationException(Constants::ERR_VALIDATION, 'Unknown map provider.', ['tile_provider' => 'invalid']),
+				};
+				if ($provider === Constants::TILE_PROVIDER_CUSTOM && $url === '') {
+					throw new ValidationException(Constants::ERR_VALIDATION, 'Tile URL required.', ['tile_url' => 'required']);
+				}
+				if ($url !== '' && !SettingsService::isValidTileTemplate($url)) {
+					throw new ValidationException(Constants::ERR_VALIDATION, 'Tile URL must be an https:// template containing {z}/{x}/{y}.', ['tile_url' => 'invalid']);
+				}
+				$this->settings->setTileUrl($url);
+				// Attribution only means something for a custom provider — a
+				// provider switch must not wipe what the admin typed earlier.
+				if ($provider === Constants::TILE_PROVIDER_CUSTOM) {
+					$this->settings->setTileAttribution((string)($b['tile_attribution'] ?? ''));
+				}
+			}
 			if (isset($b['access_mode']) || isset($b['allowed_groups']) || isset($b['allowed_users'])) {
 				$groups = is_array($b['allowed_groups'] ?? null) ? $b['allowed_groups'] : [];
 				$users = is_array($b['allowed_users'] ?? null) ? $b['allowed_users'] : [];

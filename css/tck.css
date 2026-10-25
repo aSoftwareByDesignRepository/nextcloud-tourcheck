@@ -99,7 +99,9 @@
 .tck-nav__sub { list-style: none; margin: 0; padding: 0 0 0 var(--tck-space-7); }
 .tck-nav__sublink { display: block; min-height: var(--tck-touch); line-height: var(--tck-touch); color: var(--color-main-text); border-radius: var(--tck-radius-sm); padding: 0 var(--tck-space-3); }
 .tck-nav__subitem--active .tck-nav__sublink { font-weight: 600; background: var(--color-primary-light); }
-.tck-nav__footer { padding: var(--tck-space-4); border-top: 1px solid var(--color-border); font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
+/* Role reads as a badge inside the brand block (check-shell convention) —
+ * a lone footer line looked like a group header with missing children. */
+.tck-brand__role { margin-top: var(--tck-space-1); }
 
 /* --- buttons / inputs --- */
 /* Same #app-content.tck-app scoping: bare .tck-btn loses min-height/hover to
@@ -138,7 +140,7 @@
 .tck-field input[aria-invalid="true"], .tck-field select[aria-invalid="true"] { border-color: var(--tck-danger-ink); }
 .tck-field-error { color: var(--tck-danger-ink); font-size: var(--tck-fs-sm); margin: var(--tck-space-1) 0 0; }
 .tck-field-hint { color: var(--color-text-maxcontrast); font-size: var(--tck-fs-sm); margin: var(--tck-space-1) 0 0; }
-.tck-field--check { flex-direction: row; align-items: center; gap: var(--tck-space-3); }
+.tck-field--check { flex-direction: row; align-items: center; gap: var(--tck-space-3); flex-wrap: wrap; }
 .tck-field--check input { width: 24px; height: 24px; }
 .tck-fieldset { border: 1px solid var(--color-border); border-radius: var(--tck-radius-md); padding: var(--tck-space-4); margin-bottom: var(--tck-space-5); }
 .tck-fieldset legend { font-weight: 600; padding: 0 var(--tck-space-2); }

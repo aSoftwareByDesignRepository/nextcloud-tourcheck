@@ -44,7 +44,7 @@ $canManage = !empty($_['canManage']);
 	</div>
 	<div id="tck-map" class="tck-map" role="application" aria-label="<?php p($l->t('Site map')); ?>"></div>
 	<p class="tck-hint" id="tck-map-schematic" hidden>
-		<?php p($l->t('Schematic view — no map tiles configured. An admin can enable a tile provider in Settings → Integrations.')); ?>
+		<?php p($l->t('Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under Settings → Site defaults.')); ?>
 	</p>
 	<div id="tck-gf-list" class="tck-ops-gflist"></div>
 	<form class="tck-form tck-hidden" id="tck-gf-form" data-site-id="<?php p($siteId); ?>" novalidate>

@@ -585,13 +585,47 @@
 		});
 	});
 
+	/* --- settings: map-tile provider picker — custom fields only matter when
+	 * "Custom tile server" is picked (progressive disclosure); disabled inputs
+	 * stay out of FormData so the payload always matches the chosen provider. */
+	var tileCustomWrap = document.querySelector('[data-tck-tile-custom]');
+	if (tileCustomWrap) {
+		var syncTileCustom = function () {
+			var picked = document.querySelector('input[name="tile_provider"]:checked');
+			var show = !!(picked && picked.value === 'custom');
+			tileCustomWrap.hidden = !show;
+			tileCustomWrap.querySelectorAll('input').forEach(function (inp) { inp.disabled = !show; });
+		};
+		document.querySelectorAll('input[name="tile_provider"]').forEach(function (r) {
+			r.addEventListener('change', syncTileCustom);
+		});
+		syncTileCustom();
+	}
+	/* Instant inline check before the network round trip: a custom provider
+	 * with an empty or malformed template must never reach the API. */
+	function validateTileFields(form) {
+		var picked = form.querySelector('input[name="tile_provider"]:checked');
+		if (!picked || picked.value !== 'custom') { return true; }
+		var urlIn = form.querySelector('[name="tile_url"]');
+		var val = urlIn ? String(urlIn.value || '').trim() : '';
+		var msg = '';
+		if (val === '') { msg = t('This field is required.'); }
+		else if (!/^https:\/\/\S+$/.test(val) || val.indexOf('{z}') === -1 || val.indexOf('{x}') === -1 || val.indexOf('{y}') === -1) {
+			msg = t('Must be an https:// URL containing {z}, {x} and {y}.');
+		}
+		if (msg === '') { return true; }
+		applyFieldErrors(form, { tile_url: msg });
+		return false;
+	}
+
 	/* --- settings forms --- */
 	document.querySelectorAll('[data-tck-settings]').forEach(function (form) {
 		form.addEventListener('submit', function (e) {
 			e.preventDefault();
+			clearFieldErrors(form);
+			if (!validateTileFields(form)) { return; }
 			var data = serializeForm(form);
 			data._section = form.getAttribute('data-tck-settings');
-			clearFieldErrors(form);
 			var btn = form.querySelector('[type="submit"]');
 			if (btn) { btn.disabled = true; }
 			api('POST', '/api/admin/settings', data).then(function (json) {

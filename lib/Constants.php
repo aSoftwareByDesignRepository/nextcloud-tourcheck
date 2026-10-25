@@ -87,6 +87,14 @@ final class Constants
 	public const CONFIG_BRAND_COLOR = 'brand_color';
 	public const CONFIG_LAST_CRON_RUN = 'last_cron_run_at';
 	public const CONFIG_TILE_URL = 'map_tile_url';              // empty = schematic fallback (Q2)
+
+	// Map tile providers (settings UI) — 'schematic' stores no URL (privacy default, Q2)
+	public const TILE_PROVIDER_SCHEMATIC = 'schematic';
+	public const TILE_PROVIDER_OSM = 'osm';
+	public const TILE_PROVIDER_CUSTOM = 'custom';
+	public const TILE_URL_OPENSTREETMAP = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+	public const TILE_ATTRIBUTION_OSM = '© OpenStreetMap contributors';
+	public const CONFIG_TILE_ATTRIBUTION = 'map_tile_attribution'; // optional, custom provider only
 	public const CONFIG_SLA_HIT_PCT = 'sla_hit_target_pct';     // default 95
 	public const CONFIG_SLA_PUNCT_MIN = 'sla_punctuality_min';  // default 15
 

@@ -145,20 +145,127 @@ class SettingsService
 	}
 
 	/**
+	 * A Leaflet tile template must be https:// and carry all three coordinate
+	 * placeholders — a URL missing {x} or {y} can never render a tile (fail
+	 * closed on read AND write).
+	 */
+	public static function isValidTileTemplate(string $url): bool
+	{
+		$u = trim($url);
+		return $u !== ''
+			&& str_starts_with(strtolower($u), 'https://')
+			&& str_contains($u, '{z}')
+			&& str_contains($u, '{x}')
+			&& str_contains($u, '{y}')
+			&& preg_match('/\s/', $u) !== 1;
+	}
+
+	/**
 	 * Map tile URL — EMPTY BY DEFAULT (Q2 decision): an external tile provider
 	 * only becomes active when an admin explicitly opts in. Fresh installs
 	 * render the schematic site fallback and leak nothing third-party.
 	 */
 	public function getTileUrl(): string
 	{
-		$u = trim($this->config->getAppValue(Constants::APP_ID, Constants::CONFIG_TILE_URL, ''));
-		// only https template URLs are acceptable — the browser injects {z}/{x}/{y}
-		return preg_match('#^https://[^\s]+\{z\}#i', $u) === 1 ? $u : '';
+		$u = $this->getTileUrlRaw();
+		return self::isValidTileTemplate($u) ? $u : '';
+	}
+
+	/** Raw stored value — shown back to the admin so a typo stays fixable. */
+	public function getTileUrlRaw(): string
+	{
+		return trim($this->config->getAppValue(Constants::APP_ID, Constants::CONFIG_TILE_URL, ''));
+	}
+
+	/** schematic|osm|custom — classifies the stored value for the provider picker. */
+	public function getTileProvider(): string
+	{
+		$raw = $this->getTileUrlRaw();
+		if ($raw === '') {
+			return Constants::TILE_PROVIDER_SCHEMATIC;
+		}
+		return $raw === Constants::TILE_URL_OPENSTREETMAP ? Constants::TILE_PROVIDER_OSM : Constants::TILE_PROVIDER_CUSTOM;
 	}
 
 	public function setTileUrl(string $url): void
 	{
 		$this->config->setAppValue(Constants::APP_ID, Constants::CONFIG_TILE_URL, trim($url));
+	}
+
+	/** Raw stored attribution line (custom provider only) — plain text, no markup. */
+	public function getTileAttribution(): string
+	{
+		return trim($this->config->getAppValue(Constants::APP_ID, Constants::CONFIG_TILE_ATTRIBUTION, ''));
+	}
+
+	public function setTileAttribution(string $attribution): void
+	{
+		// Leaflet injects attribution as HTML — plain text only, bounded.
+		$this->config->setAppValue(Constants::APP_ID, Constants::CONFIG_TILE_ATTRIBUTION, mb_substr(trim(strip_tags($attribution)), 0, 300));
+	}
+
+	/**
+	 * img-src host-sources the map page must allow for tiles to render.
+	 *
+	 * CSP wildcard rules: `*.example.com` matches subdomains only — never the
+	 * apex. Leaflet's `{s}` placeholder only ever resolves to subdomains, so
+	 * a `{s}` template emits the wildcard form while a bare host emits the
+	 * apex. The OSM preset gets both (its CDN also answers on a./b./c.).
+	 * Any other placeholder inside the host is normalised to a wildcard
+	 * label; because CSP wildcards must be leftmost, a mid-domain `{…}` is
+	 * widened to the parent domain rather than dropped (dropping it would
+	 * silently break the map again). `''` / fail-closed reads emit nothing.
+	 *
+	 * @return list<string>
+	 */
+	public function getTileImageCspDomains(): array
+	{
+		$url = $this->getTileUrl();
+		if ($url === '') {
+			return [];
+		}
+		$host = parse_url(str_replace('{s}', '*', $url), PHP_URL_HOST);
+		if (!is_string($host) || $host === '') {
+			return [];
+		}
+		$host = (string)preg_replace('/[^{}.]*\{[^}]+\}[^{}.]*/', '*', $host);
+		if (str_contains($host, '*')) {
+			// CSP wildcards must be the leftmost label — widen to the parent
+			// domain; a host without one cannot be expressed → fail closed.
+			$dot = strpos($host, '.', strpos($host, '*'));
+			if ($dot === false || substr($host, $dot + 1) === '') {
+				return [];
+			}
+			$host = '*' . substr($host, $dot);
+		}
+		$port = parse_url($url, PHP_URL_PORT);
+		$base = 'https://' . $host . ($port === null ? '' : ':' . $port);
+		$domains = [$base];
+		if (!str_starts_with($host, '*.') && $url === Constants::TILE_URL_OPENSTREETMAP) {
+			$domains[] = 'https://*.' . $host . ($port === null ? '' : ':' . $port);
+		}
+		return $domains;
+	}
+
+	/**
+	 * What the map actually displays: OSM preset always credits OSM; custom
+	 * falls back to the provider host so a bare URL still credits someone.
+	 */
+	public function getTileAttributionEffective(): string
+	{
+		$url = $this->getTileUrl();
+		if ($url === '') {
+			return '';
+		}
+		if ($url === Constants::TILE_URL_OPENSTREETMAP) {
+			return Constants::TILE_ATTRIBUTION_OSM;
+		}
+		$stored = $this->getTileAttribution();
+		if ($stored !== '') {
+			return $stored;
+		}
+		$host = parse_url($url, PHP_URL_HOST);
+		return is_string($host) && $host !== '' ? '© ' . $host : '© map provider';
 	}
 
 	public function getSlaHitTargetPct(): int
@@ -270,6 +377,9 @@ class SettingsService
 			'pinLockoutMinutes' => $this->getPinLockoutMinutes(),
 			'brandName' => $this->getBrandName(),
 			'brandColor' => $this->getBrandColor(),
+			'tileUrl' => $this->getTileUrlRaw(),
+			'tileProvider' => $this->getTileProvider(),
+			'tileAttribution' => $this->getTileAttribution(),
 		];
 	}
 }

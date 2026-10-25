@@ -1,0 +1,74 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Verifies that all locale JSON files contain exactly the same set of msgid keys
+ * (and the same key order as en.json). Covers every *.json present in l10n/,
+ * including regional variant catalogs (de_DE, es_MX, …).
+ *
+ * Usage: php scripts/check-l10n-parity.php
+ */
+
+$base = __DIR__ . '/../l10n';
+$paths = glob($base . '/*.json') ?: [];
+sort($paths);
+
+$localeFiles = [];
+foreach ($paths as $path) {
+	$localeFiles[] = basename($path, '.json');
+}
+
+if (!in_array('en', $localeFiles, true)) {
+	fwrite(STDERR, "Missing source locale file: $base/en.json\n");
+	exit(1);
+}
+
+$catalogs = [];
+foreach ($localeFiles as $lang) {
+	$catalogs[$lang] = json_decode(
+		(string) file_get_contents($base . '/' . $lang . '.json'),
+		true,
+		512,
+		JSON_THROW_ON_ERROR
+	);
+}
+
+$enKeys = array_keys($catalogs['en']['translations'] ?? []);
+$enKeysSorted = $enKeys;
+sort($enKeysSorted);
+$ok = true;
+
+foreach (array_diff($localeFiles, ['en']) as $lang) {
+	$langKeys = array_keys($catalogs[$lang]['translations'] ?? []);
+	$missing = array_values(array_diff($enKeysSorted, $langKeys));
+	$extra = array_values(array_diff($langKeys, $enKeysSorted));
+	sort($missing);
+	sort($extra);
+	if ($missing !== []) {
+		$ok = false;
+		fwrite(STDERR, "Keys missing in {$lang}.json (" . count($missing) . "):\n");
+		foreach ($missing as $key) {
+			fwrite(STDERR, "  - {$key}\n");
+		}
+	}
+	if ($extra !== []) {
+		$ok = false;
+		fwrite(STDERR, "Extra keys in {$lang}.json (" . count($extra) . "):\n");
+		foreach ($extra as $key) {
+			fwrite(STDERR, "  - {$key}\n");
+		}
+	}
+	if ($langKeys !== $enKeys) {
+		$ok = false;
+		fwrite(STDERR, "Key order mismatch in {$lang}.json (same keys but different order than en.json).\n");
+	}
+}
+
+if (!$ok) {
+	fwrite(STDERR, "\nl10n parity check FAILED.\n");
+	exit(1);
+}
+
+echo 'l10n parity OK (' . count($enKeys) . ' keys, ' . implode('/', $localeFiles) . ").\n";
+exit(0);
