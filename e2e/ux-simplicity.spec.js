@@ -14,14 +14,35 @@ const CREDS = { username: 'tck_atlas', password: 'TckAtlas2026!' }
 
 /**
  * Kiosk specs must never lean on seeded station ids — fixture rows get
- * revoked by parallel lanes/teardown. Seed our own station + member and
- * revoke in `finally` (active stations consume license seats).
- * @returns {Promise<{stationId: number, secret: string, memberId: number}>}
+ * revoked by parallel lanes/teardown. Seed our own site + checkpoint +
+ * station + member and archive the site in `finally` (active stations
+ * consume license seats; site archive frees them).
+ *
+ * The site must be ISOLATED: binding to shared site 1 races every other
+ * lane's live plans — an extra due round on the shared checkpoint makes
+ * /api/kiosk/confirm answer 422 ambiguous_round and the confirm stage
+ * never shows. A dedicated site can only see our own rounds.
+ * The `tck-atlas-` name prefix lets the probe janitor reclaim leftovers
+ * from killed runs.
+ * @returns {Promise<{siteId: number, stationId: number, secret: string, memberId: number}>}
  */
 async function seedKioskStation(page, apiHeaders, pin) {
-	const mk = await page.request.post('/index.php/apps/tourcheck/api/sites/1/stations', {
+	const mark = `ux-kiosk-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+	const mkSite = await page.request.post('/index.php/apps/tourcheck/api/sites', {
 		headers: apiHeaders,
-		data: { label: `ux-kiosk-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` },
+		data: { name: `tck-atlas-${mark}`, tz: 'Europe/Berlin' },
+	})
+	expect(mkSite.ok(), 'seed kiosk site').toBeTruthy()
+	const siteId = (await mkSite.json()).data.id
+	const mkCp = await page.request.post(`/index.php/apps/tourcheck/api/sites/${siteId}/checkpoints`, {
+		headers: apiHeaders,
+		data: { name: `ux-cp-${mark}` },
+	})
+	expect(mkCp.ok(), 'seed kiosk checkpoint').toBeTruthy()
+	const cpId = (await mkCp.json()).data.checkpoint.id
+	const mk = await page.request.post(`/index.php/apps/tourcheck/api/sites/${siteId}/stations`, {
+		headers: apiHeaders,
+		data: { label: mark },
 	})
 	expect(mk.ok(), 'seed kiosk station').toBeTruthy()
 	const st = (await mk.json()).data
@@ -29,7 +50,7 @@ async function seedKioskStation(page, apiHeaders, pin) {
 	// unbound station can never reach the confirm stage.
 	const bind = await page.request.post(`/index.php/apps/tourcheck/api/stations/${st.station.id}/checkpoint`, {
 		headers: apiHeaders,
-		data: { site_id: 1, checkpoint_id: 1 },
+		data: { site_id: siteId, checkpoint_id: cpId },
 	})
 	expect(bind.ok(), 'bind station checkpoint').toBeTruthy()
 	const up = await page.request.put(`/index.php/apps/tourcheck/api/stations/${st.station.id}/members`, {
@@ -37,11 +58,13 @@ async function seedKioskStation(page, apiHeaders, pin) {
 		data: { display_name: 'Atlas Wache', pin },
 	})
 	expect(up.ok(), 'seed member PIN').toBeTruthy()
-	return { stationId: st.station.id, secret: st.secret, memberId: (await up.json()).data.id }
+	return { siteId, stationId: st.station.id, secret: st.secret, memberId: (await up.json()).data.id }
 }
 
-async function revokeKioskStation(page, apiHeaders, stationId) {
-	await page.request.post(`/index.php/apps/tourcheck/api/stations/${stationId}/revoke`, { headers: apiHeaders }).catch(() => {})
+async function revokeKioskStation(page, apiHeaders, stn) {
+	await page.request.post(`/index.php/apps/tourcheck/api/stations/${stn.stationId}/revoke`, { headers: apiHeaders }).catch(() => {})
+	// Archiving the fixture site frees the device seat even if revoke raced.
+	await page.request.delete(`/index.php/apps/tourcheck/api/sites/${stn.siteId}`, { headers: apiHeaders }).catch(() => {})
 }
 
 test.beforeEach(async ({ page }) => {
@@ -104,7 +127,7 @@ test('kiosk: configured PIN length renders N dots and auto-submits — no dead p
 		await page.locator('[data-tck-sign-skip]').click()
 		await expect(page.locator('[data-tck-stage="confirm"]')).toBeVisible({ timeout: 15000 })
 		} finally {
-			await revokeKioskStation(page, apiHeaders, stn.stationId)
+			await revokeKioskStation(page, apiHeaders, stn)
 		}
 	} finally {
 		// Restore the default through the same API so the FPM-side
@@ -155,7 +178,7 @@ test('kiosk signature: drawn ink rides the confirm POST (NH-06 web parity)', asy
 	await expect(page.locator('[data-tck-stage="confirm"]')).toBeVisible({ timeout: 15000 })
 	expect(posted?.signature_b64, 'signature_b64 must ride the confirm body').toMatch(/^[A-Za-z0-9+/=]{100,}$/)
 	} finally {
-		await revokeKioskStation(page, apiHeaders, stn.stationId)
+		await revokeKioskStation(page, apiHeaders, stn)
 	}
 })
 
@@ -175,7 +198,7 @@ test('kiosk a11y: member grid + signature stage pass axe (public surface)', asyn
 	const signScan = await new AxeBuilder({ page }).include('[data-tck-stage="sign"]').analyze()
 	expect(signScan.violations, JSON.stringify(signScan.violations, null, 2)).toEqual([])
 	} finally {
-		await revokeKioskStation(page, apiHeaders, stn.stationId)
+		await revokeKioskStation(page, apiHeaders, stn)
 	}
 })
 

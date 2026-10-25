@@ -202,7 +202,7 @@ OC.L10N.register(
 	"Every week" : "Varje vecka",
 	"Evidence" : "Bevismaterial",
 	"Evidence & anchoring" : "Bevismaterial & förankring",
-	"Evidence & timestamping" : "Bevismaterial & tidsstämplig",
+	"Evidence & timestamping" : "Bevismaterial & tidsstämpling",
 	"Evidence grades are shown as recorded — attested confirmations are never displayed as scans." : "Bevisnivåer visas som registrerade — attesterade bekräftelser visas aldrig som skanningar.",
 	"Evidence, retention, branding, stations, access." : "Bevismaterial, lagring, varumärke, stationer, åtkomst.",
 	"Expires %s" : "Löper ut %s",

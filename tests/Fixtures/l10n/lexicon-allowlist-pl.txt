@@ -1,0 +1,5 @@
+# Reviewed Polish tokens flagged by check-l10n-real-lexicon.py.
+crona      # loanword — pl genitive of 'cron' (instance cron demon)
+tombstone  # loanword — technical GDPR term kept verbatim, glossed in parentheses
+sekw       # abbrev — sekwencja (sequence)
+zameldowanie # reviewed — pl noun (check-in/registration)

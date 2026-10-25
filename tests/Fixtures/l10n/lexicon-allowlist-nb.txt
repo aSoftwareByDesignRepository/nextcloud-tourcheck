@@ -1,0 +1,12 @@
+# Reviewed Norwegian tokens flagged by check-l10n-real-lexicon.py.
+deaktiver  # shared — nb imperative of deaktivere; identical da infinitive
+deaktivert # shared — nb past participle
+fre        # abbrev — nb weekday abbreviation (fredag); identical da form
+ons        # abbrev — nb weekday abbreviation (onsdag); identical da form
+søn        # abbrev — nb weekday abbreviation (søndag); identical da form
+openstreetmaps # proper — OpenStreetMap genitive compound (flisepolicy)
+kpi        # abbrev — KPI-er plural inflection
+uforankret # reviewed — nb compound u+forankret (unanchored)
+ronderegistreringer # reviewed — nb compound ronde+registrering+er (patrol records)
+companionen # loanword — definite of 'companion' (licensed product term)
+sekv       # abbrev — sekvens (sequence)

@@ -1,0 +1,18 @@
+# Reviewed Swedish tokens flagged by check-l10n-real-lexicon.py.
+# All entries verified as legitimate sv vocabulary / accepted abbreviations
+# that happen to share surface forms with da/nb (Scandinavian overlap).
+fre        # abbrev — sv weekday abbreviation (fredag); identical form in da/nb
+tis        # abbrev — sv weekday abbreviation (tisdag); identical form in da
+ons        # abbrev — sv weekday abbreviation (onsdag); identical form in da/nb
+lör        # abbrev — sv weekday abbreviation (lördag)
+sön        # abbrev — sv weekday abbreviation (söndag)
+maila      # shared — sv verb 'att maila' (to email); identical da/nb form
+lagertablet # shared — sv compound lager+tablet (warehouse tablet)
+openstreetmaps # proper — OpenStreetMap genitive compound (brickpolicy)
+kpi        # abbrev — KPI:er plural inflection
+varumärkta # reviewed — sv participle of varumärke (branded)
+endpunkt   # reviewed — sv tech term (endpoint; ändpunkt synonym)
+platsperimeter # reviewed — sv compound plats+perimeter (site perimeter)
+companionen # loanword — definite of 'companion' (licensed product term)
+sekv       # abbrev — sekvens (sequence)
+tidsstämpling # reviewed — sv noun (timestamping), product heading
