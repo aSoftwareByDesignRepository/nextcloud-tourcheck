@@ -547,7 +547,7 @@ OC.L10N.register(
 	"Scheduled" : "Programada",
 	"Scheduled and on-demand evidence." : "Evidencia programada y a demanda.",
 	"Scheduled reports" : "Informes programados",
-	"Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under Settings → Site defaults." : "Vista esquemática — perímetro, puntos de control y posiciones sobre una cuadrícula local. Un administrador puede activar teselas de mapa en Ajustes → Valores predeterminados del sitio.",
+	"Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under %1$s → %2$s." : "Vista esquemática — perímetro, puntos de control y posiciones sobre una cuadrícula local. Un administrador puede activar teselas de mapa en %1$s → %2$s.",
 	"Search" : "Buscar",
 	"Security" : "Seguridad",
 	"Service quality" : "Calidad del servicio",

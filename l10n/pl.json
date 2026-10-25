@@ -546,7 +546,7 @@
 		"Scheduled": "Zaplanowany",
 		"Scheduled and on-demand evidence.": "Dowody planowe i na żądanie.",
 		"Scheduled reports": "Zaplanowane raporty",
-		"Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under Settings → Site defaults.": "Widok schematyczny — obwód, punkty kontrolne i pozycje na lokalnej siatce. Administrator może włączyć kafelki mapy w Ustawieniach → Wartości domyślne witryny.",
+		"Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under %1$s → %2$s.": "Widok schematyczny — obwód, punkty kontrolne i pozycje na lokalnej siatce. Administrator może włączyć kafelki mapy w sekcji %1$s → %2$s.",
 		"Search": "Szukaj",
 		"Security": "Bezpieczeństwo",
 		"Service quality": "Jakość usługi",

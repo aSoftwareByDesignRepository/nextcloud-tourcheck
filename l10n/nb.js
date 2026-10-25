@@ -547,7 +547,7 @@ OC.L10N.register(
 	"Scheduled" : "Planlagt",
 	"Scheduled and on-demand evidence." : "Planlagt og forespurt dokumentasjon.",
 	"Scheduled reports" : "Planlagte rapporter",
-	"Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under Settings → Site defaults." : "Skjematisk visning — omkrets, sjekkpunkter og posisjoner på et lokalt rutenett. En administrator kan aktivere kartfliser under Innstillinger → Standardverdier for område.",
+	"Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under %1$s → %2$s." : "Skjematisk visning — omkrets, sjekkpunkter og posisjoner på et lokalt rutenett. En administrator kan aktivere kartfliser under %1$s → %2$s.",
 	"Search" : "Søk",
 	"Security" : "Sikkerhet",
 	"Service quality" : "Tjenestekvalitet",

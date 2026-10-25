@@ -547,7 +547,7 @@
 		"Scheduled": "Agendada",
 		"Scheduled and on-demand evidence.": "Evidências agendadas e a pedido.",
 		"Scheduled reports": "Relatórios agendados",
-		"Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under Settings → Site defaults.": "Vista esquemática — perímetro, pontos de controlo e posições numa grelha local. Um administrador pode ativar mosaicos de mapa em Definições → Predefinições do site.",
+		"Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under %1$s → %2$s.": "Vista esquemática — perímetro, pontos de controlo e posições numa grelha local. Um administrador pode ativar mosaicos de mapa em %1$s → %2$s.",
 		"Search": "Pesquisar",
 		"Security": "Segurança",
 		"Service quality": "Qualidade do serviço",

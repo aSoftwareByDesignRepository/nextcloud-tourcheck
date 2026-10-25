@@ -546,7 +546,7 @@
 		"Scheduled": "Gepland",
 		"Scheduled and on-demand evidence.": "Gepland en opvraagbaar bewijs.",
 		"Scheduled reports": "Geplande rapporten",
-		"Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under Settings → Site defaults.": "Schematische weergave — perimeter, checkpoints en posities op een lokaal raster. Een beheerder kan kaarttegels inschakelen via Instellingen → Standaardwaarden site.",
+		"Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under %1$s → %2$s.": "Schematische weergave — perimeter, checkpoints en posities op een lokaal raster. Een beheerder kan kaarttegels inschakelen via %1$s → %2$s.",
 		"Search": "Zoeken",
 		"Security": "Beveiliging",
 		"Service quality": "Dienstkwaliteit",

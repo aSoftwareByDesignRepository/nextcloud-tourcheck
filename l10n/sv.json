@@ -546,7 +546,7 @@
 		"Scheduled": "Schemalagd",
 		"Scheduled and on-demand evidence.": "Schemalagt och efterfrågat bevismaterial.",
 		"Scheduled reports": "Schemalagda rapporter",
-		"Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under Settings → Site defaults.": "Schematisk vy — omkrets, kontrollpunkter och positioner på ett lokalt rutnät. En administratör kan aktivera kartbrickor under Inställningar → Standardvärden för plats.",
+		"Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under %1$s → %2$s.": "Schematisk vy — omkrets, kontrollpunkter och positioner på ett lokalt rutnät. En administratör kan aktivera kartbrickor under %1$s → %2$s.",
 		"Search": "Sök",
 		"Security": "Säkerhet",
 		"Service quality": "Tjänstekvalitet",

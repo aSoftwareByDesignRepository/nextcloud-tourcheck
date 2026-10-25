@@ -547,7 +547,7 @@ OC.L10N.register(
 	"Scheduled" : "Scheduled",
 	"Scheduled and on-demand evidence." : "Scheduled and on-demand evidence.",
 	"Scheduled reports" : "Scheduled reports",
-	"Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under Settings → Site defaults." : "Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under Settings → Site defaults.",
+	"Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under %1$s → %2$s." : "Schematic view — perimeter, checkpoints and positions on a local grid. An admin can enable map tiles under %1$s → %2$s.",
 	"Search" : "Search",
 	"Security" : "Security",
 	"Service quality" : "Service quality",
