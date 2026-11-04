@@ -114,7 +114,7 @@
 		"Checkpoint": "Kontrolpunkt",
 		"Checkpoint QR sheet": "Kontrolpunkt-QR-ark",
 		"Checkpoint confirmed": "Kontrolpunkt bekræftet",
-		"Checkpoint hit rate": "Checkpoint-dækning",
+		"Checkpoint hit rate": "Kontrolpunkt-dækning",
 		"Checkpoints": "Kontrolpunkter",
 		"Checkpoints: %d on-time, %d late, %d attested, %d late-sync, %d unassigned": "Kontrolpunkter: %d til tiden, %d forsinkede, %d bekræftede, %d sent synkroniserede, %d ikke-tildelte",
 		"Clear": "Ryd",

@@ -693,7 +693,7 @@ OC.L10N.register(
 	"none" : "brak",
 	"none yet" : "brak",
 	"not yet anchored" : "jeszcze nie zakotwiczony",
-	"oldest %d h" : "najstarszy %d h",
+	"oldest %d h" : "najstarszy %d godz.",
 	"pending" : "oczekuje",
 	"polygon" : "Wielokąt",
 	"rounds not missed" : "niepominięte rundy",

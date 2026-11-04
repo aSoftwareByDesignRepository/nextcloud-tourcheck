@@ -183,7 +183,7 @@ OC.L10N.register(
 	"Due (optional)" : "Vencimiento (opcional)",
 	"Duration (minutes)" : "Duración (minutos)",
 	"Email" : "Correo electrónico",
-	"Email is best-effort — no reply SLA. Need booked help? Use Support & us." : "El correo se atiende sin plazo garantizado. ¿Necesita ayuda contratada? Use «Support & us».",
+	"Email is best-effort — no reply SLA. Need booked help? Use Support & us." : "El correo se atiende sin plazo garantizado. ¿Necesita ayuda contratada? Use «Soporte y nosotros».",
 	"Enable" : "Permitir",
 	"Entry" : "Entrada",
 	"Entry added" : "Entrada añadida",
