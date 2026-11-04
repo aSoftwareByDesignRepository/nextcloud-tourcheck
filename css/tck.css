@@ -134,7 +134,9 @@
 .tck-field select, .tck-select {
 	min-height: var(--tck-touch); padding: 0 var(--tck-space-3);
 	border: 1px solid var(--tck-form-border); border-radius: var(--tck-radius-sm);
-	background: var(--color-main-background); color: var(--color-main-text);
+	/* background-color only — bare `background:` shorthand resets the native
+	   select chevron (background-image) to initial */
+	background-color: var(--color-main-background); color: var(--color-main-text);
 	font-size: var(--tck-fs-md); width: 100%;
 }
 .tck-field input[aria-invalid="true"], .tck-field select[aria-invalid="true"] { border-color: var(--tck-danger-ink); }
