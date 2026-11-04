@@ -411,8 +411,29 @@ class UpgradeBackupService
 	private function deleteSnapshotFolderIfExists(string $snapshotId): void
 	{
 		try {
-			$this->getSnapshotFolder($snapshotId)->delete();
-		} catch (\Throwable) {
+			$node = $this->getSnapshotFolder($snapshotId);
+		} catch (NotFoundException) {
+			return; // snapshot already gone — cleanup is idempotent
+		} catch (\Throwable $e) {
+			// Cleanup must not throw (rollback path) — log the residue so a
+			// locked/unreadable folder stays visible instead of leaking silently.
+			$this->logger->warning('TourCheck: could not resolve upgrade backup snapshot folder for deletion', [
+				'app' => UpgradeBackupCatalog::APP_ID,
+				'snapshot' => $snapshotId,
+				'exception' => $e,
+			]);
+			return;
+		}
+
+		try {
+			$node->delete();
+		} catch (\Throwable $e) {
+			// best-effort cleanup — a locked folder must not abort rollback/rotation
+			$this->logger->warning('TourCheck: could not delete upgrade backup snapshot folder', [
+				'app' => UpgradeBackupCatalog::APP_ID,
+				'snapshot' => $snapshotId,
+				'exception' => $e,
+			]);
 		}
 	}
 
@@ -615,9 +636,11 @@ class UpgradeBackupService
 
 		$destPath = $this->getAppDataPath($folderName);
 		try {
-			$this->rootFolder->get($destPath)->delete();
+			$destNode = $this->rootFolder->get($destPath);
 		} catch (NotFoundException) {
+			$destNode = null; // destination absent — nothing to remove
 		}
+		$destNode?->delete();
 
 		try {
 			$source = $snapshotFolder->get($folderName);
