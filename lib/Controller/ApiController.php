@@ -31,6 +31,7 @@ use OCA\TourCheck\Service\TemplateService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\StreamResponse;
@@ -797,6 +798,7 @@ class ApiController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function downloadReport(int $id): JSONResponse|DataDownloadResponse
 	{
 		try {
@@ -934,6 +936,7 @@ class ApiController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function exportCsv(int $siteId): JSONResponse|StreamResponse
 	{
 		try {
