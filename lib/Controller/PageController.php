@@ -415,17 +415,27 @@ class PageController extends Controller
 		}
 		$items = [];
 		$done = 0;
+		$attestable = [];
 		$events = [];
 		foreach ($this->rounds->checkpointsOf($roundId) as $rcp) {
 			$cp = $this->checkpoints->getAny((int)$rcp->getCheckpointId());
 			if ($rcp->getStatus() === 'done' || $rcp->getStatus() === 'attested') {
 				$done++;
 			}
+			$cpName = $cp?->getName() ?? ('#' . $rcp->getCheckpointId());
 			$items[] = [
-				'checkpointName' => $cp?->getName() ?? ('#' . $rcp->getCheckpointId()),
+				'checkpointId' => (int)$rcp->getCheckpointId(),
+				'checkpointName' => $cpName,
 				'status' => $rcp->getStatus(),
 				'eventLabel' => $rcp->getEventId() !== null ? '' : '',
 			];
+			// Supervisor attestation target: unconfirmed stops (pending/missed/
+			// worker-skipped on closeEarly) of a live checkpoint — done/
+			// attested stops and archived checkpoints stay out of the picker.
+			if (in_array($rcp->getStatus(), ['pending', 'missed', 'skipped'], true)
+				&& $cp !== null && (int)$cp->getActive() === 1) {
+				$attestable[] = ['id' => (int)$rcp->getCheckpointId(), 'name' => $cpName, 'status' => $rcp->getStatus()];
+			}
 		}
 		$uid = $this->acl->requireUid();
 		// Live-position trail — supervisor+ only (PositionService enforces
@@ -444,10 +454,16 @@ class PageController extends Controller
 		} catch (NotFoundException) {
 			$trail = null;
 		}
+		// Affordance gates must use the SITE role: a worker on this site who
+		// supervises a different one must not see dead attest/skip buttons
+		// (assertCanSuperviseSite would 404 them on submit anyway).
+		$siteSupervisor = in_array($this->acl->siteRole($uid, (int)$round->getSiteId()),
+			[Constants::ROLE_ADMIN, Constants::ROLE_PLANNER, Constants::ROLE_SUPERVISOR], true);
 		return $this->shell('round', [
 			'pageTitle' => $this->l->t('Round #%d', [$roundId]),
 			'round' => [
 				'id' => $roundId,
+				'siteId' => (int)$round->getSiteId(),
 				'siteName' => $this->siteName((int)$round->getSiteId()),
 				'windowStartLabel' => $this->fmt($round->getScheduledStart()),
 				'windowEndLabel' => $this->fmt($round->getWindowEnd()),
@@ -455,9 +471,10 @@ class PageController extends Controller
 				'skipReason' => $round->getSkipReason(),
 				'doneCount' => $done,
 				'totalCount' => count($items),
-				'canAttest' => $this->acl->canSupervise($uid),
-				'canSupervise' => $this->acl->canSupervise($uid),
+				'canAttest' => $siteSupervisor,
+				'canSupervise' => $siteSupervisor,
 				'items' => $items,
+				'attestable' => $attestable,
 			],
 			'trail' => $trail,
 		]);

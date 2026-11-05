@@ -225,6 +225,64 @@ final class RoundCloseTest extends TestCase
 		}
 	}
 
+	/**
+	 * Attestation countersigns a worker-skipped checkpoint on a partial
+	 * round — the documented "paper-logged work" channel. Scans must never
+	 * resurrect a deliberately skipped stop: the allowance is attest-only.
+	 */
+	public function testAttachAttestAcceptsSkippedCheckpoint(): void
+	{
+		$round = $this->round('partial');
+		$rcp = $this->pendingCp(9);
+		$rcp->setStatus('skipped');
+		$this->rounds->method('find')->willReturn($round);
+		$this->roundCps->method('findForRoundAndCheckpoint')->willReturn($rcp);
+
+		[$r, $c] = $this->svc->attach(7, 55, $this->now, 3, true);
+		self::assertSame($round, $r);
+		self::assertSame($rcp, $c);
+	}
+
+	public function testAttachScanStillRejectsSkippedCheckpoint(): void
+	{
+		$rcp = $this->pendingCp(9);
+		$rcp->setStatus('skipped');
+		$this->rounds->method('find')->willReturn($this->round('partial'));
+		$this->roundCps->method('findForRoundAndCheckpoint')->willReturn($rcp);
+
+		try {
+			$this->svc->attach(7, 55, $this->now, 3, false);
+			self::fail('expected DomainException');
+		} catch (DomainException $e) {
+			self::assertSame('already_confirmed', $e->errorCode);
+			self::assertSame(409, $e->httpStatus);
+		}
+	}
+
+	public function testAttachAttestStillRejectsDoneCheckpoint(): void
+	{
+		$rcp = $this->pendingCp(9);
+		$rcp->setStatus('done');
+		$this->rounds->method('find')->willReturn($this->round('active'));
+		$this->roundCps->method('findForRoundAndCheckpoint')->willReturn($rcp);
+
+		try {
+			$this->svc->attach(7, 55, $this->now, 3, true);
+			self::fail('expected DomainException');
+		} catch (DomainException $e) {
+			self::assertSame('already_confirmed', $e->errorCode);
+		}
+	}
+
+	public function testAttachAttestRejectsSkippedRound(): void
+	{
+		// A deliberately skipped ROUND is a documented non-run — attesting
+		// inside it would whitewash the no-show, so it stays uniform-404.
+		$this->rounds->method('find')->willReturn($this->round('skipped'));
+		$this->expectException(NotFoundException::class);
+		$this->svc->attach(7, 55, $this->now, 3, true);
+	}
+
 	public function testSkipRoutesThroughRecomputeAndJournals(): void
 	{
 		$round = $this->round('scheduled');

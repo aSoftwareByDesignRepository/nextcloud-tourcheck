@@ -97,6 +97,12 @@ test('core loop: site → checkpoint → plan → member → incident → report
   await page.fill('#tck-cp-name', 'E2E Gate')
   await clickAndReload(page, page.locator('#tck-cp-form [type="submit"]'))
   await expect(page.locator('.tck-list__title', { hasText: 'E2E Gate' })).toBeVisible()
+  // Second checkpoint → plan rounds carry 2 stops so the attest form's
+  // "all open checkpoints" option is exercised live.
+  await page.locator('[data-tck-new-cp]').click()
+  await page.fill('#tck-cp-name', 'E2E Gate B')
+  await clickAndReload(page, page.locator('#tck-cp-form [type="submit"]'))
+  await expect(page.locator('.tck-list__title', { hasText: 'E2E Gate B' })).toBeVisible()
 
   await page.locator('[data-tck-new-plan]').click()
   await expect(page.locator('#tck-plan-form')).toBeVisible()
@@ -129,6 +135,44 @@ test('core loop: site → checkpoint → plan → member → incident → report
   await expect(page.locator('.tck-deflist')).toContainText('public holiday')
   // Terminal now: the skip control must not reappear (no re-skip relabel).
   await expect(page.locator('[data-tck-show="tck-skip-form"]')).toHaveCount(0)
+
+  // ── 2b-ii. Attestation: supervisor countersigns a round's open
+  // checkpoints — the manual's "Attest round" flow (was a dead control:
+  // the old click posted round_id only while the API requires
+  // site_id+checkpoint_id+reason). A skipped-round stop and an
+  // under-length reason must never reach the API.
+  await page.goto('/index.php/apps/tourcheck/rounds', { waitUntil: 'domcontentloaded' })
+  const attestRow = page.locator('li.tck-list__row[data-status="scheduled"]', {
+    hasText: SITE_NAME,
+  }).first()
+  await expect(attestRow).toBeVisible()
+  await clickAndReload(page, attestRow.locator('a.tck-list__main'))
+  await page.locator('[data-tck-show="tck-attest-form"]').click()
+  const attestForm = page.locator('#tck-attest-form')
+  await expect(attestForm).toBeVisible()
+  // Two checkpoints on the plan → the "all open checkpoints" option exists.
+  await expect(attestForm.locator('select[name="checkpoint_id"] option[value="all"]')).toHaveCount(1)
+  // Under-length reason → inline field error, zero API traffic.
+  let attestFired = false
+  page.on('request', (r) => { if (r.url().includes('/api/events/attest')) attestFired = true })
+  await page.fill('#tck-attest-reason', 'short')
+  await attestForm.locator('[type="submit"]').click()
+  await expect(page.locator('#tck-attest-reason-error')).toBeVisible()
+  await expect(page.locator('#tck-attest-reason')).toHaveAttribute('aria-invalid', 'true')
+  expect(attestFired).toBe(false)
+  page.removeAllListeners('request')
+  // Real attestation of ALL open checkpoints → each rcp flips 'attested'.
+  await attestForm.locator('select[name="checkpoint_id"]').selectOption('all')
+  await page.fill('#tck-attest-reason', 'E2E paper log verified on site')
+  await clickAndReload(page, attestForm.locator('[type="submit"]'))
+  const attestRoundId = page.url().match(/rounds\/(\d+)/)?.[1]
+  const attestedRound = await apiFetch(page, 'GET', `/api/rounds/${attestRoundId}`)
+  const attestCps = attestedRound.data?.checkpoints ?? []
+  expect(attestCps.length).toBe(2)
+  expect(attestCps.every((c) => c.status === 'attested')).toBe(true)
+  expect(attestedRound.data?.round?.status).toBe('completed')
+  // Nothing left to countersign → the form must not render again.
+  await expect(page.locator('[data-tck-show="tck-attest-form"]')).toHaveCount(0)
 
   // Plan state toggle: Deactivate → Inactive → Activate → Active.
   await page.goto('/index.php/apps/tourcheck/sites', { waitUntil: 'domcontentloaded' })

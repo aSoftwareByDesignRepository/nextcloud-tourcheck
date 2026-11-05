@@ -208,7 +208,9 @@ class EventService
 		$attachTs = $clientTs ?? $now;
 		$lateDays = $this->settings->getLateSyncDays();
 
-		[$round, $rcp] = $this->rounds->attach($siteId, (int)$cp->getId(), $attachTs, $in['round_id'] ?? null);
+		// Attestation may countersign a worker-skipped checkpoint (partial
+		// round → 'skipped' rcp); scans must not — flag is method-scoped.
+		[$round, $rcp] = $this->rounds->attach($siteId, (int)$cp->getId(), $attachTs, $in['round_id'] ?? null, $method === Constants::METHOD_ATTEST);
 		$lateSync = 0;
 		if ($round !== null && $now > $round->getWindowEnd()) {
 			if ($now->getTimestamp() - $round->getWindowEnd()->getTimestamp() > $lateDays * 86400) {

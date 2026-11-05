@@ -24,8 +24,35 @@ $statusLabel = [
 		<?php endif; ?>
 		<div><dt><?php p($l->t('Progress')); ?></dt><dd><?php p((string)$round['doneCount'] . ' / ' . $round['totalCount']); ?></dd></div>
 	</dl>
-	<?php if (!empty($round['canAttest']) && in_array($round['status'], ['done', 'partial', 'completed'], true)): ?>
-		<button type="button" class="tck-btn tck-btn--primary" data-tck-attest="<?php p((string)$round['id']); ?>"><?php p($l->t('Attest round')); ?></button>
+	<?php $attestable = (array)($round['attestable'] ?? []); ?>
+	<?php if (!empty($round['canAttest']) && $attestable !== [] && $round['status'] !== 'skipped'): ?>
+		<button type="button" class="tck-btn tck-btn--primary" data-tck-show="tck-attest-form"><?php p($l->t('Attest round')); ?></button>
+		<form class="tck-form tck-hidden" id="tck-attest-form" data-tck-attest-form
+			  data-round-id="<?php p((string)$round['id']); ?>" data-site-id="<?php p((string)$round['siteId']); ?>" novalidate>
+			<div class="tck-field">
+				<label for="tck-attest-cp"><?php p($l->t('Checkpoint')); ?></label>
+				<select id="tck-attest-cp" name="checkpoint_id" class="tck-select" required>
+					<?php if (count($attestable) > 1): ?>
+						<option value="all"><?php p($l->t('All open checkpoints (%d)', [count($attestable)])); ?></option>
+					<?php endif; ?>
+					<?php foreach ($attestable as $ac): ?>
+						<option value="<?php p((string)$ac['id']); ?>"><?php p((string)$ac['name'] . ' — ' . (string)($statusLabel[$ac['status']] ?? $ac['status'])); ?></option>
+					<?php endforeach; ?>
+				</select>
+				<p class="tck-field-error" id="tck-attest-cp-error" hidden></p>
+			</div>
+			<div class="tck-field">
+				<label for="tck-attest-reason"><?php p($l->t('Attestation reason')); ?></label>
+				<input id="tck-attest-reason" name="reason" type="text" maxlength="1000" required
+					   placeholder="<?php p($l->t('e.g. paper log verified on site')); ?>">
+				<p class="tck-field-hint"><?php p($l->t('Required — 10–1000 characters. The reason is journaled with the attestation.')); ?></p>
+				<p class="tck-field-error" id="tck-attest-reason-error" hidden></p>
+			</div>
+			<div class="tck-form-actions">
+				<button type="submit" class="tck-btn tck-btn--primary"><?php p($l->t('Attest round')); ?></button>
+				<button type="button" class="tck-btn" data-tck-cancel><?php p($l->t('Cancel')); ?></button>
+			</div>
+		</form>
 	<?php endif; ?>
 	<?php if (!empty($round['canSupervise']) && in_array($round['status'], ['scheduled', 'active'], true)): ?>
 		<button type="button" class="tck-btn tck-btn--danger" data-tck-show="tck-skip-form"><?php p($l->t('Skip round')); ?></button>

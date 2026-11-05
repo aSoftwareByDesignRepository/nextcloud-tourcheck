@@ -575,15 +575,85 @@
 		});
 	});
 
-	/* --- round page: attest --- */
-	document.querySelectorAll('[data-tck-attest]').forEach(function (btn) {
-		btn.addEventListener('click', function () {
-			api('POST', '/api/events/attest', { round_id: parseInt(btn.getAttribute('data-tck-attest'), 10) }).then(function (json) {
-				if (json.success) { toast('ok', t('Attested')); setTimeout(function () { location.reload(); }, 600); }
-				else { handleError(null, json); }
-			});
+	/* --- round page: supervisor attestation — countersign unconfirmed
+	 * checkpoints of a round (paper-logged work). The API requires
+	 * site_id + checkpoint_id + a 10–1000 char reason; the form collects
+	 * all three. "All open checkpoints" attests each in turn — partial
+	 * success is honest: every landed attestation stays journaled. --- */
+	var attestForm = document.querySelector('[data-tck-attest-form]');
+	if (attestForm) {
+		attestForm.addEventListener('submit', function (e) {
+			e.preventDefault();
+			clearFieldErrors(attestForm);
+			if (!validateRequired(attestForm)) { return; }
+			var reasonInput = attestForm.querySelector('[name="reason"]');
+			var reason = reasonInput ? String(reasonInput.value || '').trim() : '';
+			if (reason.length < 10 || reason.length > 1000) {
+				applyFieldErrors(attestForm, { reason: t('A reason between 10 and 1000 characters is required.') });
+				return;
+			}
+			var sel = attestForm.querySelector('[name="checkpoint_id"]');
+			var ids = [];
+			if (sel && sel.value === 'all') {
+				sel.querySelectorAll('option').forEach(function (o) {
+					if (o.value !== 'all') { ids.push(parseInt(o.value, 10)); }
+				});
+			} else if (sel) {
+				ids.push(parseInt(sel.value, 10));
+			}
+			ids = ids.filter(function (n) { return Number.isInteger(n) && n > 0; });
+			if (ids.length === 0) { return; }
+			var siteId = parseInt(attestForm.getAttribute('data-site-id'), 10);
+			var roundId = parseInt(attestForm.getAttribute('data-round-id'), 10);
+			var btn = attestForm.querySelector('[type="submit"]');
+			if (btn) { btn.disabled = true; }
+			var done = 0, failed = 0, orphan = false;
+			var finish = function () {
+				if (btn) { btn.disabled = false; }
+				if (failed === 0) {
+					if (orphan) {
+						/* Event journaled but outside the late-attach bound —
+						 * it lands as unassigned site evidence, not on the
+						 * round. Say so instead of implying a round change. */
+						toast('ok', t('Attestation recorded as unassigned evidence — the round window closed too long ago to attach.'));
+					} else {
+						toast('ok', t('Attested'));
+						announce(t('Attested'));
+					}
+				} else {
+					toast('error', t('Some attestations could not be recorded — the journal shows what landed.'));
+				}
+				setTimeout(function () { location.reload(); }, 700);
+			};
+			var run = function (i) {
+				if (i >= ids.length) { finish(); return; }
+				api('POST', '/api/events/attest', {
+					site_id: siteId, checkpoint_id: ids[i], round_id: roundId, reason: reason
+				}).then(function (json) {
+					if (json.success) {
+						done++;
+						if (json.data && json.data.attached === false) { orphan = true; }
+						run(i + 1);
+					} else if (ids.length === 1) {
+						if (btn) { btn.disabled = false; }
+						handleError(attestForm, json);
+					} else {
+						failed++;
+						run(i + 1);
+					}
+				}).catch(function () {
+					if (ids.length === 1) {
+						if (btn) { btn.disabled = false; }
+						toast('error', t('Network error'));
+					} else {
+						failed++;
+						run(i + 1);
+					}
+				});
+			};
+			run(0);
 		});
-	});
+	}
 
 	/* --- settings: map-tile provider picker — custom fields only matter when
 	 * "Custom tile server" is picked (progressive disclosure); disabled inputs

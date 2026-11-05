@@ -120,9 +120,15 @@ class RoundService
 	 * soonest scheduled_start. >1 after all that → 422 AMBIGUOUS (companion
 	 * shows the picker — the ONLY time a worker picks a round).
 	 *
+	 * $forAttestation additionally admits 'skipped' checkpoints: a supervisor
+	 * countersign confirms paper-logged work the worker skipped on closeEarly
+	 * (partial rounds) — the documented attest channel. A real scan must
+	 * never resurrect a deliberately skipped stop, so the allowance stays
+	 * attestation-only.
+	 *
 	 * @return array{0: ?Round, 1: ?RoundCheckpoint} null pair = orphan (no candidate)
 	 */
-	public function attach(int $siteId, int $checkpointId, \DateTimeInterface $clientTs, ?int $explicitRoundId = null): array
+	public function attach(int $siteId, int $checkpointId, \DateTimeInterface $clientTs, ?int $explicitRoundId = null, bool $forAttestation = false): array
 	{
 		if ($explicitRoundId !== null) {
 			$round = $this->rounds->find($explicitRoundId);
@@ -134,7 +140,8 @@ class RoundService
 			if ($rcp === null) {
 				throw new DomainException('no_checkpoint', 'This checkpoint is not part of the round.', 422);
 			}
-			if ($rcp->getStatus() !== 'pending' && $rcp->getStatus() !== 'missed') {
+			if ($rcp->getStatus() !== 'pending' && $rcp->getStatus() !== 'missed'
+				&& !($forAttestation && $rcp->getStatus() === 'skipped')) {
 				throw new DomainException('already_confirmed', 'Checkpoint already confirmed.', 409);
 			}
 			return [$round, $rcp];
