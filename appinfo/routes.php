@@ -190,4 +190,5 @@ return [
 		['name' => 'companion#workerLogbook', 'url' => '/api/companion/sites/{siteId}/logbook', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
 		['name' => 'companion#ackWorkerLogbook', 'url' => '/api/companion/logbook/{id}/ack', 'verb' => 'POST', 'requirements' => ['id' => '\d+']],
 	],
+		['name' => 'api#widgetSnapshot', 'url' => '/api/widget-snapshot', 'verb' => 'GET'],
 ];
