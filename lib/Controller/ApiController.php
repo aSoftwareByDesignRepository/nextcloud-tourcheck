@@ -77,6 +77,7 @@ class ApiController extends Controller
 		private readonly \OCP\IURLGenerator $urlGenerator,
 		private readonly RateLimitService $rateLimit,
 		private readonly \OCA\TourCheck\Integration\DutyShiftLinkService $dutyShiftLink,
+		private readonly \OCP\ICacheFactory $cacheFactory,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -1227,16 +1228,27 @@ class ApiController extends Controller
 	#[NoAdminRequired]
 	public function widgetSnapshot(): JSONResponse
 	{
-		$uid = \OCP\Server::get(\OCP\IUserSession::class)->getUser()?->getUID();
-		if ($uid === null) return new JSONResponse(['error' => 'unauthenticated'], 401);
-		$cache = \OCP\Server::get(\OCP\ICacheFactory::class)->createDistributed('tourcheck_wsnap');
-		$key = $uid . ':dashboard';
-		if (($hit = $cache->get($key)) !== null) return new JSONResponse($hit);
-		$status = $this->dashboard()->getData();
-		$payload = ['status' => $status,
-			'serverNow' => (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(\DateTimeInterface::ATOM)];
-		$cache->set($key, $payload, 60);
-		return new JSONResponse($payload);
+		try {
+			// Auth + access door BEFORE the cache read — a revoked door must
+			// never be served cached aggregates (privacycheck same-class
+			// lesson, 2026-11-07). Error bodies are never cached either:
+			// home() throws -> fromThrowable -> canonical fail, no set().
+			$uid = $this->acl->assertAppAccess();
+			$cache = $this->cacheFactory->createDistributed('tourcheck_wsnap');
+			$key = $uid . ':dashboard';
+			$hit = $cache->get($key);
+			if ($hit !== null) {
+				return $this->ok($hit);
+			}
+			$payload = [
+				'status' => $this->dashboard->home(),
+				'serverNow' => (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(\DateTimeInterface::ATOM),
+			];
+			$cache->set($key, $payload, 60);
+			return $this->ok($payload);
+		} catch (\Throwable $e) {
+			return $this->fromThrowable($e);
+		}
 	}
 
 }
