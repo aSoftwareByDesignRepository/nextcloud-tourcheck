@@ -87,6 +87,11 @@ class WebhookService
 						'X-TourCheck-Event' => $d->getEventKey(),
 					],
 					'body' => $body,
+					// User-configured URL: platform SSRF guard verifies the
+					// address dialed at connect time; never follow a 3xx
+					// into an unvalidated host.
+					'nextcloud' => ['allow_local_address' => false],
+					'allow_redirects' => false,
 				]);
 				$code = $resp->getStatusCode();
 				$d->setResponseCode($code);
