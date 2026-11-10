@@ -261,7 +261,7 @@ OC.L10N.register(
 	"How" : "Nasıl",
 	"How long positions, events and the journal are kept." : "Konumların, olayların ve günlüğün ne kadar süre saklandığı.",
 	"How often" : "Ne sıklıkla",
-	"https:\/\/ URL with {z}, {x} and {y} placeholders — e.g. https:\/\/tile.openstreetmap.org\/{z}\/{x}\/{y}.png" : "{z}, {x} ve {y} yer tutucularını içeren https:\/\/ URL'si — örn. https:\/\/tile.openstreetmap.org\/{z}\/{x}\/{y}.png",
+	"https:// URL with {z}, {x} and {y} placeholders — e.g. https://tile.openstreetmap.org/{z}/{x}/{y}.png" : "{z}, {x} ve {y} yer tutucularını içeren https:// URL'si — örn. https://tile.openstreetmap.org/{z}/{x}/{y}.png",
 	"If something happens on a round, report it here." : "Tur sırasında bir şey olursa buradan bildirin.",
 	"Import" : "İçe aktar",
 	"In" : "Yerinde",
@@ -352,7 +352,7 @@ OC.L10N.register(
 	"More Check apps" : "Diğer Check uygulamaları",
 	"More than 20 invalid checkpoint-token submissions in 5 minutes (scope: %s). Possible scanner misconfiguration or enumeration probing." : "5 dakikada 20'den fazla geçersiz kontrol noktası jetonu gönderimi (kapsam: %s). Olası tarayıcı yanlış yapılandırması veya numaralandırma sondası.",
 	"More than 20 suspicious token scans in 5 minutes (rotated or inactive tags). Check whether old tags are still posted or tokens circulate." : "5 dakikada 20'den fazla şüpheli jeton taraması (rotasyonu yapılmış veya etkin olmayan etiketler). Eski etiketlerin hâlâ asılı olup olmadığını veya jetonların dolaşıp dolaşmadığını kontrol edin.",
-	"Must be an https:\/\/ URL containing {z}, {x} and {y}." : "{z}, {x} ve {y} içeren bir https:\/\/ URL'si olmalıdır.",
+	"Must be an https:// URL containing {z}, {x} and {y}." : "{z}, {x} ve {y} içeren bir https:// URL'si olmalıdır.",
 	"Name" : "Ad",
 	"Named seats for the official apps — a software licence on invoice." : "Resmi uygulamalar için isme tanımlı lisans hakları — faturayla bir yazılım lisansı.",
 	"Narrow the record — changes apply as you type." : "Kaydı daraltın — değişiklikler yazdıkça uygulanır.",
@@ -559,7 +559,7 @@ OC.L10N.register(
 	"Rounds at a glance." : "Turlara genel bakış.",
 	"rounds not missed" : "kaçırılmayan turlar",
 	"Rounds this week" : "Bu haftaki turlar",
-	"Rounds: %d completed \/ %d partial \/ %d missed \/ %d total" : "Turlar: %d tamamlanan \/ %d kısmi \/ %d kaçırılan \/ %d toplam",
+	"Rounds: %d completed / %d partial / %d missed / %d total" : "Turlar: %d tamamlanan / %d kısmi / %d kaçırılan / %d toplam",
 	"Round…" : "Tur…",
 	"Safety" : "İş güvenliği",
 	"Sat" : "Cmt",
@@ -705,7 +705,7 @@ OC.L10N.register(
 	"Worker safety: if nothing happens on the round for this long, the site manager is alerted. Leave empty to disable." : "Çalışan güvenliği: turda bu kadar süre hiçbir şey olmazsa saha yöneticisi uyarılır. Devre dışı bırakmak için boş bırakın.",
 	"Write mail" : "E-posta yaz",
 	"Wrong PIN" : "Yanlış PIN",
-	"Yes \/ No" : "Evet \/ Hayır",
+	"Yes / No" : "Evet / Hayır",
 	"Your scheduled TourCheck report is attached." : "Zamanlanmış TourCheck raporunuz ektedir.",
 	"Your sites" : "Sahalarınız",
 	"Zone violation" : "Bölge ihlali",
@@ -726,5 +726,6 @@ OC.L10N.register(
 	"{n} sites" : "{n} saha",
 	"© Your map provider" : "© Harita sağlayıcınız",
 	"±%d m" : "±%d m"
-	}
+	},
+	"nplurals=2; plural=(n != 1);"
 );
