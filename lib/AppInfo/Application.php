@@ -121,6 +121,61 @@ class Application extends App implements IBootstrap
 			);
 		});
 
+		// ── Config & data transfer (test → production) ──────────────────
+		$context->registerService(\OCA\TourCheck\ConfigTransfer\TransferManifest::class, fn () => new \OCA\TourCheck\ConfigTransfer\TransferManifest());
+		$context->registerService(\OCA\TourCheck\ConfigTransfer\TransferHooks::class, function ($c): \OCA\TourCheck\ConfigTransfer\TransferHooks {
+			return new \OCA\TourCheck\ConfigTransfer\TransferHooks(
+				$c->query(AccessControlService::class),
+				$c->query(\OCA\TourCheck\Service\SettingsService::class),
+				$c->query(UpgradeBackupService::class),
+				$c->query(\OCP\IUserManager::class),
+				$c->query(\OCP\IGroupManager::class),
+				$c->query(\Psr\Log\LoggerInterface::class),
+			);
+		});
+		$context->registerService(\OCA\TourCheck\ConfigTransfer\TransferPendingStore::class, fn ($c) => new \OCA\TourCheck\ConfigTransfer\TransferPendingStore($c->query(IRootFolder::class), $c->query(\OCP\IConfig::class), self::APP_ID));
+		$context->registerService(\OCA\TourCheck\ConfigTransfer\TransferReceiptStore::class, fn ($c) => new \OCA\TourCheck\ConfigTransfer\TransferReceiptStore($c->query(\OCP\IConfig::class), self::APP_ID));
+		$context->registerService(\OCA\TourCheck\ConfigTransfer\TransferService::class, function ($c): \OCA\TourCheck\ConfigTransfer\TransferService {
+			return new \OCA\TourCheck\ConfigTransfer\TransferService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(\OCP\IConfig::class),
+				$c->query(\OCP\IUserManager::class),
+				$c->query(\OCP\IGroupManager::class),
+				$c->query(IRootFolder::class),
+				$c->query(IAppManager::class),
+				$c->query(ILockingProvider::class),
+				$c->query(\OCP\IURLGenerator::class),
+				$c->query(\Psr\Log\LoggerInterface::class),
+				$c->query(\OCA\TourCheck\ConfigTransfer\TransferManifest::class),
+				$c->query(\OCA\TourCheck\ConfigTransfer\TransferHooks::class),
+				$c->query(\OCA\TourCheck\ConfigTransfer\TransferPendingStore::class),
+				$c->query(\OCA\TourCheck\ConfigTransfer\TransferReceiptStore::class),
+				self::APP_ID,
+				$c->query(\OCP\IAppConfig::class),
+			);
+		});
+		$context->registerService(\OCA\TourCheck\BackgroundJob\TransferApplyJob::class, function ($c): \OCA\TourCheck\BackgroundJob\TransferApplyJob {
+			return new \OCA\TourCheck\BackgroundJob\TransferApplyJob(
+				$c->query(\OCP\AppFramework\Utility\ITimeFactory::class),
+				$c->query(\OCA\TourCheck\ConfigTransfer\TransferService::class),
+				$c->query(ILockingProvider::class),
+				$c->query(\OCP\BackgroundJob\IJobList::class),
+				$c->query(\Psr\Log\LoggerInterface::class),
+			);
+		});
+		$context->registerService(\OCA\TourCheck\Controller\TransferApiController::class, function ($c): \OCA\TourCheck\Controller\TransferApiController {
+			return new \OCA\TourCheck\Controller\TransferApiController(
+				self::APP_ID,
+				$c->query(\OCP\IRequest::class),
+				$c->query(\OCA\TourCheck\ConfigTransfer\TransferHooks::class),
+				$c->query(\OCA\TourCheck\ConfigTransfer\TransferService::class),
+				$c->query(\OCP\BackgroundJob\IJobList::class),
+				$c->query(\OCP\Security\Bruteforce\IThrottler::class),
+				$c->query(\OCP\IGroupManager::class),
+				$c->query(\OCP\IUserSession::class),
+			);
+		});
+
 		// NH-04: instance Dashboard widget (missed/active rounds + open incidents).
 		$context->registerDashboardWidget(\OCA\TourCheck\Dashboard\TourCheckWidget::class);
 

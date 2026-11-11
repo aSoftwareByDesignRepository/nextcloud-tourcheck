@@ -19,6 +19,7 @@ final class SettingsSectionCatalog
 	public const SECTION_BRANDING = 'branding';
 	public const SECTION_STATIONS = 'stations';
 	public const SECTION_LICENSE = 'license';
+	public const SECTION_TRANSFER = 'transfer';
 	public const SECTION_FEEDBACK = 'feedback';
 
 	/** @return list<string> */
@@ -32,6 +33,7 @@ final class SettingsSectionCatalog
 			self::SECTION_BRANDING,
 			self::SECTION_STATIONS,
 			self::SECTION_LICENSE,
+			self::SECTION_TRANSFER,
 			self::SECTION_FEEDBACK,
 		];
 	}
@@ -52,6 +54,7 @@ final class SettingsSectionCatalog
 			['key' => self::SECTION_BRANDING, 'label' => $l->t('Branding'), 'lead' => $l->t('Customer name and accent used on reports.')],
 			['key' => self::SECTION_STATIONS, 'label' => $l->t('Stations'), 'lead' => $l->t('Kiosk devices and member PINs.')],
 			['key' => self::SECTION_LICENSE, 'label' => $l->t('License'), 'lead' => $l->t('Companion-app license key (web app stays free).')],
+			['key' => self::SECTION_TRANSFER, 'label' => $l->t('Transfer'), 'lead' => $l->t('Copy settings, catalogues and tour data to a production instance — one encrypted file, dry-run before anything is written.')],
 			['key' => self::SECTION_FEEDBACK, 'label' => $l->t('Feedback'), 'lead' => $l->t('Report a problem or suggest an improvement.')],
 		];
 	}

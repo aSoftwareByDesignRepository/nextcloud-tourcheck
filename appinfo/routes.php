@@ -190,5 +190,12 @@ return [
 		['name' => 'companion#workerLogbook', 'url' => '/api/companion/sites/{siteId}/logbook', 'verb' => 'GET', 'requirements' => ['siteId' => '\d+']],
 		['name' => 'companion#ackWorkerLogbook', 'url' => '/api/companion/logbook/{id}/ack', 'verb' => 'POST', 'requirements' => ['id' => '\d+']],
 		['name' => 'api#widgetSnapshot', 'url' => '/api/widget-snapshot', 'verb' => 'GET'],
+
+		// ── Config & data transfer (test → production) ──────────────────
+		['name' => 'transfer_api#status',    'url' => '/api/admin/transfer/status',    'verb' => 'GET'],
+		['name' => 'transfer_api#export',    'url' => '/api/admin/transfer/export',    'verb' => 'POST'],
+		['name' => 'transfer_api#preview',   'url' => '/api/admin/transfer/preview',   'verb' => 'POST'],
+		['name' => 'transfer_api#apply',     'url' => '/api/admin/transfer/apply',     'verb' => 'POST'],
+		['name' => 'transfer_api#reconcile', 'url' => '/api/admin/transfer/reconcile', 'verb' => 'POST'],
 	],
 ];

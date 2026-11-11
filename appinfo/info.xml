@@ -77,6 +77,9 @@ Wir verbessern diese App mit Praxis-Rückmeldungen — GitHub Issue (https://git
 		<command>OCA\TourCheck\Command\VerifyChainCommand</command>
 		<command>OCA\TourCheck\Command\ReanchorCommand</command>
 		<command>OCA\TourCheck\Command\PurgeCommand</command>
+		<command>OCA\TourCheck\Command\ConfigExportCommand</command>
+		<command>OCA\TourCheck\Command\ConfigImportCommand</command>
+		<command>OCA\TourCheck\Command\ConfigReconcileCommand</command>
 	</commands>
 	<background-jobs>
 		<job>OCA\TourCheck\Cron\GenerateOccurrencesJob</job>
