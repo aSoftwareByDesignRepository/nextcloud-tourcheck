@@ -245,7 +245,7 @@
 
 	/* Shared with sibling page bundles (ops.js): same confirm + note
 	 * dialogs, same <dialog> elements in templates/main.php. */
-	window.TCK = { confirm: tckConfirm, note: tckNote };
+	window.TCK = { confirm: tckConfirm, note: tckNote, toast: toast, announce: announce };
 
 	/* --- field errors: aria-invalid + inline, per _shared/field-errors contract.
 	 * Form-scoped variant: site.php hosts multiple forms sharing input names

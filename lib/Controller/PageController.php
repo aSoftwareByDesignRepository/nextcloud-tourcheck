@@ -63,6 +63,7 @@ class PageController extends Controller
 		private readonly \OCA\TourCheck\Service\MaintenanceHandoffService $maintenanceHandoff,
 		private readonly QrSheetService $qr,
 		private readonly SiteMemberMapper $siteMembers,
+		private readonly \OCA\TourCheck\ConfigTransfer\TransferReceiptStore $transferReceipts,
 		private readonly IUserManager $userManager,
 		private readonly IUserSession $userSession,
 		private readonly IURLGenerator $urlGenerator,
@@ -645,6 +646,7 @@ class PageController extends Controller
 			'stations' => $this->l->t('Stations'),
 			'access' => $this->l->t('Access'),
 			'license' => $this->l->t('License'),
+			'transfer' => $this->l->t('Transfer'),
 			'feedback' => $this->l->t('Feedback'),
 		];
 		if (!isset($labels[$section])) {
@@ -655,6 +657,15 @@ class PageController extends Controller
 		$urls = [];
 		foreach (array_keys($labels) as $k) {
 			$urls[$k] = $this->urlGenerator->linkToRoute('tourcheck.page.settings', ['section' => $k]);
+		}
+
+		if ($section === 'transfer') {
+			// Synced transfer part (apps/_shared/config-transfer): Replace is
+			// sysadmin-only, the import card shows the last receipt. The
+			// bridge exposes the Api/Messaging contract js/transfer.js needs.
+			Util::addStyle(Constants::APP_ID, 'common/transfer');
+			Util::addScript(Constants::APP_ID, 'transfer-bridge');
+			Util::addScript(Constants::APP_ID, 'transfer');
 		}
 
 		$scope = $this->scope();
@@ -684,6 +695,8 @@ class PageController extends Controller
 			'settingsSectionLabels' => $labels,
 			'urls' => ['settingsSections' => $urls],
 			'pageTitle' => $this->l->t('Settings'),
+			'isSystemAdmin' => $this->acl->isNcAdmin(),
+			'transferLastReceipt' => $section === 'transfer' ? $this->transferReceipts->lastReceipt() : null,
 			'settings' => $this->settings->snapshot(),
 			'stations' => $stationRows,
 			'siteCheckpoints' => $siteCheckpoints,

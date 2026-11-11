@@ -20,6 +20,7 @@ const SECTIONS = [
 	['stations', 'form[data-tck-settings="stations"]'],
 	['access', 'form[data-tck-settings="access"]'],
 	['license', 'form[data-tck-license]'],
+	['transfer', '#tck-transfer-export-card'],
 	['feedback', '#tck-fb-title'],
 ]
 

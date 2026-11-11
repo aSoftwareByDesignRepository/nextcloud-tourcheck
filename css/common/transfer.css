@@ -5,6 +5,20 @@
 .tck-section__header { margin: 0 0 var(--tck-space-4, 16px); }
 .tck-section__sub { color: var(--color-text-maxcontrast, #6b6b6b); margin: var(--tck-space-1, 4px) 0 0; }
 .tck-form-row { margin: 0 0 var(--tck-space-4, 16px); }
+/* The transfer forms are wrap-flex containers at ≥1024 and column stacks
+   below (.tck-form is app css). Direct children are flex items — and a
+   fieldset cannot shrink below its content width (Blink/WebKit fieldset
+   quirk), dragging sibling rows out with it. Pin every direct child of the
+   two transfer forms to a real full-width column so label and hint text
+   wraps inside the sheet on narrow viewports instead of clipping mid-word
+   at its right edge. Scoped by form id — .tck-form/.tck-form-row are
+   app-wide classes that also mark up deliberate side-by-side filter rows. */
+#tck-transfer-export-form > *,
+#tck-transfer-import-form > * {
+	min-width: 0;
+	width: 100%;
+	box-sizing: border-box;
+}
 .tck-form-row > label,
 .tck-form-row legend { display: block; font-weight: 600; margin-bottom: var(--tck-space-1, 4px); }
 .tck-form-row input[type="password"],
@@ -48,6 +62,7 @@
 .tck-fieldset legend { font-weight: 600; padding: 0 0 var(--tck-space-2, 8px); }
 .tck-radio { display: flex; gap: var(--tck-space-2, 8px); align-items: flex-start; min-height: 44px; padding: var(--tck-space-1, 4px) 0; }
 .tck-radio input { margin-top: 4px; min-width: 20px; min-height: 20px; }
+.tck-radio span { min-width: 0; }
 .tck-radio--danger strong { color: var(--color-element-error, #e9322d); }
 .tck-file-input {
 	min-height: 44px;
@@ -66,6 +81,14 @@
 	box-sizing: border-box;
 	background: var(--color-main-background, #fff);
 	color: var(--color-main-text, #222);
+	/* Column flex so the footer is a layout child pinned inside the dialog's
+	   own client box — never scrollable shell overflow (apply action must
+	   always paint, required_field_or_step_undiscoverable). Body absorbs the
+	   overflow; overflow:auto on the shell stays only as last-resort fallback
+	   (e.g. single-child dialogs without __body). */
+	display: flex;
+	flex-direction: column;
+	overflow: auto;
 }
 /* NC core ships an HTML5 shim (server.css: article, aside, dialog, …
    { display:block }) — an author rule that beats the UA closed-dialog
@@ -75,8 +98,18 @@ dialog.tck-dialog:not([open]) {
 	display: none !important;
 }
 .tck-dialog::backdrop { background: color-mix(in srgb, var(--color-main-text, #222) 45%, transparent); }
-.tck-dialog__body { padding: var(--tck-space-5, 20px); max-height: 65vh; overflow: auto; }
+/* min-height:0 lets the body shrink below its content height so it becomes
+   the scroller; without it flex min-height:auto keeps the body content-sized
+   and the footer overflows the shell again. 65vh stays the body's own cap. */
+.tck-dialog__body {
+	flex: 1 1 auto;
+	min-height: 0;
+	padding: var(--tck-space-5, 20px);
+	max-height: 65vh;
+	overflow: auto;
+}
 .tck-dialog__footer {
+	flex: 0 0 auto;
 	padding: var(--tck-space-4, 16px) var(--tck-space-5, 20px);
 	border-top: 1px solid var(--color-border, #c8c8c8);
 	display: flex;
