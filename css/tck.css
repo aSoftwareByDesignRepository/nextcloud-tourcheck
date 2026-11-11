@@ -120,6 +120,12 @@
    ghost styling under-signalled Remove/Archive/Revoke severity. */
 #app-content.tck-app .tck-btn--danger { background: var(--tck-danger-fill); border-color: var(--tck-danger-fill); color: var(--tck-danger-on-fill); }
 #app-content.tck-app .tck-btn--danger:hover { background: var(--tck-danger-fill-hover); border-color: var(--tck-danger-fill-hover); }
+/* Transfer dialogs use secondary (neutral) + ghost (inline toggles) —
+   unpainted variants collapse onto the base outline look. */
+#app-content.tck-app .tck-btn--secondary { background: var(--tck-bg-soft); color: var(--tck-text); }
+#app-content.tck-app .tck-btn--secondary:hover { background: var(--color-background-hover); }
+#app-content.tck-app .tck-btn--ghost { background: transparent; border-color: transparent; color: var(--tck-text); }
+#app-content.tck-app .tck-btn--ghost:hover { background: var(--color-background-hover); }
 #app-content.tck-app .tck-btn--xl { min-height: 64px; font-size: var(--tck-fs-lg); padding: 0 var(--tck-space-7); border-radius: var(--tck-radius-lg); }
 #app-content.tck-app .tck-btn:disabled { opacity: .5; cursor: not-allowed; }
 .tck-btn-row { display: flex; gap: var(--tck-space-2); flex-wrap: wrap; }
