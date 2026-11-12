@@ -65,9 +65,11 @@
 .tck-radio span { min-width: 0; }
 .tck-radio--danger strong { color: var(--color-element-error, #e9322d); }
 /* NC core pins input[type=file] to width:auto (inputs.css, 0-1-1) — the
-   intrinsic ~320px min-size overflows narrow sheets. The attribute+class
-   selector (0-2-1) defeats the pin so the 100% column width lands. */
-input[type="file"].tck-file-input {
+   intrinsic ~320px min-size overflows narrow sheets. check-shell
+   form-controls.css re-pins it at #content.app-* #app-content level (2-2-1)
+   which loads AFTER this file, so the extra .tck-form-row class hop (2-3-1)
+   is needed for the 100% column width to land regardless of sheet order. */
+#content #app-content .tck-form-row input[type="file"].tck-file-input {
 	min-height: 44px;
 	padding: var(--tck-space-2, 8px);
 	border: 1px dashed var(--tck-form-border, var(--color-border-maxcontrast, var(--color-border, #c8c8c8)));
