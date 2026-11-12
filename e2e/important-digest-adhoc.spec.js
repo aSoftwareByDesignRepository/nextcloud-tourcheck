@@ -1,6 +1,9 @@
 // @ts-check
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
+import { execFileSync } from 'child_process'
+import { dirname, resolve } from 'path'
+import { fileURLToPath } from 'url'
 import { login } from './helpers/auth.js'
 import { gotoApp } from './helpers/app.js'
 
@@ -81,6 +84,27 @@ test.afterAll(async ({ browser }) => {
 		}
 	} finally {
 		await page.close()
+	}
+	// Site DELETE archives — it never removes round rows. The adhoc
+	// fixtures this spec created stay 'scheduled' on the archived sites and
+	// would sit in the DriveSegments "unclaimed" gap-suppression set
+	// forever (test_teardown_orphan_leak). Remove exactly this run's rows.
+	const ids = [siteId, siteId2].filter((n) => n > 0)
+	if (ids.length) {
+		const nextcloudRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..')
+		const sql =
+			`DELETE rc FROM oc_tck_round_cp rc JOIN oc_tck_round r ON rc.round_id=r.id WHERE r.site_id IN (${ids.join(',')});` +
+			` DELETE FROM oc_tck_round WHERE site_id IN (${ids.join(',')});`
+		try {
+			execFileSync(
+				'docker',
+				['compose', 'exec', '-T', 'mariadb', 'bash', '-lc',
+					`mariadb -u root -p"\${MYSQL_ROOT_PASSWORD}" nextcloud -e '${sql}'`],
+				{ cwd: nextcloudRoot, encoding: 'utf8', timeout: 60_000 },
+			)
+		} catch (err) {
+			process.stdout.write(`[afterAll] adhoc round cleanup failed (${err && err.message ? err.message : err})\n`)
+		}
 	}
 })
 

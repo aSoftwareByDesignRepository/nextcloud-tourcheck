@@ -47,6 +47,10 @@ final class TransferManifest extends AbstractTransferManifest
 			'default_timezone' => ['class' => 'plain', 'section' => 'site-defaults'],
 			'map_tile_url' => ['class' => 'plain', 'section' => 'site-defaults'],
 			'map_tile_attribution' => ['class' => 'plain', 'section' => 'site-defaults'],
+			// F2 morning digest — written through SettingsService::setDigest.
+			'digest_enabled' => ['class' => 'plain', 'section' => 'site-defaults'],
+			'digest_hour' => ['class' => 'plain', 'section' => 'site-defaults'],
+			'digest_email' => ['class' => 'plain', 'section' => 'site-defaults'],
 			// SLA knobs are read-only (no settings input — honored at runtime
 			// by KpiService); carried so a tuned test instance keeps them.
 			'sla_hit_target_pct' => ['class' => 'plain', 'section' => 'site-defaults'],

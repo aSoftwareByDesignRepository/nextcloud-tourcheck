@@ -151,7 +151,7 @@ final class DriveSegmentsIntegrationTest extends TestCase
 		// schedule gap legitimately suppresses the segment (never emit a
 		// phantom leg). A date with zero foreign rounds makes the leg
 		// deterministic on every run.
-		$day = '2030-01-15';
+		$day = '2040-06-15';
 		$siteA = $this->seedSite();
 		$siteB = $this->seedSite();
 		$planA = $this->seedPlan($siteA);
@@ -168,7 +168,7 @@ final class DriveSegmentsIntegrationTest extends TestCase
 		$this->assertSame('Dienstfahrt Tour', $segs[0]['generic_purpose']);
 		$this->assertStringContainsString('08:50', $segs[0]['departure_ts']);
 		$this->assertStringContainsString('09:20', $segs[0]['arrival_ts']);
-		$this->assertSame('2030-01-15', $segs[0]['date']);
+		$this->assertSame('2040-06-15', $segs[0]['date']);
 		// allow-list: no site-identifying field may cross the flange
 		$this->assertSame(
 			['segment_id', 'date', 'executor', 'departure_ts', 'arrival_ts', 'generic_purpose'],
