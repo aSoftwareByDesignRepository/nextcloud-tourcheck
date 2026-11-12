@@ -18,6 +18,7 @@ use OCA\TourCheck\Service\CheckpointService;
 use OCA\TourCheck\Service\ClaimBundleService;
 use OCA\TourCheck\Service\DashboardService;
 use OCA\TourCheck\Service\DriveSegmentService;
+use OCA\TourCheck\Service\EntryMailService;
 use OCA\TourCheck\Service\ErasureService;
 use OCA\TourCheck\Service\IncidentService;
 use OCA\TourCheck\Service\KeyService;
@@ -95,6 +96,7 @@ final class WidgetSnapshotTest extends TestCase
 			$this->createMock(ErasureService::class),
 			$this->createMock(TokenService::class),
 			new QrSheetService(),
+			$this->createMock(EntryMailService::class),
 			$this->createMock(IURLGenerator::class),
 			$this->createMock(RateLimitService::class),
 			new DutyShiftLinkService(

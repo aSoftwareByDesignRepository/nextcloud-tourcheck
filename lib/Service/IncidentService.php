@@ -166,6 +166,7 @@ class IncidentService
 		$inc->setNote(isset($data['note']) && trim((string)$data['note']) !== '' ? mb_substr((string)$data['note'], 0, 8000) : null);
 		$inc->setPhotoFileid($photoFileid);
 		$inc->setAudioFileid($audioFileid);
+		$inc->setImportant(self::parseImportant($data));
 		$inc->setCreatedBy($uid);
 		$inc->setMemberId($memberId);
 		$inc->setStatus('open');
@@ -185,6 +186,7 @@ class IncidentService
 				'payloadFields' => [
 					'id' => (int)$inc->getId(), 'site' => $siteId, 'category' => $category,
 					'severity' => $severity, 'title' => (string)($inc->getTitle() ?? ''),
+					'important' => (int)$inc->getImportant(),
 				],
 			]);
 			$this->db->commit();
@@ -274,6 +276,9 @@ class IncidentService
 				$this->assertTransition($inc->getStatus(), (string)$data['status']);
 				$inc->setStatus((string)$data['status']);
 			}
+			if (array_key_exists('important', $data)) {
+				$inc->setImportant(self::parseImportant($data));
+			}
 			$inc->setRevision((int)$inc->getRevision() + 1);
 			$inc->setUpdatedAt($this->timeFactory->getDateTime());
 			$inc = $this->incidents->update($inc);
@@ -284,6 +289,23 @@ class IncidentService
 		}
 		$this->journalIncident($inc, $uid, 'incident_updated');
 		return $inc;
+	}
+
+	/**
+	 * "wichtig" flag — accepted as bool/int/strict string only; anything
+	 * else is a 422, never a silent truthy cast (form-encoded "false"
+	 * must not flag an incident).
+	 */
+	private static function parseImportant(array $data): int
+	{
+		$v = $data['important'] ?? null;
+		if (in_array($v, [true, 1, '1', 'true'], true)) {
+			return 1;
+		}
+		if ($v === null || $v === '' || in_array($v, [false, 0, '0', 'false'], true)) {
+			return 0;
+		}
+		throw new ValidationException(Constants::ERR_VALIDATION, 'Invalid important flag.', ['important' => 'invalid']);
 	}
 
 	private function assertTransition(string $from, string $to): void
@@ -468,7 +490,7 @@ class IncidentService
 			'payloadRef' => 'incident:' . $inc->getId(),
 			'payloadFields' => [
 				'id' => (int)$inc->getId(), 'status' => (string)$inc->getStatus(),
-				'revision' => (int)$inc->getRevision(),
+				'revision' => (int)$inc->getRevision(), 'important' => (int)$inc->getImportant(),
 			],
 		]);
 	}

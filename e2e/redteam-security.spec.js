@@ -218,6 +218,15 @@ test.describe('redteam: authorization boundary matrix', () => {
 		const cpId = cps.data[0].id
 		const stations = await req.get(api(`/sites/${siteId}/stations`), { headers: ah }).then(r => r.json())
 		const stationId = stations.data[0].id
+		// Seed evidence objects for the new-surface legs (F1/F3/F5).
+		const inc = await req.post(api('/incidents'), {
+			headers: ah, data: JSON.stringify({ title: 'rt-inc', site_id: siteId, category: 'other', severity: 'low', important: true }),
+		}).then(r => r.json())
+		const incId = inc.data.id
+		const lb = await req.post(api(`/sites/${siteId}/logbook`), {
+			headers: ah, data: JSON.stringify({ kind: 'note', body: 'rt-lb' }),
+		}).then(r => r.json())
+		const lbId = lb.data.id
 
 		// Grant the empty user a WORKER membership on site 1.
 		const grant = await req.put(api(`/sites/${siteId}/members`), {
@@ -248,6 +257,11 @@ test.describe('redteam: authorization boundary matrix', () => {
 				['GET', `/stations/${stationId}/members`, null, `/stations/${F}/members`],
 				['POST', `/stations/${stationId}/pairing-code`, null, `/stations/${F}/pairing-code`],
 				['PUT', `/stations/${stationId}/members`, { display_name: 'x', pin: '1234' }, `/stations/${F}/members`],
+				// F1/F3/F5 surfaces — worker must get the same 404 as a fake id.
+				['POST', `/incidents/${incId}/send`, {}, `/incidents/${F}/send`],
+				['POST', `/logbook/${lbId}/send`, {}, `/logbook/${F}/send`],
+				['PUT', `/incidents/${incId}`, { important: true }, `/incidents/${F}`],
+				['POST', `/sites/${siteId}/rounds`, { starts_at: '2030-01-15T09:00:00+01:00', duration_min: 60, checkpoint_ids: [cpId] }, `/sites/${F}/rounds`],
 			]
 			for (const [method, realPath, data, fakePath] of writes) {
 				const r = await fire(req, method, api(realPath), eh, data)
@@ -399,6 +413,11 @@ test.describe('redteam: authorization boundary matrix', () => {
 		for (const p of ['/sites', '/rounds', '/incidents', '/admin/settings', '/dashboard']) {
 			const res = await req.get(api(p), { headers: J, maxRedirects: 0 })
 			expect(res.status(), `anon ${p}`).not.toBe(200)
+		}
+		// New-surface POSTs must also reject before reaching the handler.
+		for (const p of ['/incidents/1/send', '/logbook/1/send', '/sites/1/rounds']) {
+			const res = await req.post(api(p), { headers: J, maxRedirects: 0, data: JSON.stringify({}) })
+			expect(res.status(), `anon POST ${p}`).not.toBe(200)
 		}
 		await ctx.close()
 	})

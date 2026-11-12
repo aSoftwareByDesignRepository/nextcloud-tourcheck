@@ -57,7 +57,7 @@ Wir verbessern diese App mit Praxis-Rückmeldungen — GitHub Issue (https://git
 	<screenshot>https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/04.png</screenshot>
 	<screenshot>https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/05.png</screenshot>
 	<screenshot>https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/06.png</screenshot>
-	<version>0.1.6</version>
+	<version>0.1.7</version>
 	<licence>agpl</licence>
 	<author mail="info@software-by-design.de" homepage="https://nextcloud.software-by-design.de/">Software by Design GbR</author>
 	<namespace>TourCheck</namespace>
@@ -91,6 +91,7 @@ Wir verbessern diese App mit Praxis-Rückmeldungen — GitHub Issue (https://git
 		<job>OCA\TourCheck\Cron\EscalationSweepJob</job>
 		<job>OCA\TourCheck\Cron\ManDownSweepJob</job>
 		<job>OCA\TourCheck\Cron\WebhookDeliveryJob</job>
+		<job>OCA\TourCheck\Cron\ImportantDigestJob</job>
 	</background-jobs>
 	<repair-steps>
 		<install>

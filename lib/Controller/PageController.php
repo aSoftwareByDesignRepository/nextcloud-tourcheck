@@ -190,6 +190,17 @@ class PageController extends Controller
 		return '';
 	}
 
+	private function clientContactFor(int $siteId): ?string
+	{
+		foreach ($this->scope()['sites'] as $s) {
+			if ((int)$s->getId() === $siteId) {
+				$v = $s->getClientContact();
+				return $v === '' ? null : $v;
+			}
+		}
+		return null;
+	}
+
 	private function fmt(\DateTimeInterface $d): string
 	{
 		return $this->l->l('datetime', $d->getTimestamp());
@@ -582,6 +593,8 @@ class PageController extends Controller
 				'siteId' => $siteId,
 				'severity' => $i->getSeverity(),
 				'status' => $i->getStatus(),
+				'important' => (int)$i->getImportant(),
+				'clientContact' => $this->clientContactFor($siteId),
 				'revision' => (int)$i->getRevision(),
 				'canSupervise' => in_array($role, [Constants::ROLE_ADMIN, Constants::ROLE_PLANNER, Constants::ROLE_SUPERVISOR], true),
 				'woRef' => $i->getWoRef(),

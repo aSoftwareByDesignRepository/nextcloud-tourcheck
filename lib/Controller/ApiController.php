@@ -74,6 +74,7 @@ class ApiController extends Controller
 		private readonly \OCA\TourCheck\Service\ErasureService $erasure,
 		private readonly \OCA\TourCheck\Service\TokenService $tokens,
 		private readonly \OCA\TourCheck\Service\QrSheetService $qr,
+		private readonly \OCA\TourCheck\Service\EntryMailService $entryMail,
 		private readonly \OCP\IURLGenerator $urlGenerator,
 		private readonly RateLimitService $rateLimit,
 		private readonly \OCA\TourCheck\Integration\DutyShiftLinkService $dutyShiftLink,
@@ -572,6 +573,70 @@ class ApiController extends Controller
 		try {
 			$b = $this->body();
 			return $this->ok($this->incidents->update($id, $b, $this->revisionPrecondition($b))->jsonSerialize());
+		} catch (\Throwable $e) {
+			return $this->fromThrowable($e);
+		}
+	}
+
+	/**
+	 * F3: mail this incident (+photo) to the client. Supervisor+ inside the
+	 * service; SMTP failure returns sent:false — never a 5xx for mail health.
+	 */
+	#[NoAdminRequired]
+	public function sendIncident(int $id): JSONResponse
+	{
+		try {
+			$b = $this->body();
+			return $this->ok($this->entryMail->sendIncident($id, isset($b['recipient']) ? (string)$b['recipient'] : null));
+		} catch (\Throwable $e) {
+			return $this->fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function sendLogbook(int $id): JSONResponse
+	{
+		try {
+			$b = $this->body();
+			return $this->ok($this->entryMail->sendLogbook($id, isset($b['recipient']) ? (string)$b['recipient'] : null));
+		} catch (\Throwable $e) {
+			return $this->fromThrowable($e);
+		}
+	}
+
+	/**
+	 * F5: planner composes a one-off round — arbitrary checkpoints of one
+	 * site, flexible window. plan_id stays NULL; the snapshot freezes the
+	 * composition for the evidence trail.
+	 */
+	#[NoAdminRequired]
+	public function createAdhocRound(int $siteId): JSONResponse
+	{
+		try {
+			$b = $this->body();
+			$rawStart = (string)($b['starts_at'] ?? '');
+			// Naive datetime-local input carries no offset — interpret it in
+			// the site's timezone so "09:00" means 09:00 local, not UTC.
+			$siteTz = new \DateTimeZone($this->sites->getVisible($siteId)->getTz() ?: 'UTC');
+			$startsAt = \DateTime::createFromFormat(\DateTimeInterface::ATOM, $rawStart)
+				?: \DateTime::createFromFormat('!Y-m-d\TH:i', $rawStart, $siteTz)
+				?: \DateTime::createFromFormat('!Y-m-d\TH:i:s', $rawStart, $siteTz);
+			if ($startsAt === false) {
+				try {
+					$startsAt = new \DateTime($rawStart);
+				} catch (\Throwable) {
+					$startsAt = false;
+				}
+			}
+			if ($startsAt === false) {
+				throw new ValidationException(Constants::ERR_VALIDATION, 'Invalid start time.', ['starts_at' => 'invalid']);
+			}
+			$ids = $b['checkpoint_ids'] ?? [];
+			if (!is_array($ids)) {
+				throw new ValidationException(Constants::ERR_VALIDATION, 'Invalid checkpoints.', ['checkpoint_ids' => 'invalid']);
+			}
+			$round = $this->rounds->createAdhoc($siteId, $startsAt, (int)($b['duration_min'] ?? 60), $ids);
+			return $this->ok($round->jsonSerialize(), Http::STATUS_CREATED);
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
 		}
@@ -1084,6 +1149,18 @@ class ApiController extends Controller
 					throw new ValidationException(Constants::ERR_VALIDATION, 'Unknown timezone.', ['default_timezone' => 'invalid']);
 				}
 				$this->settings->setDefaultTimezone($tz);
+			}
+			// F2: morning "wichtig" digest — enabled flag + local hour.
+			if (isset($b['digest_enabled']) || isset($b['digest_hour']) || isset($b['digest_email'])) {
+				$hour = (int)($b['digest_hour'] ?? $this->settings->getDigestHour());
+				if ($hour < 0 || $hour > 23) {
+					throw new ValidationException(Constants::ERR_VALIDATION, 'Digest hour must be 0–23.', ['digest_hour' => 'invalid']);
+				}
+				$this->settings->setDigest(
+					($b['digest_enabled'] ?? '1') === '1' || ($b['digest_enabled'] ?? null) === 'true' || ($b['digest_enabled'] ?? null) === true,
+					$hour,
+					isset($b['digest_email']) ? (($b['digest_email']) === '1' || $b['digest_email'] === 'true' || $b['digest_email'] === true) : null
+				);
 			}
 			/* Map tiles (Q2 opt-in): the provider pick resolves server-side —
 			 * schematic stores '' (privacy fallback), osm stores the canonical

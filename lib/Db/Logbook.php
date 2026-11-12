@@ -12,6 +12,7 @@ class Logbook extends Entity
 	protected $authorUid;
 	protected $kind;
 	protected $pinned;
+	protected $important;
 	protected $body;
 	protected $revision;
 	protected $createdAt;
@@ -24,6 +25,7 @@ class Logbook extends Entity
 		$this->addType('id', 'integer');
 		$this->addType('siteId', 'integer');
 		$this->addType('pinned', 'integer');
+		$this->addType('important', 'integer');
 		$this->addType('revision', 'integer');
 		$this->addType('createdAt', 'datetime');
 	}
@@ -41,6 +43,7 @@ class Logbook extends Entity
 			'authorUid' => $this->authorUid,
 			'kind' => $this->kind,
 			'pinned' => (int)$this->pinned,
+			'important' => (int)($this->important ?? 0),
 			'body' => $this->body,
 			'revision' => (int)$this->revision,
 			'ackedBy' => $this->ackedBy,

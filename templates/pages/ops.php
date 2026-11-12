@@ -121,7 +121,7 @@ $canManage = !empty($_['canManage']);
 	</div>
 	<ul class="tck-list" id="tck-logbook" data-site-id="<?php p($siteId); ?>"></ul>
 	<p class="tck-empty-state__text" id="tck-log-empty" hidden><?php p($l->t('No logbook entries yet.')); ?></p>
-	<form class="tck-form tck-hidden" id="tck-log-form" data-site-id="<?php p($siteId); ?>" novalidate>
+	<form class="tck-form tck-hidden" id="tck-log-form" data-site-id="<?php p($siteId); ?>" data-can-manage="<?php p($canManage ? '1' : '0'); ?>" novalidate>
 		<div class="tck-field">
 			<label for="tck-log-kind"><?php p($l->t('Entry type')); ?></label>
 			<select id="tck-log-kind" name="kind" class="tck-select">
@@ -141,6 +141,10 @@ $canManage = !empty($_['canManage']);
 			<label for="tck-log-pinned"><?php p($l->t('Pin — stays on top until edited')); ?></label>
 		</div>
 		<?php endif; ?>
+		<div class="tck-field tck-field--check">
+			<input id="tck-log-imp" name="important" type="checkbox" value="1">
+			<label for="tck-log-imp"><?php p($l->t('★ Important — included in the morning digest')); ?></label>
+		</div>
 		<div class="tck-form-actions">
 			<button type="submit" class="tck-btn tck-btn--primary"><?php p($l->t('Add entry')); ?></button>
 			<button type="button" class="tck-btn" data-tck-cancel="tck-log-form"><?php p($l->t('Cancel')); ?></button>

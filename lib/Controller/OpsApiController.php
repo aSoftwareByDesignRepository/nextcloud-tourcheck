@@ -412,7 +412,8 @@ class OpsApiController extends Controller
 			$b = $this->request->getParams();
 			$l = $this->logbook->create($siteId, $this->uid(),
 				(string)($b['kind'] ?? 'note'), (string)($b['body'] ?? ''),
-				($b['pinned'] ?? null) === '1' || ($b['pinned'] ?? null) === 'true' || ($b['pinned'] ?? null) === true);
+				($b['pinned'] ?? null) === '1' || ($b['pinned'] ?? null) === 'true' || ($b['pinned'] ?? null) === true,
+				($b['important'] ?? null) === '1' || ($b['important'] ?? null) === 'true' || ($b['important'] ?? null) === true);
 			return $this->ok($this->withNames($l->jsonSerialize()), Http::STATUS_CREATED);
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);
@@ -426,7 +427,8 @@ class OpsApiController extends Controller
 			$b = $this->request->getParams();
 			$baseRev = isset($b['revision']) && preg_match('/^\d+$/', (string)$b['revision']) === 1 ? (int)$b['revision'] : null;
 			$l = $this->logbook->update($id, $this->uid(), $baseRev, (string)($b['body'] ?? ''),
-				array_key_exists('pinned', $b) ? (($b['pinned'] === '1' || $b['pinned'] === 'true' || $b['pinned'] === true)) : null);
+				array_key_exists('pinned', $b) ? (($b['pinned'] === '1' || $b['pinned'] === 'true' || $b['pinned'] === true)) : null,
+				array_key_exists('important', $b) ? (($b['important'] === '1' || $b['important'] === 'true' || $b['important'] === true)) : null);
 			return $this->ok($this->withNames($l->jsonSerialize()));
 		} catch (\Throwable $e) {
 			return $this->fromThrowable($e);

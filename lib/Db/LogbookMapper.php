@@ -63,4 +63,17 @@ class LogbookMapper extends QBMapper
 			// double-ack is idempotent — the row already exists
 		}
 	}
+
+	/** Important-flagged logbook entries since $since — the morning digest source. @return list<Logbook> */
+	public function findImportantSince(int $siteId, \DateTimeInterface $since): array
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')->from($this->getTableName())
+			->where($qb->expr()->eq('site_id', $qb->createNamedParameter($siteId)))
+			->andWhere($qb->expr()->eq('important', $qb->createNamedParameter(1)))
+			->andWhere($qb->expr()->gte('created_at', $qb->createNamedParameter($since, 'datetime')))
+			->orderBy('created_at', 'DESC')
+			->setMaxResults(500);
+		return $this->findEntities($qb);
+	}
 }

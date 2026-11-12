@@ -243,9 +243,113 @@
 		});
 	}
 
-	/* Shared with sibling page bundles (ops.js): same confirm + note
+	/* --- send-to-customer dialog (SPEC §7): recipient input pre-filled
+	 * from the site contact, inline field error, and the dialog OWNS the
+	 * POST so a 422 recipient error never collapses into a bare toast.
+	 * Resolves when the flow is done (sent, failed, or cancelled). --- */
+	function tckSendEntry(opts) {
+		opts = opts || {};
+		return new Promise(function (resolve) {
+			var dlg = document.querySelector('dialog[data-tck-send-dialog]');
+			var finish = function () { resolve(); };
+			if (!dlg || typeof dlg.showModal !== 'function') {
+				// ds-allow-native-fallback: <dialog> unsupported/absent
+				if (!window.confirm(opts.text || opts.title || '')) { finish(); return; }
+				api('POST', opts.endpoint, {}).then(function (j) {
+					if (j.success && j.data && j.data.sent) { toast('ok', t('Sent to %s').replace('%s', j.data.sent_to)); }
+					else if (j.success) { toast('error', t('Mail could not be sent — see journal')); }
+					else { toast('error', j.message || t('Error')); }
+				}).catch(function () { toast('error', t('Network error')); }).finally(finish);
+				return;
+			}
+			var titleEl = dlg.querySelector('[data-tck-send-title]');
+			var textEl = dlg.querySelector('[data-tck-send-text]');
+			var input = dlg.querySelector('[data-tck-send-input]');
+			var errEl = dlg.querySelector('[data-tck-send-error]');
+			var okBtn = dlg.querySelector('[data-tck-send-ok]');
+			var cancelBtn = dlg.querySelector('[data-tck-send-cancel]');
+			var invoker = document.activeElement;
+			var done = false;
+			function close() {
+				if (done) { return; }
+				done = true;
+				dlg.removeEventListener('cancel', onEsc);
+				dlg.removeEventListener('keydown', onKeydown);
+				input.removeEventListener('input', onInput);
+				okBtn.removeEventListener('click', onOk);
+				cancelBtn.removeEventListener('click', onCancelBtn);
+				if (dlg.open) { dlg.close(); }
+				if (invoker && document.contains(invoker)) { invoker.focus(); }
+				resolve();
+			}
+			function showErr(msg) {
+				input.setAttribute('aria-invalid', 'true');
+				errEl.textContent = msg;
+				errEl.hidden = false;
+				input.focus();
+			}
+			function onEsc(ev) { ev.preventDefault(); close(); }
+			function onKeydown(ev) {
+				if (ev.key === 'Escape') {
+					ev.preventDefault();
+					ev.stopPropagation();
+					close();
+					return;
+				}
+				trapTab(ev, dlg);
+			}
+			function onInput() {
+				input.removeAttribute('aria-invalid');
+				errEl.hidden = true;
+			}
+			function onOk() {
+				var v = input.value.trim();
+				if (v === '' || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v) || v.length > 254) {
+					showErr(t('Enter a valid e-mail address.'));
+					return;
+				}
+				okBtn.disabled = true;
+				api('POST', opts.endpoint, { recipient: v }).then(function (j) {
+					okBtn.disabled = false;
+					if (j.success && j.data && j.data.sent) {
+						toast('ok', t('Sent to %s').replace('%s', j.data.sent_to));
+						close();
+					} else if (j.success) {
+						toast('error', t('Mail could not be sent — see journal'));
+						close();
+					} else if (j.fields && j.fields.recipient) {
+						showErr(j.message || t('Enter a valid e-mail address.'));
+					} else {
+						toast('error', j.message || t('Error'));
+						close();
+					}
+				}).catch(function () {
+					okBtn.disabled = false;
+					toast('error', t('Network error'));
+					close();
+				});
+			}
+			function onCancelBtn() { close(); }
+			titleEl.textContent = opts.title || t('Send to customer');
+			textEl.textContent = opts.text || '';
+			textEl.hidden = !opts.text;
+			input.value = opts.recipient || '';
+			input.removeAttribute('aria-invalid');
+			errEl.hidden = true;
+			okBtn.disabled = false;
+			dlg.addEventListener('cancel', onEsc);
+			dlg.addEventListener('keydown', onKeydown);
+			input.addEventListener('input', onInput);
+			okBtn.addEventListener('click', onOk);
+			cancelBtn.addEventListener('click', onCancelBtn);
+			dlg.showModal();
+			input.focus();
+		});
+	}
+
+	/* Shared with sibling page bundles (ops.js): same confirm + note + send
 	 * dialogs, same <dialog> elements in templates/main.php. */
-	window.TCK = { confirm: tckConfirm, note: tckNote, toast: toast, announce: announce };
+	window.TCK = { confirm: tckConfirm, note: tckNote, sendEntry: tckSendEntry, toast: toast, announce: announce };
 
 	/* --- field errors: aria-invalid + inline, per _shared/field-errors contract.
 	 * Form-scoped variant: site.php hosts multiple forms sharing input names
@@ -709,6 +813,42 @@
 		});
 	});
 
+	/* --- site detail: ad-hoc one-off round (F5) --- */
+	var adhocForm = document.querySelector('[data-tck-adhoc-form]');
+	var newAdhocBtn = document.querySelector('[data-tck-new-adhoc]');
+	if (newAdhocBtn && adhocForm) {
+		newAdhocBtn.addEventListener('click', function () {
+			adhocForm.classList.toggle('tck-hidden');
+			var input = adhocForm.querySelector('input[name="starts_at"]');
+			if (input && !adhocForm.classList.contains('tck-hidden')) { input.focus(); }
+		});
+		adhocForm.addEventListener('submit', function (e) {
+			e.preventDefault();
+			clearFieldErrors(adhocForm);
+			if (!validateRequired(adhocForm)) { return; }
+			var cps = [];
+			adhocForm.querySelectorAll('input[name="adhoc_cp_ids"]:checked').forEach(function (cb) {
+				cps.push(parseInt(cb.value, 10));
+			});
+			var cpsErr = document.getElementById('tck-adhoc-cps-error');
+			if (cps.length === 0) {
+				if (cpsErr) { cpsErr.textContent = t('A round needs at least one checkpoint.'); cpsErr.hidden = false; }
+				return;
+			}
+			var btn = adhocForm.querySelector('[type="submit"]');
+			btn.disabled = true;
+			api('POST', '/api/sites/' + adhocForm.getAttribute('data-site-id') + '/rounds', {
+				starts_at: adhocForm.elements.starts_at.value,
+				duration_min: parseInt(adhocForm.elements.duration_min.value, 10) || 60,
+				checkpoint_ids: cps
+			}).then(function (json) {
+				btn.disabled = false;
+				if (json.success) { toast('ok', t('Round created')); setTimeout(function () { location.reload(); }, 600); }
+				else { handleError(adhocForm, json); }
+			}).catch(function () { btn.disabled = false; toast('error', t('Network error')); });
+		});
+	}
+
 	/* --- site detail: live links --- */
 	var liveForm = document.querySelector('[data-tck-live-form]');
 	var newLiveBtn = document.querySelector('[data-tck-new-live]');
@@ -1053,6 +1193,32 @@
 					if (json.success) { toast('ok', t('Incident closed')); setTimeout(function () { location.reload(); }, 600); }
 					else { if (json._status === 409) { setTimeout(function () { location.reload(); }, 900); } handleError(null, json); }
 				}).catch(function () { btn.disabled = false; toast('error', t('Network error')); });
+			});
+		});
+	});
+
+	/* --- incidents: "wichtig" flag + send-to-customer --- */
+	document.querySelectorAll('[data-tck-inc-important]').forEach(function (btn) {
+		btn.addEventListener('click', function () {
+			btn.disabled = true;
+			var next = btn.getAttribute('data-on') !== '1';
+			api('PUT', '/api/incidents/' + btn.getAttribute('data-tck-inc-important'), {
+				important: next,
+				revision: parseInt(btn.getAttribute('data-revision'), 10)
+			}).then(function (json) {
+				btn.disabled = false;
+				if (json.success) { toast('ok', next ? t('Marked as important') : t('Flag removed')); setTimeout(function () { location.reload(); }, 600); }
+				else { if (json._status === 409) { setTimeout(function () { location.reload(); }, 900); } handleError(null, json); }
+			}).catch(function () { btn.disabled = false; toast('error', t('Network error')); });
+		});
+	});
+	document.querySelectorAll('[data-tck-inc-send]').forEach(function (btn) {
+		btn.addEventListener('click', function () {
+			tckSendEntry({
+				title: t('Send to customer'),
+				text: t('Mails this incident (with photo if attached) to the recipient.'),
+				endpoint: '/api/incidents/' + btn.getAttribute('data-tck-inc-send') + '/send',
+				recipient: btn.getAttribute('data-contact') || '',
 			});
 		});
 	});

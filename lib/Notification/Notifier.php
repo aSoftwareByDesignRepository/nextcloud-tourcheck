@@ -96,6 +96,10 @@ class Notifier implements INotifier
 				$notification->setParsedSubject($l->t('Key still checked out: %s', [$site]));
 				$notification->setParsedMessage($l->t('Key "%s" at %s has been checked out since %s.', [(string)($p['key'] ?? '?'), $site, (string)($p['since'] ?? '?')]));
 				break;
+			case 'important_digest':
+				$notification->setParsedSubject($l->t('Morning digest: %s', [$site]));
+				$notification->setParsedMessage($l->t('%1$d flagged item(s) at %2$s in the last 24 h — %3$d incident(s), %4$d logbook entry(ies).', [(int)($p['count'] ?? 0), $site, (int)($p['incidents'] ?? 0), (int)($p['logbook'] ?? 0)]));
+				break;
 			default:
 				throw new UnknownNotificationException();
 		}

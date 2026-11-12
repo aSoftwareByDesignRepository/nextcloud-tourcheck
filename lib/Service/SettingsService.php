@@ -103,6 +103,31 @@ class SettingsService
 		return max(1, min(30, $n));
 	}
 
+	public function isDigestEnabled(): bool
+	{
+		return $this->config->getAppValue(Constants::APP_ID, 'digest_enabled', '1') !== '0';
+	}
+
+	public function getDigestHour(): int
+	{
+		$h = (int)$this->config->getAppValue(Constants::APP_ID, 'digest_hour', '7');
+		return $h >= 0 && $h <= 23 ? $h : 7;
+	}
+
+	public function isDigestEmailEnabled(): bool
+	{
+		return $this->config->getAppValue(Constants::APP_ID, 'digest_email', '1') !== '0';
+	}
+
+	public function setDigest(bool $enabled, int $hour, ?bool $email = null): void
+	{
+		$this->config->setAppValue(Constants::APP_ID, 'digest_enabled', $enabled ? '1' : '0');
+		$this->config->setAppValue(Constants::APP_ID, 'digest_hour', (string)max(0, min(23, $hour)));
+		if ($email !== null) {
+			$this->config->setAppValue(Constants::APP_ID, 'digest_email', $email ? '1' : '0');
+		}
+	}
+
 	public function getPinLength(): int
 	{
 		$n = (int)$this->config->getAppValue(Constants::APP_ID, Constants::CONFIG_PIN_LENGTH, '6');
@@ -375,6 +400,9 @@ class SettingsService
 			'pinLength' => $this->getPinLength(),
 			'pinLockoutAttempts' => $this->getPinLockoutAttempts(),
 			'pinLockoutMinutes' => $this->getPinLockoutMinutes(),
+			'digestEnabled' => $this->isDigestEnabled(),
+			'digestHour' => $this->getDigestHour(),
+			'digestEmail' => $this->isDigestEmailEnabled(),
 			'brandName' => $this->getBrandName(),
 			'brandColor' => $this->getBrandColor(),
 			'tileUrl' => $this->getTileUrlRaw(),

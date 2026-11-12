@@ -127,5 +127,18 @@ include __DIR__ . '/common/navigation.php';
 				<button type="button" class="tck-btn tck-btn--primary" data-tck-note-ok><?php p($l->t('Confirm')); ?></button>
 			</div>
 		</dialog>
+		<dialog class="tck-dialog" data-tck-send-dialog aria-labelledby="tck-send-dialog-title">
+			<h2 id="tck-send-dialog-title" class="tck-dialog__title" data-tck-send-title></h2>
+			<p class="tck-dialog__text" data-tck-send-text></p>
+			<label class="tck-dialog__label" for="tck-send-input">
+				<span><?php p($l->t('Recipient e-mail')); ?></span>
+				<input id="tck-send-input" data-tck-send-input type="email" maxlength="254" autocomplete="off" required>
+			</label>
+			<p class="tck-field-error" id="tck-send-error" data-tck-send-error hidden></p>
+			<div class="tck-dialog__actions">
+				<button type="button" class="tck-btn" data-tck-send-cancel><?php p($l->t('Cancel')); ?></button>
+				<button type="button" class="tck-btn tck-btn--primary" data-tck-send-ok><?php p($l->t('Send')); ?></button>
+			</div>
+		</dialog>
 	</div>
 </div>

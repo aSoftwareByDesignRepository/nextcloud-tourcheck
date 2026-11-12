@@ -32,6 +32,7 @@ class RoundService
 		private readonly ChainService $chain,
 		private readonly ITimeFactory $timeFactory,
 		private readonly IDBConnection $db,
+		private readonly CheckpointService $checkpoints,
 		private readonly ?FlowEmitter $flow = null,
 	) {
 	}
@@ -404,5 +405,95 @@ class RoundService
 	public function findActiveWithCheckin(): array
 	{
 		return $this->rounds->findActiveWithCheckin();
+	}
+
+	/**
+	 * First attached evidence event = real visit start. Called inside the
+	 * ingest transaction (round lock held); the conditional update makes
+	 * concurrent scanners + offline replays converge on one write.
+	 */
+	public function markStartedOnce(int $roundId, \DateTimeInterface $ts, string $actorUid): void
+	{
+		$this->rounds->markStarted($roundId, $ts, $actorUid);
+	}
+
+	/**
+	 * F5: one-off visit outside any recurring plan — the planner's
+	 * Excel-style "tomorrow these objects" round. plan_id NULL +
+	 * adhoc=1 mark the origin; the snapshot keeps the composed stops
+	 * immutable from the first scan on (same evidence rule as plans).
+	 */
+	public function createAdhoc(int $siteId, \DateTimeInterface $startsAt, int $durationMin, array $checkpointIds): Round
+	{
+		$actorUid = $this->acl->assertCanManageSite($siteId);
+		$fields = [];
+		$durationMin = max(5, min(720, $durationMin));
+		$ids = array_values(array_unique(array_map('intval', $checkpointIds)));
+		if ($ids === []) {
+			$fields['checkpoint_ids'] = 'required';
+		}
+		if ($startsAt < $this->timeFactory->getDateTime()->sub(new \DateInterval('PT1H'))) {
+			$fields['starts_at'] = 'in_past';
+		}
+		$stops = [];
+		foreach ($ids as $cid) {
+			$cp = $this->checkpoints->getAny($cid);
+			if ($cp === null || (int)$cp->getSiteId() !== $siteId || (int)$cp->getActive() !== 1) {
+				$fields['checkpoint_ids'] = 'invalid';
+				break;
+			}
+			$stops[] = $cp;
+		}
+		if ($fields !== []) {
+			throw new ValidationException(Constants::ERR_VALIDATION, 'Invalid ad-hoc round.', $fields);
+		}
+		$now = $this->timeFactory->getDateTime();
+		$start = \DateTime::createFromInterface($startsAt);
+		$end = (clone $start)->add(new \DateInterval('PT' . $durationMin . 'M'));
+		$this->db->beginTransaction();
+		try {
+			$round = new Round();
+			$round->setPlanId(null);
+			$round->setAdhoc(1);
+			$round->setSiteId($siteId);
+			$round->setSnapshotJson(json_encode([
+				'adhoc' => true, 'created_by' => $actorUid,
+				'cps' => array_map(fn ($cp) => ['checkpoint_id' => (int)$cp->getId(), 'name' => $cp->getName()], $stops),
+			]));
+			$round->setScheduledStart($start);
+			$round->setWindowEnd($end);
+			$round->setStatus(Constants::ROUND_SCHEDULED);
+			$round->setCreatedAt($now);
+			$round->setUpdatedAt($now);
+			$round = $this->rounds->insert($round);
+			$sort = 0;
+			foreach ($stops as $cp) {
+				$rcp = new RoundCheckpoint();
+				$rcp->setRoundId((int)$round->getId());
+				$rcp->setCheckpointId((int)$cp->getId());
+				$rcp->setNameSnap((string)$cp->getName());
+				$rcp->setSort($sort++);
+				// flexible window — the whole visit window is the inspection window
+				$rcp->setEarliest(clone $start);
+				$rcp->setDue(clone $start);
+				$rcp->setLatest(clone $end);
+				$rcp->setProfileJson($cp->getProfileJson());
+				$rcp->setStatus('pending');
+				$this->roundCps->insert($rcp);
+			}
+			$this->chain->append($siteId, [
+				'roundId' => (int)$round->getId(),
+				'kind' => Constants::KIND_ADMIN,
+				'actorUid' => $actorUid,
+				'body' => 'round_adhoc_created',
+				'payloadRef' => 'round:' . $round->getId(),
+				'payloadFields' => ['stops' => count($stops), 'starts_at' => $start->format(\DateTimeInterface::ATOM)],
+			]);
+			$this->db->commit();
+		} catch (\Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
+		}
+		return $round;
 	}
 }

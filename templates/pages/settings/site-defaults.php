@@ -47,5 +47,26 @@ $tileAttribution = (string)($v['tileAttribution'] ?? '');
 			</div>
 		</div>
 	</fieldset>
+	<fieldset class="tck-fieldset">
+		<legend><?php p($l->t('Morning digest')); ?></legend>
+		<p class="tck-field-hint"><?php p($l->t('One summary per site and day listing everything staff flagged as important.')); ?></p>
+		<input type="hidden" name="digest_enabled" value="0">
+		<div class="tck-field tck-field--check">
+			<input id="tck-digest-on" name="digest_enabled" type="checkbox" value="1"<?php if (!empty($v['digestEnabled'])) p(' checked'); ?>>
+			<label for="tck-digest-on"><?php p($l->t('Send the morning digest')); ?></label>
+		</div>
+		<div class="tck-field">
+			<label for="tck-digest-hour"><?php p($l->t('Send at hour (0–23)')); ?></label>
+			<input id="tck-digest-hour" name="digest_hour" type="number" min="0" max="23" step="1" inputmode="numeric"
+				value="<?php p((int)($v['digestHour'] ?? 7)); ?>">
+			<p class="tck-field-hint"><?php p($l->t('Local time in the default timezone above.')); ?></p>
+			<p class="tck-field-error" id="tck-digest-hour-error" hidden></p>
+		</div>
+		<input type="hidden" name="digest_email" value="0">
+		<div class="tck-field tck-field--check">
+			<input id="tck-digest-mail" name="digest_email" type="checkbox" value="1"<?php if (!empty($v['digestEmail'])) p(' checked'); ?>>
+			<label for="tck-digest-mail"><?php p($l->t('Also email supervisors and planners')); ?></label>
+		</div>
+	</fieldset>
 	<button type="submit" class="tck-btn tck-btn--primary"><?php p($l->t('Save')); ?></button>
 </form>

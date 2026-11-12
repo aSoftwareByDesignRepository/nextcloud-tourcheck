@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "appId": "tourcheck",
+  "companionDir": "mobile/tourcheck",
+  "contracts": [
+    {
+      "id": "incident-important-flag",
+      "param": "important",
+      "description": "Incidents and logbook entries carry a worker/supervisor-settable 'wichtig' flag feeding the morning digest. Strict bool parsing — form-encoded 'false' must not flag.",
+      "errorCodes": ["VALIDATION"],
+      "server": [
+        {
+          "file": "lib/Service/IncidentService.php",
+          "needles": ["parseImportant", "setImportant", "important"]
+        },
+        {
+          "file": "lib/Service/LogbookService.php",
+          "needles": ["setImportant", "important"]
+        }
+      ],
+      "web": [
+        {
+          "file": "templates/pages/incidents.php",
+          "needles": ["name=\"important\"", "data-tck-inc-important"]
+        },
+        {
+          "file": "templates/pages/ops.php",
+          "needles": ["name=\"important\""]
+        },
+        {
+          "file": "js/app.js",
+          "needles": ["data-tck-inc-important", "important"]
+        },
+        {
+          "file": "js/ops.js",
+          "needles": ["important"]
+        }
+      ],
+      "mobile": [
+        {
+          "file": "src/screens/IncidentScreen.tsx",
+          "needles": ["incident.important", "important"]
+        },
+        {
+          "file": "src/api/client.ts",
+          "needles": ["important"]
+        }
+      ]
+    },
+    {
+      "id": "adhoc-round-composition",
+      "param": "starts_at",
+      "description": "Ad-hoc one-off round: planner picks checkpoints + start + duration; server validates same-site active checkpoints and a non-past start.",
+      "errorCodes": ["VALIDATION"],
+      "server": [
+        {
+          "file": "lib/Controller/ApiController.php",
+          "needles": ["createAdhocRound", "starts_at", "checkpoint_ids", "duration_min"]
+        },
+        {
+          "file": "lib/Service/RoundService.php",
+          "needles": ["createAdhoc", "checkpoint_ids", "starts_at"]
+        }
+      ],
+      "web": [
+        {
+          "file": "templates/pages/site.php",
+          "needles": ["data-tck-adhoc-form", "starts_at", "checkpoint_ids", "cp_ids"]
+        },
+        {
+          "file": "js/app.js",
+          "needles": ["data-tck-adhoc-form", "starts_at", "checkpoint_ids"]
+        }
+      ],
+      "mobile": null
+    },
+    {
+      "id": "entry-customer-mail",
+      "param": "recipient",
+      "description": "Send a single incident/logbook entry (+photo) to the customer. Optional recipient override — validated server-side, defaults to site client_contact.",
+      "errorCodes": ["VALIDATION"],
+      "server": [
+        {
+          "file": "lib/Service/EntryMailService.php",
+          "needles": ["resolveRecipient", "recipient", "getClientContact"]
+        },
+        {
+          "file": "lib/Controller/ApiController.php",
+          "needles": ["sendIncident", "sendLogbook", "recipient"]
+        }
+      ],
+      "web": [
+        {
+          "file": "js/app.js",
+          "needles": ["data-tck-inc-send", "/send"]
+        },
+        {
+          "file": "js/ops.js",
+          "needles": ["/api/logbook/", "/send"]
+        }
+      ],
+      "mobile": null
+    },
+    {
+      "id": "digest-settings",
+      "param": "digest_hour",
+      "description": "Morning digest schedule: enabled flag, local hour 0-23, optional supervisor email leg.",
+      "errorCodes": ["VALIDATION"],
+      "server": [
+        {
+          "file": "lib/Controller/ApiController.php",
+          "needles": ["digest_enabled", "digest_hour", "digest_email"]
+        },
+        {
+          "file": "lib/Service/SettingsService.php",
+          "needles": ["isDigestEnabled", "getDigestHour", "isDigestEmailEnabled", "setDigest"]
+        }
+      ],
+      "web": [
+        {
+          "file": "templates/pages/settings/site-defaults.php",
+          "needles": ["digest_enabled", "digest_hour", "digest_email"]
+        }
+      ],
+      "mobile": null
+    }
+  ]
+}

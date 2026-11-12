@@ -64,6 +64,12 @@ $pills = [
 				<label for="tck-inc-note"><?php p($l->t('Note (optional)')); ?></label>
 				<textarea id="tck-inc-note" name="note" class="tck-select" rows="3" maxlength="8000"></textarea>
 			</div>
+			<div class="tck-field">
+				<label class="tck-check" for="tck-inc-imp">
+					<input type="checkbox" id="tck-inc-imp" name="important" value="1">
+					<span><?php p($l->t('★ Mark as important — included in the morning digest')); ?></span>
+				</label>
+			</div>
 			<div class="tck-form-actions">
 				<button type="submit" class="tck-btn tck-btn--primary"><?php p($l->t('Report incident')); ?></button>
 				<button type="button" class="tck-btn" data-tck-cancel><?php p($l->t('Cancel')); ?></button>
@@ -105,6 +111,9 @@ $pills = [
 						<span class="tck-list__aside">
 							<?php print_unescaped(Badge::render((string)($sevLabel[$i['severity']] ?? $i['severity']), Badge::incidentSeverity((string)$i['severity']))); ?>
 							<?php print_unescaped(Badge::render((string)($statusLabel[$i['status']] ?? $i['status']), Badge::incidentStatus((string)$i['status']))); ?>
+							<?php if (!empty($i['important'])): ?>
+								<span class="tck-badge tck-badge--warning" title="<?php p($l->t('Included in the morning digest')); ?>">★ <?php p($l->t('Important')); ?></span>
+							<?php endif; ?>
 							<button type="button" class="tck-btn" data-tck-incident-toggle
 								aria-expanded="false" aria-controls="tck-inc-detail-<?php p((string)$i['id']); ?>">
 								<?php p($l->t('Details')); ?>
@@ -147,6 +156,18 @@ $pills = [
 									<button type="submit" class="tck-btn tck-btn--primary"><?php p($l->t('Add action')); ?></button>
 								</div>
 							</form>
+						<?php endif; ?>
+						<?php if (!empty($i['canSupervise'])): ?>
+							<div class="tck-form-actions">
+								<button type="button" class="tck-btn" data-tck-inc-important="<?php p((string)$i['id']); ?>"
+									data-revision="<?php p((string)$i['revision']); ?>" data-on="<?php p(!empty($i['important']) ? '1' : '0'); ?>"
+									aria-pressed="<?php p(!empty($i['important']) ? 'true' : 'false'); ?>">
+									<?php p(!empty($i['important']) ? $l->t('★ Important — remove flag') : $l->t('☆ Mark as important')); ?>
+								</button>
+								<button type="button" class="tck-btn" data-tck-inc-send="<?php p((string)$i['id']); ?>"
+									data-site="<?php p((string)$i['siteId']); ?>"
+									data-contact="<?php p((string)($i['clientContact'] ?? '')); ?>"><?php p($l->t('Send to customer')); ?></button>
+							</div>
 						<?php endif; ?>
 						<?php if (!empty($i['woRef'])): ?>
 							<p class="tck-hint"><?php p($l->t('Maintenance work order:')); ?> <span class="tck-badge"><?php p((string)$i['woRef']); ?></span></p>

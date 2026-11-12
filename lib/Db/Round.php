@@ -9,6 +9,7 @@ use OCP\AppFramework\Db\Entity;
 class Round extends Entity
 {
 	protected $planId;
+	protected $adhoc;
 	protected $siteId;
 	protected $snapshotJson;
 	protected $scheduledStart;
@@ -26,6 +27,7 @@ class Round extends Entity
 	{
 		$this->addType('id', 'integer');
 		$this->addType('planId', 'integer');
+		$this->addType('adhoc', 'integer');
 		$this->addType('siteId', 'integer');
 		$this->addType('scheduledStart', 'datetime');
 		$this->addType('windowEnd', 'datetime');
@@ -39,7 +41,8 @@ class Round extends Entity
 	{
 		return [
 			'id' => (int)$this->id,
-			'planId' => (int)$this->planId,
+			'planId' => $this->planId === null ? null : (int)$this->planId,
+			'adhoc' => (int)($this->adhoc ?? 0),
 			'siteId' => (int)$this->siteId,
 			'snapshotJson' => $this->snapshotJson,
 			'scheduledStart' => $this->scheduledStart === null ? null : $this->scheduledStart->format(\DateTimeInterface::ATOM),

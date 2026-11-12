@@ -153,6 +153,7 @@ $tckKeyLog = (array)($_['keyLog'] ?? []);
 		<?php if ($canManage): ?>
 			<div class="tck-list-head__actions">
 				<button type="button" class="tck-btn tck-btn--primary" data-tck-new-plan><?php p($l->t('New plan')); ?></button>
+				<button type="button" class="tck-btn" data-tck-new-adhoc><?php p($l->t('One-off round')); ?></button>
 			</div>
 		<?php endif; ?>
 	</div>
@@ -216,6 +217,34 @@ $tckKeyLog = (array)($_['keyLog'] ?? []);
 			</div>
 			<div class="tck-form-actions">
 				<button type="submit" class="tck-btn tck-btn--primary"><?php p($l->t('Create plan')); ?></button>
+				<button type="button" class="tck-btn" data-tck-cancel><?php p($l->t('Cancel')); ?></button>
+			</div>
+		</form>
+		<form class="tck-form tck-hidden" id="tck-adhoc-form" data-tck-adhoc-form data-site-id="<?php p($site->getId()); ?>" novalidate>
+			<p class="tck-field-hint"><?php p($l->t('A one-off visit outside any plan — e.g. tomorrow’s special tour. Pick the objects, the time, done.')); ?></p>
+			<div class="tck-field">
+				<label for="tck-adhoc-start"><?php p($l->t('Starts at')); ?></label>
+				<input id="tck-adhoc-start" name="starts_at" type="datetime-local" required>
+				<p class="tck-field-error" id="tck-adhoc-start-error" data-tck-err="starts_at" hidden></p>
+			</div>
+			<div class="tck-field">
+				<label for="tck-adhoc-duration"><?php p($l->t('Duration (minutes)')); ?></label>
+				<input id="tck-adhoc-duration" name="duration_min" type="number" min="5" max="720" step="5" value="60" inputmode="numeric">
+				<p class="tck-field-hint"><?php p($l->t('Checkpoints may be scanned any time inside this window.')); ?></p>
+				<p class="tck-field-error" id="tck-adhoc-duration-error" data-tck-err="duration_min" hidden></p>
+			</div>
+			<fieldset class="tck-fieldset">
+				<legend><?php p($l->t('Checkpoints')); ?></legend>
+				<?php foreach ($checkpoints as $cp): ?>
+					<div class="tck-field tck-field--check">
+						<input id="tck-adhoc-cp-<?php p($cp->getId()); ?>" type="checkbox" name="adhoc_cp_ids" value="<?php p($cp->getId()); ?>" checked>
+						<label for="tck-adhoc-cp-<?php p($cp->getId()); ?>"><?php p($cp->getName()); ?></label>
+					</div>
+				<?php endforeach; ?>
+				<p class="tck-field-error" id="tck-adhoc-cps-error" data-tck-err="checkpoint_ids" hidden></p>
+			</fieldset>
+			<div class="tck-form-actions">
+				<button type="submit" class="tck-btn tck-btn--primary"><?php p($l->t('Create round')); ?></button>
 				<button type="button" class="tck-btn" data-tck-cancel><?php p($l->t('Cancel')); ?></button>
 			</div>
 		</form>

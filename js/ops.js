@@ -89,6 +89,8 @@
 
 	var siteSel = document.getElementById('tck-site-select');
 	function currentSite() { return siteSel ? parseInt(siteSel.value, 10) : parseInt((document.getElementById('tck-alerts') || {}).dataset.siteId || '0', 10); }
+	// Lazily fetched site client_contact for the send dialog prefill.
+	var siteContacts = {};
 
 	/* ── Alerts ─────────────────────────────────────────────────────── */
 	function loadAlerts() {
@@ -444,7 +446,7 @@
 				li.className = 'tck-list__row';
 				var kindLabel = { note: t('Note'), handover: t('Handover'), hazard: t('Hazard') }[e.kind] || e.kind;
 				li.innerHTML = '<div class="tck-list__main"><span class="tck-list__title">' +
-					(e.pinned ? '📌 ' : '') + esc(kindLabel) + ' — ' + esc(e.body.slice(0, 140)) + (e.body.length > 140 ? '…' : '') + '</span>' +
+					(e.pinned ? '📌 ' : '') + (e.important ? '★ ' : '') + esc(kindLabel) + ' — ' + esc(e.body.slice(0, 140)) + (e.body.length > 140 ? '…' : '') + '</span>' +
 					'<span class="tck-list__sub">' + esc(e.authorName || e.authorUid) + ' · ' + esc(fmtTs(e.createdAt)) +
 					' · ' + esc(tf('%d acked', [(e.ackedBy || []).length])) + '</span></div>';
 				var aside = document.createElement('div');
@@ -457,7 +459,32 @@
 						if (j2.success) { toast('ok', t('Acknowledged')); loadLogbook(); } else { ack.disabled = false; toast('error', j2.message || t('Error')); }
 					});
 				});
-				aside.appendChild(ack); li.appendChild(aside); ul.appendChild(li);
+				aside.appendChild(ack);
+				var lf = document.getElementById('tck-log-form');
+				if (lf && lf.dataset.canManage === '1') {
+					var send = document.createElement('button');
+					send.type = 'button'; send.className = 'tck-btn'; send.textContent = t('Send to customer');
+					send.addEventListener('click', function () {
+						send.disabled = true;
+						var open = function (contact) {
+							send.disabled = false;
+							window.TCK.sendEntry({
+								title: t('Send to customer'),
+								text: t('Mails this logbook entry to the recipient.'),
+								endpoint: '/api/logbook/' + e.id + '/send',
+								recipient: contact || '',
+							});
+						};
+						var sid = currentSite();
+						if (siteContacts[sid] !== undefined) { open(siteContacts[sid]); return; }
+						api('GET', '/api/sites/' + sid).then(function (sj) {
+							siteContacts[sid] = (sj.success && sj.data && sj.data.clientContact) || '';
+							open(siteContacts[sid]);
+						}).catch(function () { open(''); });
+					});
+					aside.appendChild(send);
+				}
+				li.appendChild(aside); ul.appendChild(li);
 			});
 		});
 	}
@@ -525,7 +552,8 @@
 			ev.preventDefault();
 			var fd = new FormData(logForm);
 			api('POST', '/api/sites/' + logForm.dataset.siteId + '/logbook', {
-				kind: fd.get('kind'), body: fd.get('body'), pinned: fd.get('pinned') === '1'
+				kind: fd.get('kind'), body: fd.get('body'), pinned: fd.get('pinned') === '1',
+				important: fd.get('important') === '1'
 			}).then(function (j) {
 				if (j.success) { toast('ok', t('Entry added')); logForm.reset(); logForm.classList.add('tck-hidden'); loadLogbook(); }
 				else { toast('error', j.message || t('Error')); }

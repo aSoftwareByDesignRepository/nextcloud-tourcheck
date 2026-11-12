@@ -40,7 +40,7 @@ class LogbookService
 		return $rows;
 	}
 
-	public function create(int $siteId, string $actorUid, string $kind, string $body, bool $pinned): Logbook
+	public function create(int $siteId, string $actorUid, string $kind, string $body, bool $pinned, bool $important = false): Logbook
 	{
 		$this->acl->assertCanViewSite($siteId);
 		$fields = [];
@@ -63,6 +63,7 @@ class LogbookService
 		$l->setAuthorUid($actorUid);
 		$l->setKind($kind);
 		$l->setPinned($pinned ? 1 : 0);
+		$l->setImportant($important ? 1 : 0);
 		$l->setBody($body);
 		$l->setRevision(1);
 		$l->setCreatedAt($this->timeFactory->getDateTime());
@@ -72,7 +73,7 @@ class LogbookService
 	}
 
 	/** CAS edit — author or supervisor+. Prior content survives in the journal. */
-	public function update(int $id, string $actorUid, ?int $baseRevision, string $body, ?bool $pinned): Logbook
+	public function update(int $id, string $actorUid, ?int $baseRevision, string $body, ?bool $pinned, ?bool $important = null): Logbook
 	{
 		if ($baseRevision === null) {
 			throw new ConflictException(Constants::ERR_CONFLICT_STALE, 'Reload before saving.');
@@ -97,10 +98,15 @@ class LogbookService
 			$this->acl->assertCanSuperviseSite((int)$l->getSiteId());
 			$l->setPinned($pinned ? 1 : 0);
 		}
+		// "wichtig" is worker-facing (unlike pin) — author or supervisor may flip it.
+		if ($important !== null && $important !== ((int)$l->getImportant() === 1)) {
+			$l->setImportant($important ? 1 : 0);
+		}
 		// prior body journaled before overwrite — the audit trail keeps both
 		$this->events->journalSignal((int)$l->getSiteId(), 'logbook_edited', [
 			'actor_uid' => $actorUid, 'logbook_id' => $id, 'rev' => (int)$l->getRevision(),
 			'prior_sha256' => hash('sha256', (string)$l->getBody()),
+			'important' => (int)$l->getImportant(),
 		]);
 		$l->setBody($body);
 		$l->setRevision((int)$l->getRevision() + 1);

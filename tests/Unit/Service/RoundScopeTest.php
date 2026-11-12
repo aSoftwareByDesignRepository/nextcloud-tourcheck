@@ -9,6 +9,7 @@ use OCA\TourCheck\Db\RoundCheckpointMapper;
 use OCA\TourCheck\Db\RoundMapper;
 use OCA\TourCheck\Service\AccessControlService;
 use OCA\TourCheck\Service\ChainService;
+use OCA\TourCheck\Service\CheckpointService;
 use OCA\TourCheck\Service\RoundService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IDBConnection;
@@ -44,6 +45,7 @@ final class RoundScopeTest extends TestCase
 			$this->createMock(ChainService::class),
 			$time,
 			$this->createMock(IDBConnection::class),
+			$this->createMock(CheckpointService::class),
 		);
 	}
 

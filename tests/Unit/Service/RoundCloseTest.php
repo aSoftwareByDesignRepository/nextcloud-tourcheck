@@ -13,6 +13,7 @@ use OCA\TourCheck\Exception\DomainException;
 use OCA\TourCheck\Exception\NotFoundException;
 use OCA\TourCheck\Service\AccessControlService;
 use OCA\TourCheck\Service\ChainService;
+use OCA\TourCheck\Service\CheckpointService;
 use OCA\TourCheck\Service\RoundService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IDBConnection;
@@ -49,6 +50,7 @@ final class RoundCloseTest extends TestCase
 		$time->method('getDateTime')->willReturnCallback(fn () => clone $this->now);
 		$this->svc = new RoundService(
 			$this->rounds, $this->roundCps, $this->events, $this->acl, $this->chain, $time, $this->db,
+			$this->createMock(CheckpointService::class),
 		);
 	}
 

@@ -166,6 +166,11 @@ class CompanionController extends Controller
 					'status' => $r->getStatus(),
 					'scheduled_start' => $r->getScheduledStart()->format('c'),
 					'window_end' => $r->getWindowEnd()->format('c'),
+					// F4/F5: real arrival/departure stamps + ad-hoc origin —
+					// the card can show "arrived 08:12" once work began.
+					'started_at' => $r->getStartedAt()?->format('c'),
+					'completed_at' => $r->getCompletedAt()?->format('c'),
+					'adhoc' => (int)($r->getAdhoc() ?? 0),
 					// NH-09: the client only streams positions when the site
 					// admin opted in — the flag travels with the round.
 					'live_position' => $site !== null ? (int)$site->getLivePosition() : 0,

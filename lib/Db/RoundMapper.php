@@ -217,6 +217,22 @@ class RoundMapper extends QBMapper
 	}
 
 	/**
+	 * First-scan writes the real visit start — exactly once. The isNull
+	 * guard makes late/offline replays and concurrent scanners converge
+	 * on the earliest observed timestamp instead of overwriting it.
+	 */
+	public function markStarted(int $id, \DateTimeInterface $ts, string $actorUid): bool
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->update($this->getTableName())
+			->set('started_at', $qb->createNamedParameter($ts, 'datetime'))
+			->set('started_by', $qb->createNamedParameter($actorUid))
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($id)))
+			->andWhere($qb->expr()->isNull('started_at'));
+		return $qb->executeStatement() === 1;
+	}
+
+	/**
 	 * Conditional delete — only when the row is still SCHEDULED and not
 	 * started. Guards the plan-edit vs. round-start/event-attach race: a
 	 * round that transitioned between select and delete is kept.

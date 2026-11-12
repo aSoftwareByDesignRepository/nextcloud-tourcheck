@@ -311,6 +311,17 @@ class EventService
 			// NOT a scan, so status-transition is the wrong signal here.
 			$firstRoundScan = $event->getRoundId() !== null
 				&& $this->events->countForRound((int)$event->getRoundId()) === 1;
+			if ($firstRoundScan) {
+				// F4: real arrival stamp — conditional update, converges
+				// under concurrent scans and never overwrites a prior stamp.
+				// Member/station scans can carry an empty actor uid — fall
+				// back to the member marker so started_by is never blank.
+				$actor = (string)$event->getActorUid();
+				if ($actor === '') {
+					$actor = $event->getStationMemberId() !== null ? 'member:' . $event->getStationMemberId() : 'system';
+				}
+				$this->rounds->markStartedOnce((int)$event->getRoundId(), $attachTs, $actor);
+			}
 			$kind = $method === Constants::METHOD_ATTEST ? Constants::KIND_ATTEST : Constants::KIND_CHECK;
 			$reason = $method === Constants::METHOD_ATTEST ? trim((string)$event->getAttestationReason()) : '';
 			$this->chain->append($siteId, [

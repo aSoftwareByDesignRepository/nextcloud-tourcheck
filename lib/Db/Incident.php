@@ -23,6 +23,7 @@ class Incident extends Entity
 	protected $memberId;
 	protected $status;
 	protected $revision;
+	protected $important;
 	protected $woRef;
 	protected $createdAt;
 	protected $updatedAt;
@@ -38,6 +39,7 @@ class Incident extends Entity
 		$this->addType('audioFileid', 'integer');
 		$this->addType('memberId', 'integer');
 		$this->addType('revision', 'integer');
+		$this->addType('important', 'integer');
 		$this->addType('woRef', 'string');
 		$this->addType('createdAt', 'datetime');
 		$this->addType('updatedAt', 'datetime');
@@ -62,6 +64,7 @@ class Incident extends Entity
 			'memberId' => (int)$this->memberId,
 			'status' => $this->status,
 			'revision' => (int)$this->revision,
+			'important' => (int)($this->important ?? 0),
 			'woRef' => $this->woRef,
 			'createdAt' => $this->createdAt === null ? null : $this->createdAt->format(\DateTimeInterface::ATOM),
 			'updatedAt' => $this->updatedAt === null ? null : $this->updatedAt->format(\DateTimeInterface::ATOM),
