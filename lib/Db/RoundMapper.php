@@ -91,6 +91,32 @@ class RoundMapper extends QBMapper
 	}
 
 	/**
+	 * Companion "done today" tail — terminal rounds (completed/partial)
+	 * whose completed_at stamp sits inside the last 24h. Emitted on the
+	 * same site-active scope as findOpen(); web/dashboard feeds keep
+	 * using findOpen() unchanged.
+	 * @param list<int> $siteIds
+	 * @return list<Round>
+	 */
+	public function findRecentlyCompleted(array $siteIds, bool $unrestricted, \DateTimeInterface $now): array
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('r.*')->from($this->getTableName(), 'r')
+			->innerJoin('r', 'tck_site', 's', 's.id = r.site_id AND s.active = 1')
+			->where($qb->expr()->in('r.status', $qb->createNamedParameter(['completed', 'partial'], \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($qb->expr()->gte('r.completed_at', $qb->createNamedParameter((new \DateTime())->setTimestamp($now->getTimestamp() - 86400), 'datetime')))
+			->orderBy('r.scheduled_start', 'ASC')
+			->setMaxResults(100);
+		if (!$unrestricted) {
+			if ($siteIds === []) {
+				return [];
+			}
+			$qb->andWhere($qb->expr()->in('r.site_id', $qb->createNamedParameter(array_map('intval', $siteIds), \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_INT_ARRAY)));
+		}
+		return $this->findEntities($qb);
+	}
+
+	/**
 	 * Rounds overview window — every status, scheduled_start inside
 	 * [$from,$to), on the given sites (or all when $unrestricted). The web
 	 * Rounds page is a record view, not just "today": finished and skipped
@@ -220,6 +246,10 @@ class RoundMapper extends QBMapper
 	 * First-scan writes the real visit start — exactly once. The isNull
 	 * guard makes late/offline replays and concurrent scanners converge
 	 * on the earliest observed timestamp instead of overwriting it.
+	 * unique-conflict:ok — conditional UPDATE on non-unique columns only
+	 * (started_at/started_by; the tck_round_gen_uq key is never written
+	 * post-insert); the WHERE started_at IS NULL guard is the atomic
+	 * converge-to-winner path, there is no conflict to catch.
 	 */
 	public function markStarted(int $id, \DateTimeInterface $ts, string $actorUid): bool
 	{

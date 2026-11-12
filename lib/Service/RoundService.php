@@ -86,6 +86,29 @@ class RoundService
 		return $this->todayFor($siteIds, $unrestricted);
 	}
 
+	/**
+	 * Companion today feed — open rounds plus the finished tail
+	 * (completed/partial inside the last 24h). Without the tail
+	 * completed_at was dead payload: the emitted row set could never
+	 * carry a non-null value, and the client "finished" card had no
+	 * possible data. Open and done sets are disjoint by status; the
+	 * merge is re-sorted on scheduled_start so the finished tail slots
+	 * chronologically instead of appending at the end.
+	 * @return list<Round>
+	 */
+	public function workerFeedForUser(string $uid): array
+	{
+		$siteIds = $this->acl->visibleSiteIds($uid);
+		$unrestricted = $siteIds === [] && ($this->acl->isAppAdmin($uid) || $this->acl->canPlan($uid));
+		$now = $this->timeFactory->getDateTime();
+		$all = array_merge(
+			$this->rounds->findOpen($siteIds, $unrestricted, $now),
+			$this->rounds->findRecentlyCompleted($siteIds, $unrestricted, $now),
+		);
+		usort($all, static fn (Round $a, Round $b) => $a->getScheduledStart() <=> $b->getScheduledStart());
+		return $all;
+	}
+
 	public function getVisible(int $roundId): Round
 	{
 		$round = $this->rounds->find($roundId);

@@ -131,7 +131,7 @@ class CompanionController extends Controller
 			if (!$this->acl->hasAppAccess($uid)) {
 				throw new NotFoundException();
 			}
-			$rounds = $this->rounds->todayForUser($uid);
+			$rounds = $this->rounds->workerFeedForUser($uid);
 			// NH-15b: read-only pool-vehicle badge — absent MC install simply
 			// yields null; the client hides the chip, never errors.
 			$badge = $this->poolVehicles->badgeFor($uid, new \DateTimeImmutable());
