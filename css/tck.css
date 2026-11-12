@@ -318,6 +318,30 @@
 .tck-toast__close:hover { color: var(--color-main-text); background: var(--color-background-hover); }
 .tck-toast__close:focus-visible { outline: 2px solid var(--color-primary-element); outline-offset: 2px; }
 
+/* Overlay control armor — <button class="tck-toast__close"> renders inside
+   the body-mounted toast stack (.tck-toasts, outside .tck-app), so the bare
+   0-1-0 class rules above lose to NC core's native button repaint
+   (width:130px + pale fill + border at 0-1-1, margin-inline-start:0 at
+   0-2-1). The overlay-scoped selectors pin every repainted property
+   !important; the hover pin keeps the declared hover affordance alive
+   against the same repaint (overlay_toast_button_armor_gap; donor shape:
+   whistlecheck #wc-toasts button.wc-toast__close). ops.js mounts the stack
+   with the class only, so both scopes are required. */
+#tck-toasts button.tck-toast__close,
+.tck-toasts button.tck-toast__close {
+	width: auto !important;
+	margin: calc(-1 * var(--tck-space-2)) !important;
+	padding: 0 !important;
+	background: transparent !important;
+	border: 0 !important;
+	min-width: var(--tck-touch);
+	min-height: var(--tck-touch);
+}
+#tck-toasts button.tck-toast__close:hover,
+.tck-toasts button.tck-toast__close:hover {
+	background: var(--color-background-hover) !important;
+}
+
 /* --- footer --- */
 .tck-footer { border-top: 1px solid var(--color-border); padding: var(--tck-space-3) var(--tck-space-5); }
 .tck-footer__inner { display: flex; gap: var(--tck-space-5); flex-wrap: wrap; }
