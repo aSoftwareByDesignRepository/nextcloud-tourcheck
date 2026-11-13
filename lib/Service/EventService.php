@@ -179,6 +179,14 @@ class EventService
 				throw new ValidationException(Constants::ERR_VALIDATION, 'Too far from the checkpoint.', ['geo' => 'out_of_range']);
 			}
 		}
+		// AC-2: the photo-fallback attestation is only meaningful WITH its
+		// photo bound — the canonical reason without photo_fileid fails
+		// closed even when a caller bypasses the controller check.
+		if ($method === Constants::METHOD_ATTEST
+			&& trim((string)($in['attestation_reason'] ?? '')) === 'geo_nofix_photo_fallback'
+			&& (!isset($in['photo_fileid']) || (int)$in['photo_fileid'] <= 0)) {
+			throw new ValidationException(Constants::ERR_VALIDATION, 'A GPS position is required for this checkpoint.', ['geo' => 'required']);
+		}
 		// Qualification gate — a checkpoint may require a valid qual
 		// (§F-optional qualification gating). Applies to session actors only;
 		// station members are vouched by the station binding.

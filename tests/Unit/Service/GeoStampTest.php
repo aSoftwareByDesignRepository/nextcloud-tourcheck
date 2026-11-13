@@ -217,4 +217,86 @@ final class GeoStampTest extends TestCase
 		$r = $this->svc->ingest($in + ['photo_fileid' => 555]);
 		self::assertSame(555, (int)$r['event']->getPhotoFileid());
 	}
+
+	/**
+	 * AC-2: the no-GPS-fix photo fallback lands as an ATTEST event — weak
+	 * evidence graded by planners, journaled as an attestation, never as a
+	 * GPS scan. No fix is required on the attest path; the bound photo is.
+	 */
+	public function testGeoPhotoFallbackAttestPersists(): void
+	{
+		$cp = $this->checkpoint(true);
+		$cp->setCpKind('geo');
+		$this->events->method('findByClientEventId')->willReturn(null);
+		$this->photos->method('exists')->with(7, 555)->willReturn(true);
+		$this->rounds->method('attach')->willReturn([null, null]);
+		$journal = null;
+		$this->chain->method('append')->willReturnCallback(
+			function (int $siteId, array $args) use (&$journal) {
+				$journal = $args;
+				return new \OCA\TourCheck\Db\JournalEntry();
+			});
+		$this->events->expects($this->once())->method('insert')
+			->willReturnCallback(static fn (CheckEvent $e) => $e);
+		$r = $this->svc->ingest([
+			'_checkpoint' => $cp,
+			'client_event_id' => 'ce_fb_p1',
+			'method' => 'attested',
+			'attestation_reason' => 'geo_nofix_photo_fallback',
+			'actor_uid' => 'worker1',
+			'photo_fileid' => 555,
+		]);
+		self::assertSame('attested', $r['event']->getMethod());
+		self::assertSame('geo_nofix_photo_fallback', $r['event']->getAttestationReason());
+		self::assertSame('worker1', $r['event']->getAttesterUid());
+		self::assertSame(555, (int)$r['event']->getPhotoFileid());
+		self::assertSame('attest', $journal['kind'] ?? null);
+		self::assertSame('attested: geo_nofix_photo_fallback', $journal['body'] ?? null);
+	}
+
+	/** The canonical fallback reason without a photo fails closed — even
+	 *  when a caller bypasses the controller check. */
+	public function testGeoPhotoFallbackReasonWithoutPhotoRejected(): void
+	{
+		$cp = $this->checkpoint(true);
+		$cp->setCpKind('geo');
+		$this->events->method('findByClientEventId')->willReturn(null);
+		try {
+			$this->svc->ingest([
+				'_checkpoint' => $cp,
+				'client_event_id' => 'ce_fb_p2',
+				'method' => 'attested',
+				'attestation_reason' => 'geo_nofix_photo_fallback',
+				'actor_uid' => 'worker1',
+			]);
+			self::fail('expected rejection');
+		} catch (ValidationException $e) {
+			self::assertSame('required', $e->fields['geo'] ?? null);
+		}
+	}
+
+	/** A replayed fallback (same client_event_id, same payload) returns the
+	 *  stored row unchanged — uplink retries can never double-attest. */
+	public function testGeoPhotoFallbackReplayIsIdempotent(): void
+	{
+		$cp = $this->checkpoint(true);
+		$cp->setCpKind('geo');
+		$stored = new CheckEvent();
+		$stored->setId(900);
+		$stored->setSiteId(7);
+		$stored->setCheckpointId((int)$cp->getId());
+		$stored->setMethod('attested');
+		$stored->setActorUid('worker1');
+		$this->events->method('findByClientEventId')->willReturn($stored);
+		$r = $this->svc->ingest([
+			'_checkpoint' => $cp,
+			'client_event_id' => 'ce_fb_p1',
+			'method' => 'attested',
+			'attestation_reason' => 'geo_nofix_photo_fallback',
+			'actor_uid' => 'worker1',
+			'photo_fileid' => 555,
+		]);
+		self::assertTrue($r['replayed']);
+		self::assertFalse($r['mismatch']);
+	}
 }

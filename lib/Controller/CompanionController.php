@@ -668,18 +668,37 @@ class CompanionController extends Controller
 			if (!in_array($cpKind, ['geo', 'beacon'], true)) {
 				throw new ValidationException(Constants::ERR_VALIDATION, 'This checkpoint needs a physical tag.', ['checkpoint_id' => 'invalid']);
 			}
+			$photoFileid = isset($b['photo_fileid']) ? $this->strictId($b['photo_fileid'], 'photo_fileid') : null;
+			$method = $cpKind === 'geo' ? Constants::METHOD_GPS : Constants::METHOD_BLE;
+			$attestationReason = null;
+			if ($this->bodyBool($b, 'geo_photo_fallback')) {
+				// AC-2 weak-evidence channel: a geo checkpoint may be confirmed
+				// by a bound site photo when the device has no fix — journaled
+				// as an attestation so planners grade it weak, never as a scan.
+				if ($cpKind !== 'geo') {
+					throw new ValidationException(Constants::ERR_VALIDATION, 'Photo fallback is only valid for GPS checkpoints.', ['geo_photo_fallback' => 'invalid']);
+				}
+				// Fail closed: the claim without a bound photo carries no
+				// evidence at all — same shape as the GPS no-fix reject.
+				if ($photoFileid === null || $photoFileid <= 0) {
+					throw new ValidationException(Constants::ERR_VALIDATION, 'A GPS position is required for this checkpoint.', ['geo' => 'required']);
+				}
+				$method = Constants::METHOD_ATTEST;
+				$attestationReason = 'geo_nofix_photo_fallback';
+			}
 			$r = $this->events->ingest([
 				'_checkpoint' => $cp,
 				'client_event_id' => (string)($b['client_event_id'] ?? ''),
 				'client_ts' => $b['client_ts'] ?? null,
-				'method' => $cpKind === 'geo' ? Constants::METHOD_GPS : Constants::METHOD_BLE,
+				'method' => $method,
+				'attestation_reason' => $attestationReason,
 				'actor_uid' => $uid,
 				'geo' => $b['geo'] ?? null,
 				'beacon_uuid' => $b['beacon_uuid'] ?? null,
 				'values' => $b['values'] ?? null,
 				'note' => $b['note'] ?? null,
 				'auto_incident' => $b['auto_incident'] ?? null,
-				'photo_fileid' => isset($b['photo_fileid']) ? $this->strictId($b['photo_fileid'], 'photo_fileid') : null,
+				'photo_fileid' => $photoFileid,
 				'round_id' => isset($b['round_id']) ? $this->strictId($b['round_id'], 'round_id') : null,
 				'ip' => (string)$this->request->getRemoteAddress(),
 			]);
