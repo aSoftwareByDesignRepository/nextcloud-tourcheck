@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.7 - 2026-11-13
+
+### Added
+- Important flags, morning digest + customer mail, ad-hoc rounds
+- Config & data transfer — encrypted test→prod pack with settings page + bridge
+- Widget-snapshot endpoint
+- Turkish locale; zh_CN and zh-Hant/zh_TW catalogs — complete translations
+  across the language set
+- Refreshed App Store screenshots
+
+### Fixed
+- Photos mint file ids inside the JS safe-integer range
+- Companion: geo photo fallback attests with the bound site photo; rounds
+  feed carries the finished-24h tail
+- Webhooks: local-address SSRF guard enabled, redirects forbidden
+- CSRF: NoCSRFRequired on nav-sink download routes
+- Real attest form wired on round detail — dead end removed
+- Upgrade-backup: closed swallowed-write catches in snapshot cleanup
+- Native select chevron kept (background-color, not shorthand)
+- Toast close armored against the NC core button repaint
+- Transfer pack re-sync: schema cache, file-input specificity, positional t()
+- l10n: label-in-name stale dependents across six catalogs
+
 ## 0.1.6 - 2026-10-14
 
 ### Added
