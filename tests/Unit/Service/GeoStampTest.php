@@ -299,4 +299,15 @@ final class GeoStampTest extends TestCase
 		self::assertTrue($r['replayed']);
 		self::assertFalse($r['mismatch']);
 	}
+
+	/** Minted photo/audio file ids must fit a JS double: any id above
+	 *  2^53-1 silently mutates when a companion JSON.parses it, so the
+	 *  round-trip photo_fileid reference can never resolve — the AC-2
+	 *  photo fallback 4xx'd on-device while curl proofs stayed green. */
+	public function testPhotoFileIdFitsJsSafeInteger(): void
+	{
+		self::assertSame(9_007_199_254_740_991, PhotoService::MAX_JS_SAFE_FILEID);
+		self::assertLessThanOrEqual(2 ** 53 - 1, PhotoService::MAX_JS_SAFE_FILEID);
+		self::assertGreaterThan(1_000_000_000, PhotoService::MAX_JS_SAFE_FILEID);
+	}
 }

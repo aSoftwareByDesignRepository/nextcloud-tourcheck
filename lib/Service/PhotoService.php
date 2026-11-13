@@ -53,6 +53,16 @@ class PhotoService
 	}
 
 	/**
+	 * JS companions decode JSON numbers as IEEE-754 doubles — a file id
+	 * beyond 2^53-1 silently mutates client-side (2094215282171121362
+	 * becomes 2094215282171121400), so every photo_fileid round-trip
+	 * 4xx'd on real devices while curl/unit proofs stayed green. Mint
+	 * inside the safe-integer bound: the id space stays enormous and
+	 * every client can reference it exactly.
+	 */
+	public const MAX_JS_SAFE_FILEID = 9_007_199_254_740_991;
+
+	/**
 	 * Store an uploaded photo: validate, decode, strip metadata, re-encode
 	 * JPEG q85. Returns the numeric file id used as photo_fileid.
 	 */
@@ -88,7 +98,7 @@ class PhotoService
 			throw new DomainException('photo_encode_failed', 'Could not process the photo.', 500);
 		}
 		do {
-			$fileId = random_int(1_000_000_000, PHP_INT_MAX - 1);
+			$fileId = random_int(1_000_000_000, self::MAX_JS_SAFE_FILEID);
 		} while ($this->read($siteId, $fileId) !== null);
 		$this->folder($siteId)->newFile($fileId . '.jpg', $clean);
 		return $fileId;
@@ -129,7 +139,7 @@ class PhotoService
 			throw new ValidationException(Constants::ERR_VALIDATION, 'Not a supported voice recording.', ['audio' => 'invalid']);
 		}
 		do {
-			$fileId = random_int(1_000_000_000, PHP_INT_MAX - 1);
+			$fileId = random_int(1_000_000_000, self::MAX_JS_SAFE_FILEID);
 		} while ($this->readAudio($siteId, $fileId) !== null || $this->read($siteId, $fileId) !== null);
 		$this->folder($siteId)->newFile($fileId . '.' . $ext, (string)file_get_contents($tmpPath));
 		return $fileId;
