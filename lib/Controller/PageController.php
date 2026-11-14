@@ -680,6 +680,10 @@ class PageController extends Controller
 			Util::addScript(Constants::APP_ID, 'transfer-bridge');
 			Util::addScript(Constants::APP_ID, 'transfer');
 		}
+		if ($section === 'license') {
+			Util::addStyle(Constants::APP_ID, 'common/license-page');
+			Util::addScript(Constants::APP_ID, 'common/license-page');
+		}
 
 		$scope = $this->scope();
 		$stationRows = [];
@@ -715,6 +719,26 @@ class PageController extends Controller
 			'siteCheckpoints' => $siteCheckpoints,
 			'siteOptions' => array_map(static fn ($s) => ['id' => (int)$s->getId(), 'name' => $s->getName()], $scope['sites']),
 			'license' => $this->license->getLicenseSummary() ?? [],
+			// Shared license page (_shared/license-page) params.
+			'productCode' => 'TCK2',
+			'companionText' => $this->l->t('the companion and station devices'),
+			'seatAppName' => $this->l->t('the TourCheck companion app'),
+			'showMobileSeats' => false,
+			'terminalDevicesUsed' => count(is_array($stationRows ?? null) ? $stationRows : []),
+			'terminalDevicesLimit' => (int)(($this->license->getLicenseSummary() ?? [])['stations'] ?? 0),
+			'showTerminal' => (int)(($this->license->getLicenseSummary() ?? [])['stations'] ?? 0) > 0,
+			'terminalMode' => 'link',
+			'deviceManageUrl' => $this->urlGenerator->linkToRoute('tourcheck.page.settings', ['section' => 'stations']),
+			'deviceManageLabel' => $this->l->t('Manage stations'),
+			'deviceStrings' => [
+				'title' => $this->l->t('Stations'),
+				'lead' => $this->l->t('Each paired station uses one license slot.'),
+			],
+			'apiLicenseUrl' => $this->urlGenerator->linkToRoute('tourcheck.api.applyLicense'),
+			'apiClearLicenseUrl' => $this->urlGenerator->linkToRoute('tourcheck.api.clearLicense'),
+			'licenseRenewMailto' => 'mailto:info@software-by-design.de?subject=' . rawurlencode('TourCheck license'),
+			'productsUrl' => 'https://nextcloud.software-by-design.de/',
+			'requesttoken' => \OCP\Util::callRegister(),
 			'supportUsLinks' => new \OCA\TourCheck\Support\SupportUsLinks(
 				'TourCheck',
 				true,
