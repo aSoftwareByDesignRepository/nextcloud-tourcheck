@@ -104,7 +104,7 @@ class Notifier implements INotifier
 				throw new UnknownNotificationException();
 		}
 		$notification->setLink($link);
-		$notification->setIcon($this->urlGenerator->getAbsoluteURL($this->urlGenerator->imagePath(Constants::APP_ID, 'app.svg')));
+		$notification->setIcon($this->urlGenerator->getAbsoluteURL($this->urlGenerator->imagePath(Constants::APP_ID, 'app-dark.svg')));
 		return $notification;
 	}
 }

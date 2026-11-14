@@ -59,7 +59,7 @@ class TourCheckWidget implements IAPIWidget, IIconWidget
 	public function getIconUrl(): string
 	{
 		return $this->urlGenerator->getAbsoluteURL(
-			$this->urlGenerator->imagePath(Constants::APP_ID, 'app.svg')
+			$this->urlGenerator->imagePath(Constants::APP_ID, 'app-dark.svg')
 		);
 	}
 
