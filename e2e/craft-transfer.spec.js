@@ -7,7 +7,7 @@
  * plus the replace-confirm binding leg (footer + token row inside the
  * dialog client box at 1280 AND 375) and the positional t() proof
  * (rendered counters carry values, never %d/%s/%1$s residue).
- * Ported from portalcheck e2e/craft-transfer.spec.js (tck- prefix).
+ * Ported from kanzleicheck e2e/craft-transfer.spec.js (tck- prefix).
  */
 import { test, expect } from '@playwright/test'
 import fs from 'node:fs'
