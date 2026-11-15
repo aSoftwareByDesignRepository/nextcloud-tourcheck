@@ -1540,39 +1540,6 @@
 		filterRows(rows, function () { return true; }, countEl, emptyEl, list, cfg.single, cfg.plural);
 	});
 
-	/* --- license: apply + remove --- */
-	var licForm = document.querySelector('[data-tck-license]');
-	if (licForm) {
-		licForm.addEventListener('submit', function (e) {
-			e.preventDefault();
-			clearFieldErrors(licForm);
-			var btn = licForm.querySelector('[type="submit"]');
-			if (btn) { btn.disabled = true; }
-			api('POST', '/api/admin/license', {
-				license_key: licForm.querySelector('[name="license"]').value.trim()
-			}).then(function (json) {
-				if (btn) { btn.disabled = false; }
-				if (json.success) { toast('ok', t('License applied')); setTimeout(function () { location.reload(); }, 600); }
-				else { handleError(licForm, json); }
-			}).catch(function () {
-				if (btn) { btn.disabled = false; }
-				toast('error', t('Network error'));
-			});
-		});
-	}
-	var clearLic = document.querySelector('[data-tck-clear-license]');
-	if (clearLic) {
-		clearLic.addEventListener('click', function () {
-			tckConfirm(t('Remove this license? Stations and the companion app stop working.')).then(function (ok) {
-				if (!ok) { return; }
-				api('DELETE', '/api/admin/license').then(function (json) {
-					if (json.success) { toast('ok', t('License removed')); setTimeout(function () { location.reload(); }, 600); }
-					else { handleError(null, json); }
-				}).catch(function () { toast('error', t('Network error')); });
-			});
-		});
-	}
-
 	/* --- uid/gid pickers: debounced search dropdown (combobox pattern) ---
 	   Multi fields (access settings, comma-separated) append; single fields
 	   (member uid) replace. Keyboard: ↓/↑ cycle, Enter pick, Esc close. */

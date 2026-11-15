@@ -18,7 +18,7 @@ const ADMIN = { username: 'tck_atlas', password: process.env.E2E_PASSWORD || 'Tc
 test.describe('ATLAS_VERTICAL_SCROLL_CONTRACT', () => {
 	for (const [section, target] of [
 		['stations', '[data-tck-settings="stations"] button[type="submit"]'],
-		['license', '[data-tck-license] button[type="submit"]'],
+		['license', '#tck-terminal-heading, #tck-mobile-seats-section, #tck-license-page'],
 		['retention', '[data-tck-settings="retention"] button[type="submit"]'],
 	]) {
 		test(`settings ${section} scrolls to its last control`, async ({ page }) => {
