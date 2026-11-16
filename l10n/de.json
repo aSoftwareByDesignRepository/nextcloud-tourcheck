@@ -1,6 +1,5 @@
 {
 	"translations": {
-		"%1$d flagged item(s) at %2$s in the last 24 h — %3$d incident(s), %4$d logbook entry(ies).": "%1$d markierte(r) Eintrag/Einträge bei %2$s in den letzten 24 h — %3$d Vorkommnis(se), %4$d Wachbucheintrag/-einträge.",
 		"%1$d of %2$d device slots in use.": "%1$d von %2$d Geräteplätzen belegt.",
 		"%1$d of %2$d done": "%1$d von %2$d erledigt",
 		"%1$d of %2$d seats assigned": "%1$d von %2$d Sitzen belegt",
@@ -11,7 +10,6 @@
 		"%d h": "%d Std.",
 		"%d in walk order": "%d in Laufreihenfolge",
 		"%d min": "%d Min.",
-		"%d open alert(s), %d open task(s)": "%d offene Alarme, %d offene Aufgaben",
 		"%d overdue": "%d überfällig",
 		"%d registered": "%d registriert",
 		"%d shared": "%d geteilt",
@@ -951,6 +949,13 @@
 		"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._": ["1 Verweis unaufgelöst — siehe die Gruppen unten.", "%n Verweise unaufgelöst — siehe die Gruppen unten."],
 		"_1 row needs a value on this instance_::_%n rows need a value on this instance_": ["1 Zeile benötigt einen Wert auf dieser Instanz", "%n Zeilen benötigen einen Wert auf dieser Instanz"],
 		"_1 row skipped._::_%n rows skipped._": ["1 Zeile übersprungen.", "%n Zeilen übersprungen."],
-		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": ["Warnung: 1 Zeile wird endgültig gelöscht, danach werden die Dateidaten geladen.", "Warnung: %n Zeilen werden endgültig gelöscht, danach werden die Dateidaten geladen."]
+		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": ["Warnung: 1 Zeile wird endgültig gelöscht, danach werden die Dateidaten geladen.", "Warnung: %n Zeilen werden endgültig gelöscht, danach werden die Dateidaten geladen."],
+		"_%n flagged item_::_%n flagged items_": ["%n markierter Eintrag", "%n markierte Einträge"],
+		"_%n incident_::_%n incidents_": ["%n Vorkommnis", "%n Vorkommnisse"],
+		"_%n logbook entry_::_%n logbook entries_": ["%n Wachbucheintrag", "%n Wachbucheinträge"],
+		"_1 open alert_::_%n open alerts_": ["1 offener Alarm", "%n offene Alarme"],
+		"_1 open task_::_%n open tasks_": ["1 offene Aufgabe", "%n offene Aufgaben"],
+		"%1$s at %2$s in the last 24 h — %3$s, %4$s.": "%1$s bei %2$s in den letzten 24 h — %3$s, %4$s.",
+		"%s, %s": "%s, %s"
 	}
 }

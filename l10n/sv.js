@@ -1,7 +1,6 @@
 OC.L10N.register(
 	"tourcheck",
 	{
-	"%1$d flagged item(s) at %2$s in the last 24 h — %3$d incident(s), %4$d logbook entry(ies)." : "%1$d flaggade objekt på %2$s de senaste 24 timmarna — %3$d incident(er), %4$d loggboksinlägg.",
 	"%1$d of %2$d device slots in use." : "%1$d av %2$d enhetsplatser används.",
 	"%1$d of %2$d done" : "%1$d av %2$d klara",
 	"%1$d of %2$d seats assigned" : "%1$d av %2$d platser tilldelade",
@@ -12,7 +11,6 @@ OC.L10N.register(
 	"%d h" : "%d h",
 	"%d in walk order" : "%d i rondordning",
 	"%d min" : "%d min",
-	"%d open alert(s), %d open task(s)" : "%d öppna larm, %d öppna uppgifter",
 	"%d overdue" : "%d försenade",
 	"%d registered" : "%d registrerade",
 	"%d shared" : "%d delade",
@@ -952,6 +950,13 @@ OC.L10N.register(
 	"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._" : ["1 referens är olöst — se grupperna nedan.","%n referenser är olösta — se grupperna nedan."],
 	"_1 row needs a value on this instance_::_%n rows need a value on this instance_" : ["1 rad behöver ett värde på den här instansen","%n rader behöver ett värde på den här instansen"],
 	"_1 row skipped._::_%n rows skipped._" : ["1 rad hoppades över.","%n rader hoppades över."],
-	"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._" : ["Varning: 1 rad raderas permanent, sedan läses filens data in.","Varning: %n rader raderas permanent, sedan läses filens data in."]
+	"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._" : ["Varning: 1 rad raderas permanent, sedan läses filens data in.","Varning: %n rader raderas permanent, sedan läses filens data in."],
+	"_%n flagged item_::_%n flagged items_" : ["%n flaggat objekt","%n flaggade objekt"],
+	"_%n incident_::_%n incidents_" : ["%n incident","%n incidenter"],
+	"_%n logbook entry_::_%n logbook entries_" : ["%n loggboksinlägg","%n loggboksinlägg"],
+	"_1 open alert_::_%n open alerts_" : ["1 öppet larm","%n öppna larm"],
+	"_1 open task_::_%n open tasks_" : ["1 öppen uppgift","%n öppna uppgifter"],
+	"%1$s at %2$s in the last 24 h — %3$s, %4$s." : "%1$s på %2$s de senaste 24 timmarna — %3$s, %4$s.",
+	"%s, %s" : "%s, %s"
 	}
 );

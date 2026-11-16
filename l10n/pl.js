@@ -1,7 +1,6 @@
 OC.L10N.register(
 	"tourcheck",
 	{
-	"%1$d flagged item(s) at %2$s in the last 24 h — %3$d incident(s), %4$d logbook entry(ies)." : "%1$d oflagowana/e pozycja/e w %2$s w ciągu ostatnich 24 h — %3$d incydent(y), %4$d wpis(y) dziennika.",
 	"%1$d of %2$d device slots in use." : "Użyto %1$d z %2$d miejsc dla urządzeń.",
 	"%1$d of %2$d done" : "%1$d z %2$d ukończono",
 	"%1$d of %2$d seats assigned" : "%1$d z %2$d miejsc przypisanych",
@@ -12,7 +11,6 @@ OC.L10N.register(
 	"%d h" : "%d godz.",
 	"%d in walk order" : "%d w kolejności obchodu",
 	"%d min" : "%d min",
-	"%d open alert(s), %d open task(s)" : "%d otwartych alertów, %d otwartych zadań",
 	"%d overdue" : "%d zaległych",
 	"%d registered" : "%d zarejestrowanych",
 	"%d shared" : "%d udostępnionych",
@@ -952,6 +950,13 @@ OC.L10N.register(
 	"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._" : ["Nierozwiązano 1 odwołanie — zobacz grupy poniżej.","Nierozwiązano %n odwołań — zobacz grupy poniżej."],
 	"_1 row needs a value on this instance_::_%n rows need a value on this instance_" : ["1 wiersz wymaga wartości na tej instancji","%n wierszy wymaga wartości na tej instancji"],
 	"_1 row skipped._::_%n rows skipped._" : ["Pominięto 1 wiersz.","Pominięto %n wierszy."],
-	"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._" : ["Ostrzeżenie: 1 wiersz zostanie trwale usunięty, a następnie dane z pliku zostaną wczytane.","Ostrzeżenie: %n wierszy zostanie trwale usuniętych, a następnie dane z pliku zostaną wczytane."]
+	"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._" : ["Ostrzeżenie: 1 wiersz zostanie trwale usunięty, a następnie dane z pliku zostaną wczytane.","Ostrzeżenie: %n wierszy zostanie trwale usuniętych, a następnie dane z pliku zostaną wczytane."],
+	"_%n flagged item_::_%n flagged items_" : ["%n oflagowana pozycja","%n oflagowane pozycje"],
+	"_%n incident_::_%n incidents_" : ["%n incydent","%n incydenty"],
+	"_%n logbook entry_::_%n logbook entries_" : ["%n wpis dziennika","%n wpisy dziennika"],
+	"_1 open alert_::_%n open alerts_" : ["1 otwarty alert","%n otwarte alerty"],
+	"_1 open task_::_%n open tasks_" : ["1 otwarte zadanie","%n otwarte zadania"],
+	"%1$s at %2$s in the last 24 h — %3$s, %4$s." : "%1$s w %2$s w ciągu ostatnich 24 h — %3$s, %4$s.",
+	"%s, %s" : "%s, %s"
 	}
 );

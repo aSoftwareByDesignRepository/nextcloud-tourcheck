@@ -86,7 +86,7 @@ class ImportantDigestJob extends TimedJob
 						$siteId,
 						'digest:' . $siteId . ':' . $local->format('Y-m-d'),
 						'important_digest',
-						$total . ' flagged item(s) at ' . $site->getName(),
+						($total === 1 ? '1 flagged item at ' : $total . ' flagged items at ') . $site->getName(),
 						$site,
 						['count' => $total, 'incidents' => count($incidents), 'logbook' => count($entries)],
 					);

@@ -1,6 +1,5 @@
 {
 	"translations": {
-		"%1$d flagged item(s) at %2$s in the last 24 h — %3$d incident(s), %4$d logbook entry(ies).": "%1$d markerede element(er) hos %2$s i de seneste 24 timer — %3$d hændelse(r), %4$d logbogsindlæg.",
 		"%1$d of %2$d device slots in use.": "%1$d af %2$d enhedspladser i brug.",
 		"%1$d of %2$d done": "%1$d af %2$d udført",
 		"%1$d of %2$d seats assigned": "%1$d af %2$d pladser tildelt",
@@ -11,7 +10,6 @@
 		"%d h": "%d t",
 		"%d in walk order": "%d i runderækkefølge",
 		"%d min": "%d min",
-		"%d open alert(s), %d open task(s)": "%d åbne alarmer, %d åbne opgaver",
 		"%d overdue": "%d forfaldne",
 		"%d registered": "%d registreret",
 		"%d shared": "%d delt",
@@ -951,6 +949,13 @@
 		"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._": ["1 reference uopløst — se grupperne nedenfor.", "%n referencer uopløst — se grupperne nedenfor."],
 		"_1 row needs a value on this instance_::_%n rows need a value on this instance_": ["1 række kræver en værdi på denne instans", "%n rækker kræver en værdi på denne instans"],
 		"_1 row skipped._::_%n rows skipped._": ["1 række sprunget over.", "%n rækker sprunget over."],
-		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": ["Advarsel: 1 række slettes permanent, derefter indlæses fildataene.", "Advarsel: %n rækker slettes permanent, derefter indlæses fildataene."]
+		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": ["Advarsel: 1 række slettes permanent, derefter indlæses fildataene.", "Advarsel: %n rækker slettes permanent, derefter indlæses fildataene."],
+		"_%n flagged item_::_%n flagged items_": ["%n markeret element", "%n markerede elementer"],
+		"_%n incident_::_%n incidents_": ["%n hændelse", "%n hændelser"],
+		"_%n logbook entry_::_%n logbook entries_": ["%n logbogsindlæg", "%n logbogsindlæg"],
+		"_1 open alert_::_%n open alerts_": ["1 åben alarm", "%n åbne alarmer"],
+		"_1 open task_::_%n open tasks_": ["1 åben opgave", "%n åbne opgaver"],
+		"%1$s at %2$s in the last 24 h — %3$s, %4$s.": "%1$s hos %2$s i de seneste 24 timer — %3$s, %4$s.",
+		"%s, %s": "%s, %s"
 	}
 }

@@ -232,8 +232,9 @@ test('journal search + method filter narrow the entry table', async ({ page }) =
 })
 
 test('no raw sprintf placeholders on populated surfaces; count badges are real', async ({ page }) => {
-	// Ops board + KPI path: '%d open alert(s), %d open task(s)' / KPI sub
-	// lines rendered literally pre-fix (raw_placeholder_rendered).
+	// Ops board + KPI path: card footer composes plural pairs
+	// ('%n open alerts, %n open tasks') + KPI sub lines rendered literally
+	// pre-fix (raw_placeholder_rendered).
 	await gotoApp(page, '/index.php/apps/tourcheck/ops')
 	await expect(page.locator('[data-tck-page="ops"]')).toBeVisible()
 	// board resolves to cards OR the empty state — either means fetch landed

@@ -14,6 +14,16 @@
 		(vars || []).forEach(function (v) { str = str.replace(/%[ds]/, v === null || v === undefined ? '—' : String(v)); });
 		return str;
 	}
+	/* Plural-aware translate — window.n resolves the _sg_::_pl_ combined
+	 * catalog key and substitutes %n. Singular msgids carry the literal '1'
+	 * (catalog convention), plurals carry %n. Never '(s)'-hack a count into a
+	 * single msgid — lazy_plural_paren class. */
+	function n(singular, plural, count) {
+		var c = Number(count);
+		if (!isFinite(c)) { c = 0; }
+		if (typeof window.n === 'function') { return window.n('tourcheck', singular, plural, c); }
+		return String(c === 1 ? singular : plural).replace('%n', String(c));
+	}
 	function badge(label, variant) {
 		return '<span class="tck-badge' + (variant ? ' tck-badge--' + variant : '') + '">' +
 			'<span class="tck-badge__dot" aria-hidden="true"></span>' + esc(label) + '</span>';
@@ -170,7 +180,7 @@
 				card.innerHTML =
 					'<header class="tck-ops-card__head"><h3>' + esc(s.site.name) + '</h3>' + badge(sev[0], sev[1]) + '</header>' +
 					(rounds !== '' ? '<ul class="tck-ops-rounds">' + rounds + '</ul>' : '<p class="tck-hint">' + esc(t('No rounds in the window.')) + '</p>') +
-					'<footer class="tck-ops-card__foot"><span>' + esc(tf('%d open alert(s), %d open task(s)', [s.alerts.length, s.openTasks])) + '</span>' +
+					'<footer class="tck-ops-card__foot"><span>' + esc(tf('%s, %s', [n('1 open alert', '%n open alerts', s.alerts.length), n('1 open task', '%n open tasks', s.openTasks)])) + '</span>' +
 					'<button type="button" class="tck-btn" data-ops-map="' + s.site.id + '">' + esc(t('Map')) + '</button></footer>';
 				card.querySelector('[data-ops-map]').addEventListener('click', function () {
 					if (siteSel) { siteSel.value = String(s.site.id); siteSel.dispatchEvent(new Event('change')); }

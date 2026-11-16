@@ -1,7 +1,6 @@
 OC.L10N.register(
 	"tourcheck",
 	{
-	"%1$d flagged item(s) at %2$s in the last 24 h — %3$d incident(s), %4$d logbook entry(ies)." : "%2$s 在過去 24 小時內有 %1$d 個標記項目——%3$d 起事件、%4$d 則日誌。",
 	"%1$d of %2$d device slots in use." : "已使用 %2$d 個裝置名額中的 %1$d 個。",
 	"%1$d of %2$d done" : "%1$d / %2$d 已完成",
 	"%1$d of %2$d seats assigned" : "已指派 %2$d 個席位中的 %1$d 個",
@@ -12,7 +11,6 @@ OC.L10N.register(
 	"%d h" : "%d 小時",
 	"%d in walk order" : "按巡邏順序 %d",
 	"%d min" : "%d 分鐘",
-	"%d open alert(s), %d open task(s)" : "%d 個未處理告警，%d 個未處理任務",
 	"%d overdue" : "%d 已逾期",
 	"%d registered" : "%d 已註冊",
 	"%d shared" : "%d 已共享",
@@ -952,6 +950,13 @@ OC.L10N.register(
 	"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._" : ["1 個參照未能解析——請查看下方群組。","%n 個參照未能解析——請查看下方群組。"],
 	"_1 row needs a value on this instance_::_%n rows need a value on this instance_" : ["1 列需要在此實例上填寫值","%n 列需要在此實例上填寫值"],
 	"_1 row skipped._::_%n rows skipped._" : ["已略過 1 列。","已略過 %n 列。"],
-	"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._" : ["警告：1 列將被永久刪除，然後載入檔案資料。","警告：%n 列將被永久刪除，然後載入檔案資料。"]
+	"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._" : ["警告：1 列將被永久刪除，然後載入檔案資料。","警告：%n 列將被永久刪除，然後載入檔案資料。"],
+	"_%n flagged item_::_%n flagged items_" : ["%n 個標記項目","%n 個標記項目"],
+	"_%n incident_::_%n incidents_" : ["%n 起事件","%n 起事件"],
+	"_%n logbook entry_::_%n logbook entries_" : ["%n 則日誌","%n 則日誌"],
+	"_1 open alert_::_%n open alerts_" : ["1 個未處理告警","%n 個未處理告警"],
+	"_1 open task_::_%n open tasks_" : ["1 個未處理任務","%n 個未處理任務"],
+	"%1$s at %2$s in the last 24 h — %3$s, %4$s." : "%2$s 在過去 24 小時內有 %1$s——%3$s、%4$s。",
+	"%s, %s" : "%s，%s"
 	}
 );

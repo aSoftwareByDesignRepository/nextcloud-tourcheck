@@ -1,6 +1,5 @@
 {
 	"translations": {
-		"%1$d flagged item(s) at %2$s in the last 24 h — %3$d incident(s), %4$d logbook entry(ies).": "%1$d flagged item(s) at %2$s in the last 24 h — %3$d incident(s), %4$d logbook entry(ies).",
 		"%1$d of %2$d device slots in use.": "%1$d of %2$d device slots in use.",
 		"%1$d of %2$d done": "%1$d of %2$d done",
 		"%1$d of %2$d seats assigned": "%1$d of %2$d seats assigned",
@@ -11,7 +10,6 @@
 		"%d h": "%d h",
 		"%d in walk order": "%d in walk order",
 		"%d min": "%d min",
-		"%d open alert(s), %d open task(s)": "%d open alert(s), %d open task(s)",
 		"%d overdue": "%d overdue",
 		"%d registered": "%d registered",
 		"%d shared": "%d shared",
@@ -951,6 +949,13 @@
 		"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._": ["1 reference unresolved — see the groups below.", "%n references unresolved — see the groups below."],
 		"_1 row needs a value on this instance_::_%n rows need a value on this instance_": ["1 row needs a value on this instance", "%n rows need a value on this instance"],
 		"_1 row skipped._::_%n rows skipped._": ["1 row skipped.", "%n rows skipped."],
-		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": ["Warning: 1 row will be permanently deleted, then the file data is loaded.", "Warning: %n rows will be permanently deleted, then the file data is loaded."]
+		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": ["Warning: 1 row will be permanently deleted, then the file data is loaded.", "Warning: %n rows will be permanently deleted, then the file data is loaded."],
+		"_%n flagged item_::_%n flagged items_": ["%n flagged item", "%n flagged items"],
+		"_%n incident_::_%n incidents_": ["%n incident", "%n incidents"],
+		"_%n logbook entry_::_%n logbook entries_": ["%n logbook entry", "%n logbook entries"],
+		"_1 open alert_::_%n open alerts_": ["1 open alert", "%n open alerts"],
+		"_1 open task_::_%n open tasks_": ["1 open task", "%n open tasks"],
+		"%1$s at %2$s in the last 24 h — %3$s, %4$s.": "%1$s at %2$s in the last 24 h — %3$s, %4$s.",
+		"%s, %s": "%s, %s"
 	}
 }

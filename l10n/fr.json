@@ -1,6 +1,5 @@
 {
 	"translations": {
-		"%1$d flagged item(s) at %2$s in the last 24 h — %3$d incident(s), %4$d logbook entry(ies).": "%1$d élément(s) signalé(s) sur %2$s au cours des dernières 24 h — %3$d incident(s), %4$d entrée(s) de journal.",
 		"%1$d of %2$d device slots in use.": "%1$d emplacements d’appareil sur %2$d utilisés.",
 		"%1$d of %2$d done": "%1$d sur %2$d terminés",
 		"%1$d of %2$d seats assigned": "%1$d sur %2$d postes assignés",
@@ -11,7 +10,6 @@
 		"%d h": "%d h",
 		"%d in walk order": "%d dans l'ordre du parcours",
 		"%d min": "%d min",
-		"%d open alert(s), %d open task(s)": "%d alertes ouvertes, %d tâches ouvertes",
 		"%d overdue": "%d en retard",
 		"%d registered": "%d enregistrées",
 		"%d shared": "%d partagés",
@@ -951,6 +949,13 @@
 		"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._": ["1 référence non résolue — voir les groupes ci-dessous.", "%n références non résolues — voir les groupes ci-dessous."],
 		"_1 row needs a value on this instance_::_%n rows need a value on this instance_": ["1 ligne nécessite une valeur sur cette instance", "%n lignes nécessitent une valeur sur cette instance"],
 		"_1 row skipped._::_%n rows skipped._": ["1 ligne ignorée.", "%n lignes ignorées."],
-		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": ["Avertissement : 1 ligne sera définitivement supprimée, puis les données du fichier seront chargées.", "Avertissement : %n lignes seront définitivement supprimées, puis les données du fichier seront chargées."]
+		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": ["Avertissement : 1 ligne sera définitivement supprimée, puis les données du fichier seront chargées.", "Avertissement : %n lignes seront définitivement supprimées, puis les données du fichier seront chargées."],
+		"_%n flagged item_::_%n flagged items_": ["%n élément signalé", "%n éléments signalés"],
+		"_%n incident_::_%n incidents_": ["%n incident", "%n incidents"],
+		"_%n logbook entry_::_%n logbook entries_": ["%n entrée de journal", "%n entrées de journal"],
+		"_1 open alert_::_%n open alerts_": ["1 alerte ouverte", "%n alertes ouvertes"],
+		"_1 open task_::_%n open tasks_": ["1 tâche ouverte", "%n tâches ouvertes"],
+		"%1$s at %2$s in the last 24 h — %3$s, %4$s.": "%1$s sur %2$s au cours des dernières 24 h — %3$s, %4$s.",
+		"%s, %s": "%s, %s"
 	}
 }

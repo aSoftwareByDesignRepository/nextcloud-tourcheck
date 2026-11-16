@@ -98,7 +98,12 @@ class Notifier implements INotifier
 				break;
 			case 'important_digest':
 				$notification->setParsedSubject($l->t('Morning digest: %s', [$site]));
-				$notification->setParsedMessage($l->t('%1$d flagged item(s) at %2$s in the last 24 h — %3$d incident(s), %4$d logbook entry(ies).', [(int)($p['count'] ?? 0), $site, (int)($p['incidents'] ?? 0), (int)($p['logbook'] ?? 0)]));
+				$notification->setParsedMessage($l->t('%1$s at %2$s in the last 24 h — %3$s, %4$s.', [
+					$l->n('%n flagged item', '%n flagged items', (int)($p['count'] ?? 0)),
+					$site,
+					$l->n('%n incident', '%n incidents', (int)($p['incidents'] ?? 0)),
+					$l->n('%n logbook entry', '%n logbook entries', (int)($p['logbook'] ?? 0)),
+				]));
 				break;
 			default:
 				throw new UnknownNotificationException();

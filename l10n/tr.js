@@ -1,7 +1,6 @@
 OC.L10N.register(
 	"tourcheck",
 	{
-	"%1$d flagged item(s) at %2$s in the last 24 h — %3$d incident(s), %4$d logbook entry(ies)." : "%2$s sahasında son 24 saatte %1$d işaretli öğe — %3$d olay, %4$d vardiya defteri girdisi.",
 	"%1$d of %2$d device slots in use." : "%2$d cihaz yuvasından %1$d tanesi kullanımda.",
 	"%1$d of %2$d done" : "%2$d üzerinden %1$d tamam",
 	"%1$d of %2$d seats assigned" : "%2$d lisans hakkından %1$d'i atandı",
@@ -12,7 +11,6 @@ OC.L10N.register(
 	"%d h" : "%d sa",
 	"%d in walk order" : "kontrol sırasında %d",
 	"%d min" : "%d dk",
-	"%d open alert(s), %d open task(s)" : "%d açık uyarı, %d açık görev",
 	"%d overdue" : "süresi geçmiş %d",
 	"%d registered" : "%d kayıtlı",
 	"%d shared" : "%d paylaşılan",
@@ -952,6 +950,13 @@ OC.L10N.register(
 	"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._" : ["1 başvuru çözümlenemedi — aşağıdaki gruplara bakın.","%n başvuru çözümlenemedi — aşağıdaki gruplara bakın."],
 	"_1 row needs a value on this instance_::_%n rows need a value on this instance_" : ["1 satırın bu örnekte bir değere ihtiyacı var","%n satırın bu örnekte bir değere ihtiyacı var"],
 	"_1 row skipped._::_%n rows skipped._" : ["1 satır atlandı.","%n satır atlandı."],
-	"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._" : ["Uyarı: 1 satır kalıcı olarak silinecek, ardından dosya verileri yüklenecek.","Uyarı: %n satır kalıcı olarak silinecek, ardından dosya verileri yüklenecek."]
+	"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._" : ["Uyarı: 1 satır kalıcı olarak silinecek, ardından dosya verileri yüklenecek.","Uyarı: %n satır kalıcı olarak silinecek, ardından dosya verileri yüklenecek."],
+	"_%n flagged item_::_%n flagged items_" : ["%n işaretli öğe","%n işaretli öğe"],
+	"_%n incident_::_%n incidents_" : ["%n olay","%n olay"],
+	"_%n logbook entry_::_%n logbook entries_" : ["%n vardiya defteri girdisi","%n vardiya defteri girdisi"],
+	"_1 open alert_::_%n open alerts_" : ["1 açık uyarı","%n açık uyarı"],
+	"_1 open task_::_%n open tasks_" : ["1 açık görev","%n açık görev"],
+	"%1$s at %2$s in the last 24 h — %3$s, %4$s." : "%2$s sahasında son 24 saatte %1$s — %3$s, %4$s.",
+	"%s, %s" : "%s, %s"
 	}
 );

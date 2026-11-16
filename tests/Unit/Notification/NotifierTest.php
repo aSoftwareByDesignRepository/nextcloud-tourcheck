@@ -28,6 +28,10 @@ final class NotifierTest extends TestCase
 		parent::setUp();
 		$l10n = $this->createMock(IL10N::class);
 		$l10n->method('t')->willReturnCallback(static fn (string $t, $p = []) => vsprintf($t, (array)$p));
+		$l10n->method('n')->willReturnCallback(
+			static fn (string $sg, string $pl, int $count, array $p = []): string =>
+				str_replace('%n', (string)$count, $count === 1 ? $sg : $pl)
+		);
 		$factory = $this->createMock(IFactory::class);
 		$factory->method('get')->willReturn($l10n);
 		$this->urls = $this->createMock(IURLGenerator::class);
@@ -90,6 +94,33 @@ final class NotifierTest extends TestCase
 		self::assertStringNotContainsString('%d', (string)$rendered['message']);
 		self::assertStringNotContainsString('%s', (string)$rendered['message']);
 		self::assertSame($n, $out);
+	}
+
+	/** The digest composes per-noun n() fragments inside a t() template —
+	 * the assertion pins both the plural and the singular branch. */
+	public function testImportantDigestComposesPluralFragments(): void
+	{
+		$cases = [
+			[['site' => 'Alpha', 'count' => 2, 'incidents' => 1, 'logbook' => 3],
+				'2 flagged items at Alpha in the last 24 h — 1 incident, 3 logbook entries.'],
+			[['site' => 'Alpha', 'count' => 1, 'incidents' => 4, 'logbook' => 1],
+				'1 flagged item at Alpha in the last 24 h — 4 incidents, 1 logbook entry.'],
+		];
+		foreach ($cases as [$params, $expected]) {
+			$n = $this->notification('important_digest', $params);
+			$rendered = [];
+			$n->method('setParsedSubject')->willReturnCallback(function ($s) use (&$rendered, $n) {
+				$rendered['subject'] = $s;
+				return $n;
+			});
+			$n->method('setParsedMessage')->willReturnCallback(function ($m) use (&$rendered, $n) {
+				$rendered['message'] = $m;
+				return $n;
+			});
+			$this->notifier->prepare($n, 'en');
+			self::assertSame('Morning digest: Alpha', $rendered['subject']);
+			self::assertSame($expected, $rendered['message']);
+		}
 	}
 
 	public function testForeignAppRejected(): void
