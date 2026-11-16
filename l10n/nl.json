@@ -4,6 +4,7 @@
 		"%1$d of %2$d done": "%1$d van %2$d voltooid",
 		"%1$d of %2$d seats assigned": "%1$d van %2$d plaatsen toegewezen",
 		"%1$d of %2$d — %3$s": "%1$d van %2$d — %3$s",
+		"%1$s at %2$s in the last 24 h — %3$s, %4$s.": "%1$s op %2$s in de afgelopen 24 u — %3$s, %4$s.",
 		"%d acked": "%d bevestigd",
 		"%d assigned": "%d toegewezen",
 		"%d configured": "%d geconfigureerd",
@@ -23,6 +24,7 @@
 		"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:": "%s blijft gratis (AGPL) op je Nextcloud. Bugrapporten en ideeën op GitHub blijven welkom — dat is gratis open-source-zorg. Heeft jouw organisatie boekbare hulp op factuur nodig, kies dan hieronder een optie:",
 		"%s triggered the emergency action at %s. An incident was created — respond now.": "%s heeft de noodactie bij %s geactiveerd. Er is een incident aangemaakt — reageer nu.",
 		"%s — optional: your signature": "%s — optioneel: uw handtekening",
+		"%s, %s": "%s, %s",
 		"(erased)": "(gewist)",
 		"(opens in a new tab)": "(opent in een nieuw tabblad)",
 		"(unknown — skipped)": "(onbekend — overgeslagen)",
@@ -94,10 +96,10 @@
 		"Ask a supervisor": "Vraag een leidinggevende",
 		"Ask about setup or training": "Vraag naar inrichting of training",
 		"Ask for a partner offer": "Vraag een partneraanbieding aan",
-		"Assign mobile seats to %1$d people? %2$d seats remaining.": "Mobiele plekken toewijzen aan %1$d personen? Nog %2$d plekken over.",
-		"Assign mobile seats?": "Mobiele plekken toewijzen?",
+		"Assign mobile seats to %1$d people? %2$d seats remaining.": "Mobiele plaatsen toewijzen aan %1$d personen? Nog %2$d plaatsen over.",
+		"Assign mobile seats?": "Mobiele plaatsen toewijzen?",
 		"Assign people so they can see and work this site.": "Wijs mensen toe zodat ze deze locatie kunnen zien en bewerken.",
-		"Assign seats": "Plekken toewijzen",
+		"Assign seats": "Plaatsen toewijzen",
 		"Assign selected": "Selectie toewijzen",
 		"Assign selected (%n)": "Selectie toewijzen (%n)",
 		"Assign to (optional)": "Toewijzen aan (optioneel)",
@@ -172,13 +174,13 @@
 		"Copy settings, catalogues and tour data to a production instance — one encrypted file, dry-run before anything is written.": "Kopieer instellingen, catalogi en rondegegevens naar een productie-instantie — één versleuteld bestand, testrun voordat er iets wordt geschreven.",
 		"Copy token": "Token kopiëren",
 		"Corrective actions": "Corrigerende maatregelen",
-		"Could not assign seat.": "Kan plek niet toewijzen.",
+		"Could not assign seat.": "Kan plaats niet toewijzen.",
 		"Could not generate a pairing code.": "De koppelcode kon niet worden gegenereerd.",
 		"Could not load actions.": "Maatregelen konden niet worden geladen.",
 		"Could not load data.": "Gegevens konden niet worden geladen.",
 		"Could not register device.": "Apparaat kon niet worden geregistreerd.",
 		"Could not remove license.": "Kan licentie niet verwijderen.",
-		"Could not remove seat.": "Kan de plek niet verwijderen.",
+		"Could not remove seat.": "Kan de plaats niet verwijderen.",
 		"Could not revoke device.": "Apparaat kon niet worden ingetrokken.",
 		"Could not save license.": "Kan licentie niet opslaan.",
 		"Coverage": "Dekking",
@@ -421,7 +423,7 @@
 		"Missed round — %s": "Gemiste ronde — %s",
 		"Missed today": "Vandaag gemist",
 		"Mobile & terminal": "Mobiel en terminal",
-		"Mobile seats": "Mobiele seats",
+		"Mobile seats": "Mobiele plaatsen",
 		"Mobile seats used": "Mobiele plaatsen in gebruik",
 		"Mode": "Modus",
 		"Mon": "Ma",
@@ -616,7 +618,7 @@
 		"Remote onboarding or a workshop so your team can roll out cleanly — billed as a service.": "Remote onboarding of een workshop zodat uw team schoon kan uitrollen — gefactureerd als dienst.",
 		"Remove": "Verwijderen",
 		"Remove license": "Licentie verwijderen",
-		"Remove mobile seat": "Mobiele plek verwijderen",
+		"Remove mobile seat": "Mobiele plaats verwijderen",
 		"Remove mobile seat for this person?": "Mobiele plaats voor deze persoon verwijderen?",
 		"Remove the organisation license and revoke all seats and devices? This cannot be undone.": "Organisatielicentie verwijderen en alle plaatsen en apparaten intrekken? Dit kan niet ongedaan worden gemaakt.",
 		"Remove this license? Stations and the companion app stop working.": "Deze licentie verwijderen? Kiosken en de mobiele app werken dan niet meer.",
@@ -874,11 +876,63 @@
 		"Yes / No": "Ja / Nee",
 		"You can close this — the result is saved and shown under “Last transfer”.": "U kunt dit sluiten — het resultaat wordt opgeslagen en getoond onder “Laatste overdracht”.",
 		"You do not have the rights for this action.": "U heeft geen rechten voor deze actie.",
-		"You selected %1$d people but only %2$d seats remain. Only free seats will be assigned.": "U selecteerde %1$d personen maar er zijn nog maar %2$d plekken. Alleen vrije plekken worden toegewezen.",
+		"You selected %1$d people but only %2$d seats remain. Only free seats will be assigned.": "U selecteerde %1$d personen maar er zijn nog maar %2$d plaatsen. Alleen vrije plaatsen worden toegewezen.",
 		"Your license expires within 30 days. Contact your vendor to renew.": "Je licentie verloopt binnen 30 dagen. Neem contact op met je leverancier om te verlengen.",
 		"Your scheduled TourCheck report is attached.": "Uw geplande TourCheck-rapport is bijgevoegd.",
 		"Your sites": "Uw locaties",
 		"Zone violation": "Zoneschending",
+		"_%n flagged item_::_%n flagged items_": [
+			"%n gemarkeerd item",
+			"%n gemarkeerde items"
+		],
+		"_%n incident_::_%n incidents_": [
+			"%n incident",
+			"%n incidenten"
+		],
+		"_%n logbook entry_::_%n logbook entries_": [
+			"%n logboekvermelding",
+			"%n logboekvermeldingen"
+		],
+		"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_": [
+			"(1 installatiegebonden waarde geleegd)",
+			"(%n installatiegebonden waarden geleegd)"
+		],
+		"_(1 filtered)_::_(%n filtered)_": [
+			"(1 gefilterd)",
+			"(%n gefilterd)"
+		],
+		"_(1 secret redacted)_::_(%n secrets redacted)_": [
+			"(1 geheim gemaskeerd)",
+			"(%n geheimen gemaskeerd)"
+		],
+		"_(1 unresolved ref)_::_(%n unresolved refs)_": [
+			"(1 onopgeloste verwijzing)",
+			"(%n onopgeloste verwijzingen)"
+		],
+		"_1 open alert_::_%n open alerts_": [
+			"1 open melding",
+			"%n open meldingen"
+		],
+		"_1 open task_::_%n open tasks_": [
+			"1 open taak",
+			"%n open taken"
+		],
+		"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._": [
+			"1 verwijzing onopgelost — zie de groepen hieronder.",
+			"%n verwijzingen onopgelost — zie de groepen hieronder."
+		],
+		"_1 row needs a value on this instance_::_%n rows need a value on this instance_": [
+			"1 rij heeft een waarde nodig op deze installatie",
+			"%n rijen hebben een waarde nodig op deze installatie"
+		],
+		"_1 row skipped._::_%n rows skipped._": [
+			"1 rij overgeslagen.",
+			"%n rijen overgeslagen."
+		],
+		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": [
+			"Waarschuwing: 1 rij wordt definitief verwijderd, daarna worden de bestandsgegevens geladen.",
+			"Waarschuwing: %n rijen worden definitief verwijderd, daarna worden de bestandsgegevens geladen."
+		],
 		"add and update; nothing is deleted": "toevoegen en bijwerken; niets wordt verwijderd",
 		"anchored": "verankerd",
 		"anchored at seq %d": "verankerd bij seq. %d",
@@ -941,21 +995,6 @@
 		"★ Important — included in the morning digest": "★ Belangrijk — opgenomen in het ochtendoverzicht",
 		"★ Important — remove flag": "★ Belangrijk — markering verwijderen",
 		"★ Mark as important — included in the morning digest": "★ Markeer als belangrijk — opgenomen in het ochtendoverzicht",
-		"☆ Mark as important": "☆ Markeer als belangrijk",
-		"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_": ["(1 installatiegebonden waarde geleegd)", "(%n installatiegebonden waarden geleegd)"],
-		"_(1 filtered)_::_(%n filtered)_": ["(1 gefilterd)", "(%n gefilterd)"],
-		"_(1 secret redacted)_::_(%n secrets redacted)_": ["(1 geheim gemaskeerd)", "(%n geheimen gemaskeerd)"],
-		"_(1 unresolved ref)_::_(%n unresolved refs)_": ["(1 onopgeloste verwijzing)", "(%n onopgeloste verwijzingen)"],
-		"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._": ["1 verwijzing onopgelost — zie de groepen hieronder.", "%n verwijzingen onopgelost — zie de groepen hieronder."],
-		"_1 row needs a value on this instance_::_%n rows need a value on this instance_": ["1 rij heeft een waarde nodig op deze installatie", "%n rijen hebben een waarde nodig op deze installatie"],
-		"_1 row skipped._::_%n rows skipped._": ["1 rij overgeslagen.", "%n rijen overgeslagen."],
-		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": ["Waarschuwing: 1 rij wordt definitief verwijderd, daarna worden de bestandsgegevens geladen.", "Waarschuwing: %n rijen worden definitief verwijderd, daarna worden de bestandsgegevens geladen."],
-		"_%n flagged item_::_%n flagged items_": ["%n gemarkeerd item", "%n gemarkeerde items"],
-		"_%n incident_::_%n incidents_": ["%n incident", "%n incidenten"],
-		"_%n logbook entry_::_%n logbook entries_": ["%n logboekvermelding", "%n logboekvermeldingen"],
-		"_1 open alert_::_%n open alerts_": ["1 open melding", "%n open meldingen"],
-		"_1 open task_::_%n open tasks_": ["1 open taak", "%n open taken"],
-		"%1$s at %2$s in the last 24 h — %3$s, %4$s.": "%1$s op %2$s in de afgelopen 24 u — %3$s, %4$s.",
-		"%s, %s": "%s, %s"
+		"☆ Mark as important": "☆ Markeer als belangrijk"
 	}
 }

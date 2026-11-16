@@ -4,6 +4,7 @@
 		"%1$d of %2$d done": "%1$d von %2$d erledigt",
 		"%1$d of %2$d seats assigned": "%1$d von %2$d Sitzen belegt",
 		"%1$d of %2$d — %3$s": "%1$d von %2$d — %3$s",
+		"%1$s at %2$s in the last 24 h — %3$s, %4$s.": "%1$s bei %2$s in den letzten 24 h — %3$s, %4$s.",
 		"%d acked": "%d bestätigt",
 		"%d assigned": "%d zugewiesen",
 		"%d configured": "%d konfiguriert",
@@ -23,6 +24,7 @@
 		"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:": "%s ist auf Ihrer Nextcloud kostenlos (AGPL). Fehler und Ideen über GitHub bleiben willkommen — das gehört zur kostenlosen Open-Source-Pflege. Wenn Ihre Organisation planbare Hilfe mit Rechnung braucht, wählen Sie unten eine Option:",
 		"%s triggered the emergency action at %s. An incident was created — respond now.": "%s hat bei %s die Notfall-Aktion ausgelöst. Ein Vorfall wurde erstellt — bitte sofort reagieren.",
 		"%s — optional: your signature": "%s — optional: Ihre Unterschrift",
+		"%s, %s": "%s, %s",
 		"(erased)": "(gelöscht)",
 		"(opens in a new tab)": "(öffnet in neuem Tab)",
 		"(unknown — skipped)": "(unbekannt — übersprungen)",
@@ -282,7 +284,7 @@
 		"Findings reported on rounds appear here until they are closed.": "Feststellungen aus Runden erscheinen hier, bis sie geschlossen sind.",
 		"Flag removed": "Markierung entfernt",
 		"Flagged as important by staff in the last 24 hours.": "In den letzten 24 Stunden von Mitarbeitenden als wichtig markiert.",
-		"Format: %1$s followed by a signed payload. One key per organisation.": "Format: %1$s gefolgt von einer signierten Nutzlast. Ein Schlüssel pro Organisation.",
+		"Format: %1$s followed by a signed payload. One key per organisation.": "Format: %1$s gefolgt von einer signierten Payload. Ein Schlüssel pro Organisation.",
 		"Free public basemap — the browser loads map images from tile.openstreetmap.org when the map opens. Subject to the OpenStreetMap tile usage policy; attribution is shown automatically.": "Kostenlose öffentliche Basiskarte — der Browser lädt Kartenbilder von tile.openstreetmap.org, sobald die Karte geöffnet wird. Es gilt die OpenStreetMap-Kachelrichtlinie; die Attribution wird automatisch angezeigt.",
 		"Fri": "Fr",
 		"From": "Von",
@@ -879,6 +881,58 @@
 		"Your scheduled TourCheck report is attached.": "Ihr geplanter TourCheck-Bericht ist angehängt.",
 		"Your sites": "Ihre Objekte",
 		"Zone violation": "Zonenverletzung",
+		"_%n flagged item_::_%n flagged items_": [
+			"%n markierter Eintrag",
+			"%n markierte Einträge"
+		],
+		"_%n incident_::_%n incidents_": [
+			"%n Vorkommnis",
+			"%n Vorkommnisse"
+		],
+		"_%n logbook entry_::_%n logbook entries_": [
+			"%n Wachbucheintrag",
+			"%n Wachbucheinträge"
+		],
+		"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_": [
+			"(1 instanzgebundener Wert geleert)",
+			"(%n instanzgebundene Werte geleert)"
+		],
+		"_(1 filtered)_::_(%n filtered)_": [
+			"(1 gefiltert)",
+			"(%n gefiltert)"
+		],
+		"_(1 secret redacted)_::_(%n secrets redacted)_": [
+			"(1 Geheimnis geschwärzt)",
+			"(%n Geheimnisse geschwärzt)"
+		],
+		"_(1 unresolved ref)_::_(%n unresolved refs)_": [
+			"(1 unaufgelöster Verweis)",
+			"(%n unaufgelöste Verweise)"
+		],
+		"_1 open alert_::_%n open alerts_": [
+			"1 offener Alarm",
+			"%n offene Alarme"
+		],
+		"_1 open task_::_%n open tasks_": [
+			"1 offene Aufgabe",
+			"%n offene Aufgaben"
+		],
+		"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._": [
+			"1 Verweis unaufgelöst — siehe die Gruppen unten.",
+			"%n Verweise unaufgelöst — siehe die Gruppen unten."
+		],
+		"_1 row needs a value on this instance_::_%n rows need a value on this instance_": [
+			"1 Zeile benötigt einen Wert auf dieser Instanz",
+			"%n Zeilen benötigen einen Wert auf dieser Instanz"
+		],
+		"_1 row skipped._::_%n rows skipped._": [
+			"1 Zeile übersprungen.",
+			"%n Zeilen übersprungen."
+		],
+		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": [
+			"Warnung: 1 Zeile wird endgültig gelöscht, danach werden die Dateidaten geladen.",
+			"Warnung: %n Zeilen werden endgültig gelöscht, danach werden die Dateidaten geladen."
+		],
 		"add and update; nothing is deleted": "hinzufügen und aktualisieren; nichts wird gelöscht",
 		"anchored": "verankert",
 		"anchored at seq %d": "verankert bei Seq %d",
@@ -941,21 +995,6 @@
 		"★ Important — included in the morning digest": "★ Wichtig — erscheint im Morgen-Digest",
 		"★ Important — remove flag": "★ Wichtig — Markierung entfernen",
 		"★ Mark as important — included in the morning digest": "★ Als wichtig markieren — erscheint im Morgen-Digest",
-		"☆ Mark as important": "☆ Als wichtig markieren",
-		"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_": ["(1 instanzgebundener Wert geleert)", "(%n instanzgebundene Werte geleert)"],
-		"_(1 filtered)_::_(%n filtered)_": ["(1 gefiltert)", "(%n gefiltert)"],
-		"_(1 secret redacted)_::_(%n secrets redacted)_": ["(1 Geheimnis geschwärzt)", "(%n Geheimnisse geschwärzt)"],
-		"_(1 unresolved ref)_::_(%n unresolved refs)_": ["(1 unaufgelöster Verweis)", "(%n unaufgelöste Verweise)"],
-		"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._": ["1 Verweis unaufgelöst — siehe die Gruppen unten.", "%n Verweise unaufgelöst — siehe die Gruppen unten."],
-		"_1 row needs a value on this instance_::_%n rows need a value on this instance_": ["1 Zeile benötigt einen Wert auf dieser Instanz", "%n Zeilen benötigen einen Wert auf dieser Instanz"],
-		"_1 row skipped._::_%n rows skipped._": ["1 Zeile übersprungen.", "%n Zeilen übersprungen."],
-		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": ["Warnung: 1 Zeile wird endgültig gelöscht, danach werden die Dateidaten geladen.", "Warnung: %n Zeilen werden endgültig gelöscht, danach werden die Dateidaten geladen."],
-		"_%n flagged item_::_%n flagged items_": ["%n markierter Eintrag", "%n markierte Einträge"],
-		"_%n incident_::_%n incidents_": ["%n Vorkommnis", "%n Vorkommnisse"],
-		"_%n logbook entry_::_%n logbook entries_": ["%n Wachbucheintrag", "%n Wachbucheinträge"],
-		"_1 open alert_::_%n open alerts_": ["1 offener Alarm", "%n offene Alarme"],
-		"_1 open task_::_%n open tasks_": ["1 offene Aufgabe", "%n offene Aufgaben"],
-		"%1$s at %2$s in the last 24 h — %3$s, %4$s.": "%1$s bei %2$s in den letzten 24 h — %3$s, %4$s.",
-		"%s, %s": "%s, %s"
+		"☆ Mark as important": "☆ Als wichtig markieren"
 	}
 }
