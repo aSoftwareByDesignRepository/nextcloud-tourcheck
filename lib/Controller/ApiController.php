@@ -1090,9 +1090,32 @@ class ApiController extends Controller
 				return $this->ok([]);
 			}
 			$out = [];
-			foreach ($this->users->search($q, 20) as $u) {
-				if ($this->acl->hasAppAccess($u->getUID())) {
-					$out[] = ['uid' => $u->getUID(), 'display_name' => $u->getDisplayName()];
+			// search() only matches the user id on some backends — merge with the
+			// display-name search so people are found by name regardless of uid shape.
+			$byName = [];
+			try {
+				$byName = (array)$this->users->searchDisplayName($q, 40, 0);
+			} catch (\Throwable) {
+				$byName = [];
+			}
+			$seen = [];
+			foreach ([(array)$this->users->search($q, 40, 0), $byName] as $batch) {
+				foreach ($batch as $u) {
+					if (!$u->isEnabled()) {
+						// Deactivated accounts cannot sign in — do not offer them.
+						continue;
+					}
+					$uid = (string)$u->getUID();
+					if ($uid === '' || isset($seen[$uid])) {
+						continue;
+					}
+					$seen[$uid] = true;
+					if ($this->acl->hasAppAccess($uid)) {
+						$out[] = ['uid' => $uid, 'display_name' => $u->getDisplayName()];
+						if (count($out) >= 20) {
+							break 2;
+						}
+					}
 				}
 			}
 			return $this->ok($out);
