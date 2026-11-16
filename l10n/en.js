@@ -15,8 +15,6 @@ OC.L10N.register(
 	"%d open alert(s), %d open task(s)" : "%d open alert(s), %d open task(s)",
 	"%d overdue" : "%d overdue",
 	"%d registered" : "%d registered",
-	"%d row(s) need a value on this instance" : "%d row(s) need a value on this instance",
-	"%d row(s) skipped and %d reference(s) unresolved — see the groups below." : "%d row(s) skipped and %d reference(s) unresolved — see the groups below.",
 	"%d shared" : "%d shared",
 	"%d shown" : "%d shown",
 	"%d waiting to sync" : "%d waiting to sync",
@@ -28,10 +26,6 @@ OC.L10N.register(
 	"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:" : "%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:",
 	"%s triggered the emergency action at %s. An incident was created — respond now." : "%s triggered the emergency action at %s. An incident was created — respond now.",
 	"%s — optional: your signature" : "%s — optional: your signature",
-	"(%d env-bound value(s) emptied)" : "(%d env-bound value(s) emptied)",
-	"(%d filtered)" : "(%d filtered)",
-	"(%d secret(s) redacted)" : "(%d secret(s) redacted)",
-	"(%d unresolved ref)" : "(%d unresolved ref)",
 	"(erased)" : "(erased)",
 	"(opens in a new tab)" : "(opens in a new tab)",
 	"(unknown — skipped)" : "(unknown — skipped)",
@@ -855,7 +849,6 @@ OC.L10N.register(
 	"Verifying references" : "Verifying references",
 	"Waiting for the job…" : "Waiting for the job…",
 	"Walk order" : "Walk order",
-	"Warning: %d row(s) will be permanently deleted, then the file data is loaded." : "Warning: %d row(s) will be permanently deleted, then the file data is loaded.",
 	"Wed" : "Wed",
 	"Weekdays" : "Weekdays",
 	"Weekly" : "Weekly",
@@ -951,6 +944,14 @@ OC.L10N.register(
 	"★ Important — included in the morning digest" : "Important — appears in the morning digest",
 	"★ Important — remove flag" : "Important — remove flag",
 	"★ Mark as important — included in the morning digest" : "Mark as important — appears in the morning digest",
-	"☆ Mark as important" : "Mark as important"
+	"☆ Mark as important" : "Mark as important",
+	"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_" : ["(1 env-bound value emptied)","(%n env-bound values emptied)"],
+	"_(1 filtered)_::_(%n filtered)_" : ["(1 filtered)","(%n filtered)"],
+	"_(1 secret redacted)_::_(%n secrets redacted)_" : ["(1 secret redacted)","(%n secrets redacted)"],
+	"_(1 unresolved ref)_::_(%n unresolved refs)_" : ["(1 unresolved ref)","(%n unresolved refs)"],
+	"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._" : ["1 reference unresolved — see the groups below.","%n references unresolved — see the groups below."],
+	"_1 row needs a value on this instance_::_%n rows need a value on this instance_" : ["1 row needs a value on this instance","%n rows need a value on this instance"],
+	"_1 row skipped._::_%n rows skipped._" : ["1 row skipped.","%n rows skipped."],
+	"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._" : ["Warning: 1 row will be permanently deleted, then the file data is loaded.","Warning: %n rows will be permanently deleted, then the file data is loaded."]
 	}
 );

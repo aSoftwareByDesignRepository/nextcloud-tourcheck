@@ -15,8 +15,6 @@ OC.L10N.register(
 	"%d open alert(s), %d open task(s)" : "%d 個未處理告警，%d 個未處理任務",
 	"%d overdue" : "%d 已逾期",
 	"%d registered" : "%d 已註冊",
-	"%d row(s) need a value on this instance" : "%d 列需要在此實例上填寫值",
-	"%d row(s) skipped and %d reference(s) unresolved — see the groups below." : "已略過 %d 列，%d 個參照未能解析——請查看下方群組。",
 	"%d shared" : "%d 已共享",
 	"%d shown" : "%d 已顯示",
 	"%d waiting to sync" : "%d 待同步",
@@ -28,10 +26,6 @@ OC.L10N.register(
 	"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:" : "%s 在您的 Nextcloud 上保持免費（AGPL）。歡迎在 GitHub 提交缺陷報告和建議——這是自由開源的關懷。如果您的組織需要可開票的幫助，請選擇下方選項：",
 	"%s triggered the emergency action at %s. An incident was created — respond now." : "%s 於 %s 觸發了緊急操作。已建立事件——請立即響應。",
 	"%s — optional: your signature" : "%s——選填：您的簽名",
-	"(%d env-bound value(s) emptied)" : "（已清空 %d 個實例綁定值）",
-	"(%d filtered)" : "（已篩選 %d 項）",
-	"(%d secret(s) redacted)" : "（已遮蔽 %d 個密鑰）",
-	"(%d unresolved ref)" : "（%d 個參照未解析）",
 	"(erased)" : "（已抹除）",
 	"(opens in a new tab)" : "（在新標籤頁中開啟）",
 	"(unknown — skipped)" : "（未知——已跳過）",
@@ -855,7 +849,6 @@ OC.L10N.register(
 	"Verifying references" : "正在驗證參照",
 	"Waiting for the job…" : "正在等待任務……",
 	"Walk order" : "巡邏順序",
-	"Warning: %d row(s) will be permanently deleted, then the file data is loaded." : "警告：%d 列將被永久刪除，然後載入檔案資料。",
 	"Wed" : "週三",
 	"Weekdays" : "工作日",
 	"Weekly" : "每週",
@@ -951,7 +944,14 @@ OC.L10N.register(
 	"★ Important — included in the morning digest" : "★ 重要——包含在晨報中",
 	"★ Important — remove flag" : "★ 重要——移除標記",
 	"★ Mark as important — included in the morning digest" : "★ 標記為重要——包含在晨報中",
-	"☆ Mark as important" : "☆ 標記為重要"
-	},
-	"nplurals=1; plural=0;"
+	"☆ Mark as important" : "☆ 標記為重要",
+	"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_" : ["（已清空 1 個實例綁定值）","（已清空 %n 個實例綁定值）"],
+	"_(1 filtered)_::_(%n filtered)_" : ["（已篩選 1 項）","（已篩選 %n 項）"],
+	"_(1 secret redacted)_::_(%n secrets redacted)_" : ["（已遮蔽 1 個密鑰）","（已遮蔽 %n 個密鑰）"],
+	"_(1 unresolved ref)_::_(%n unresolved refs)_" : ["（1 個參照未解析）","（%n 個參照未解析）"],
+	"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._" : ["1 個參照未能解析——請查看下方群組。","%n 個參照未能解析——請查看下方群組。"],
+	"_1 row needs a value on this instance_::_%n rows need a value on this instance_" : ["1 列需要在此實例上填寫值","%n 列需要在此實例上填寫值"],
+	"_1 row skipped._::_%n rows skipped._" : ["已略過 1 列。","已略過 %n 列。"],
+	"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._" : ["警告：1 列將被永久刪除，然後載入檔案資料。","警告：%n 列將被永久刪除，然後載入檔案資料。"]
+	}
 );

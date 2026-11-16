@@ -15,8 +15,6 @@ OC.L10N.register(
 	"%d open alert(s), %d open task(s)" : "%d öppna larm, %d öppna uppgifter",
 	"%d overdue" : "%d försenade",
 	"%d registered" : "%d registrerade",
-	"%d row(s) need a value on this instance" : "%d rad(er) behöver ett värde på den här instansen",
-	"%d row(s) skipped and %d reference(s) unresolved — see the groups below." : "%d rad(er) hoppades över och %d referens(er) är olösta — se grupperna nedan.",
 	"%d shared" : "%d delade",
 	"%d shown" : "%d visade",
 	"%d waiting to sync" : "%d väntar på synkronisering",
@@ -28,10 +26,6 @@ OC.L10N.register(
 	"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:" : "%s är gratis (AGPL) på din Nextcloud. Buggrapporter och idéer på GitHub är fortsatt välkomna — det är gratis open source-omsorg. Om din organisation behöver bokningsbar hjälp mot faktura, välj ett alternativ nedan:",
 	"%s triggered the emergency action at %s. An incident was created — respond now." : "%s utlöste nödåtgärden vid %s. En händelse har skapats — agera nu.",
 	"%s — optional: your signature" : "%s — valfritt: din signatur",
-	"(%d env-bound value(s) emptied)" : "(%d instansbundna värden tömda)",
-	"(%d filtered)" : "(%d filtrerade)",
-	"(%d secret(s) redacted)" : "(%d hemligheter maskerade)",
-	"(%d unresolved ref)" : "(%d olösta referenser)",
 	"(erased)" : "(raderad)",
 	"(opens in a new tab)" : "(öppnas i en ny flik)",
 	"(unknown — skipped)" : "(okänd — hoppades över)",
@@ -855,7 +849,6 @@ OC.L10N.register(
 	"Verifying references" : "Verifierar referenser",
 	"Waiting for the job…" : "Väntar på jobbet…",
 	"Walk order" : "Rondens ordning",
-	"Warning: %d row(s) will be permanently deleted, then the file data is loaded." : "Varning: %d rad(er) raderas permanent, sedan läses filens data in.",
 	"Wed" : "Ons",
 	"Weekdays" : "Veckodagar",
 	"Weekly" : "Veckovis",
@@ -951,6 +944,14 @@ OC.L10N.register(
 	"★ Important — included in the morning digest" : "★ Viktig — ingår i morgonsammanfattningen",
 	"★ Important — remove flag" : "★ Viktig — ta bort flagga",
 	"★ Mark as important — included in the morning digest" : "★ Markera som viktig — ingår i morgonsammanfattningen",
-	"☆ Mark as important" : "☆ Markera som viktig"
+	"☆ Mark as important" : "☆ Markera som viktig",
+	"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_" : ["(1 instansbundet värde tömt)","(%n instansbundna värden tömda)"],
+	"_(1 filtered)_::_(%n filtered)_" : ["(1 filtrerad)","(%n filtrerade)"],
+	"_(1 secret redacted)_::_(%n secrets redacted)_" : ["(1 hemlighet maskerad)","(%n hemligheter maskerade)"],
+	"_(1 unresolved ref)_::_(%n unresolved refs)_" : ["(1 olöst referens)","(%n olösta referenser)"],
+	"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._" : ["1 referens är olöst — se grupperna nedan.","%n referenser är olösta — se grupperna nedan."],
+	"_1 row needs a value on this instance_::_%n rows need a value on this instance_" : ["1 rad behöver ett värde på den här instansen","%n rader behöver ett värde på den här instansen"],
+	"_1 row skipped._::_%n rows skipped._" : ["1 rad hoppades över.","%n rader hoppades över."],
+	"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._" : ["Varning: 1 rad raderas permanent, sedan läses filens data in.","Varning: %n rader raderas permanent, sedan läses filens data in."]
 	}
 );

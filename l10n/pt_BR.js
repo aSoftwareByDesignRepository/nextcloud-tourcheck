@@ -15,8 +15,6 @@ OC.L10N.register(
 	"%d open alert(s), %d open task(s)" : "%d alertas abertos, %d tarefas abertas",
 	"%d overdue" : "%d em atraso",
 	"%d registered" : "%d registradas",
-	"%d row(s) need a value on this instance" : "%d linha(s) precisam de um valor nesta instância",
-	"%d row(s) skipped and %d reference(s) unresolved — see the groups below." : "%d linha(s) ignorada(s) e %d referência(s) não resolvida(s) — veja os grupos abaixo.",
 	"%d shared" : "%d compartilhados",
 	"%d shown" : "%d mostrados",
 	"%d waiting to sync" : "%d aguardando sincronização",
@@ -28,10 +26,6 @@ OC.L10N.register(
 	"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:" : "%s permanece gratuito (AGPL) no seu Nextcloud. Relatórios de erros e ideias no GitHub continuam bem-vindos — isso é cuidado open source gratuito. Se a sua organização precisar de ajuda contratável com fatura, escolha uma opção abaixo:",
 	"%s triggered the emergency action at %s. An incident was created — respond now." : "%s acionou a ação de emergência em %s. Foi criado um incidente — responda já.",
 	"%s — optional: your signature" : "%s — opcional: sua assinatura",
-	"(%d env-bound value(s) emptied)" : "(%d valor(es) vinculados à instância esvaziados)",
-	"(%d filtered)" : "(%d filtrada(s))",
-	"(%d secret(s) redacted)" : "(%d segredo(s) ocultado(s))",
-	"(%d unresolved ref)" : "(%d referência(s) não resolvida(s))",
 	"(erased)" : "(apagado)",
 	"(opens in a new tab)" : "(abre em uma nova aba)",
 	"(unknown — skipped)" : "(desconhecido — ignorado)",
@@ -855,7 +849,6 @@ OC.L10N.register(
 	"Verifying references" : "Verificando referências",
 	"Waiting for the job…" : "Aguardando a tarefa…",
 	"Walk order" : "Ordem do percurso",
-	"Warning: %d row(s) will be permanently deleted, then the file data is loaded." : "Aviso: %d linha(s) serão excluídas permanentemente e, em seguida, os dados do arquivo serão carregados.",
 	"Wed" : "Qua",
 	"Weekdays" : "Dias da semana",
 	"Weekly" : "Semanal",
@@ -951,6 +944,14 @@ OC.L10N.register(
 	"★ Important — included in the morning digest" : "★ Importante — incluído no resumo matinal",
 	"★ Important — remove flag" : "★ Importante — remover marcação",
 	"★ Mark as important — included in the morning digest" : "★ Sinalizar como importante — incluído no resumo matinal",
-	"☆ Mark as important" : "☆ Sinalizar como importante"
+	"☆ Mark as important" : "☆ Sinalizar como importante",
+	"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_" : ["(1 valor vinculado à instância esvaziado)","(%n valores vinculados à instância esvaziados)"],
+	"_(1 filtered)_::_(%n filtered)_" : ["(1 filtrada)","(%n filtradas)"],
+	"_(1 secret redacted)_::_(%n secrets redacted)_" : ["(1 segredo ocultado)","(%n segredos ocultados)"],
+	"_(1 unresolved ref)_::_(%n unresolved refs)_" : ["(1 referência não resolvida)","(%n referências não resolvidas)"],
+	"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._" : ["1 referência não resolvida — veja os grupos abaixo.","%n referências não resolvidas — veja os grupos abaixo."],
+	"_1 row needs a value on this instance_::_%n rows need a value on this instance_" : ["1 linha precisa de um valor nesta instância","%n linhas precisam de um valor nesta instância"],
+	"_1 row skipped._::_%n rows skipped._" : ["1 linha ignorada.","%n linhas ignoradas."],
+	"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._" : ["Aviso: 1 linha será excluída permanentemente e, em seguida, os dados do arquivo serão carregados.","Aviso: %n linhas serão excluídas permanentemente e, em seguida, os dados do arquivo serão carregados."]
 	}
 );

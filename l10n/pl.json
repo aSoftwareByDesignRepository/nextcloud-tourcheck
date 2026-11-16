@@ -14,8 +14,6 @@
 		"%d open alert(s), %d open task(s)": "%d otwartych alertów, %d otwartych zadań",
 		"%d overdue": "%d zaległych",
 		"%d registered": "%d zarejestrowanych",
-		"%d row(s) need a value on this instance": "%d wierszy wymaga wartości na tej instancji",
-		"%d row(s) skipped and %d reference(s) unresolved — see the groups below.": "Pominięto %d wierszy i nierozwiązano %d odwołań — zobacz grupy poniżej.",
 		"%d shared": "%d udostępnionych",
 		"%d shown": "%d wyświetlanych",
 		"%d waiting to sync": "%d oczekuje na synchronizację",
@@ -27,10 +25,6 @@
 		"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:": "%s pozostaje bezpłatny (AGPL) na Państwa Nextcloud. Zgłoszenia błędów i pomysły na GitHub są nadal mile widziane — to darmowa troska open source. Jeśli Państwa organizacja potrzebuje rezerwowanej pomocy z fakturą, proszę wybrać opcję poniżej:",
 		"%s triggered the emergency action at %s. An incident was created — respond now.": "%s uruchomił akcję alarmową w %s. Utworzono incydent — reaguj natychmiast.",
 		"%s — optional: your signature": "%s — opcjonalnie: podpis",
-		"(%d env-bound value(s) emptied)": "(%d opróżnione wartości związane z instancją)",
-		"(%d filtered)": "(%d odfiltrowane)",
-		"(%d secret(s) redacted)": "(%d ukryte sekrety)",
-		"(%d unresolved ref)": "(%d nierozwiązane odwołania)",
 		"(erased)": "(usunięto)",
 		"(opens in a new tab)": "(otwiera się w nowej karcie)",
 		"(unknown — skipped)": "(nieznane — pominięto)",
@@ -854,7 +848,6 @@
 		"Verifying references": "Weryfikowanie odwołań",
 		"Waiting for the job…": "Oczekiwanie na zadanie…",
 		"Walk order": "Kolejność obchodu",
-		"Warning: %d row(s) will be permanently deleted, then the file data is loaded.": "Ostrzeżenie: %d wierszy zostanie trwale usuniętych, a następnie dane z pliku zostaną wczytane.",
 		"Wed": "Śr",
 		"Weekdays": "Dni tygodnia",
 		"Weekly": "Co tydzień",
@@ -950,6 +943,14 @@
 		"★ Important — included in the morning digest": "★ Ważne — uwzględnione w porannym podsumowaniu",
 		"★ Important — remove flag": "★ Ważne — usuń oflagowanie",
 		"★ Mark as important — included in the morning digest": "★ Oflaguj jako ważne — uwzględnione w porannym podsumowaniu",
-		"☆ Mark as important": "☆ Oflaguj jako ważne"
+		"☆ Mark as important": "☆ Oflaguj jako ważne",
+		"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_": ["(1 opróżniona wartość związana z instancją)", "(%n opróżnionych wartości związanych z instancją)"],
+		"_(1 filtered)_::_(%n filtered)_": ["(1 odfiltrowane)", "(%n odfiltrowanych)"],
+		"_(1 secret redacted)_::_(%n secrets redacted)_": ["(1 ukryty sekret)", "(%n ukrytych sekretów)"],
+		"_(1 unresolved ref)_::_(%n unresolved refs)_": ["(1 nierozwiązane odwołanie)", "(%n nierozwiązanych odwołań)"],
+		"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._": ["Nierozwiązano 1 odwołanie — zobacz grupy poniżej.", "Nierozwiązano %n odwołań — zobacz grupy poniżej."],
+		"_1 row needs a value on this instance_::_%n rows need a value on this instance_": ["1 wiersz wymaga wartości na tej instancji", "%n wierszy wymaga wartości na tej instancji"],
+		"_1 row skipped._::_%n rows skipped._": ["Pominięto 1 wiersz.", "Pominięto %n wierszy."],
+		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": ["Ostrzeżenie: 1 wiersz zostanie trwale usunięty, a następnie dane z pliku zostaną wczytane.", "Ostrzeżenie: %n wierszy zostanie trwale usuniętych, a następnie dane z pliku zostaną wczytane."]
 	}
 }

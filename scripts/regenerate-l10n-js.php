@@ -30,7 +30,7 @@ foreach ($files as $jsonPath) {
 	$lines = ["OC.L10N.register(\n", "\t\"tourcheck\",\n", "\t{\n"];
 	foreach ($translations as $key => $val) {
 		$lines[] = "\t" . json_encode((string)$key, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
-			. " : " . json_encode((string)$val, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ",\n";
+			. " : " . json_encode($val, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ",\n";
 	}
 	// trim trailing comma on last entry
 	$last = count($lines) - 1;

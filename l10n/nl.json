@@ -14,8 +14,6 @@
 		"%d open alert(s), %d open task(s)": "%d open meldingen, %d open taken",
 		"%d overdue": "%d te laat",
 		"%d registered": "%d geregistreerd",
-		"%d row(s) need a value on this instance": "%d rij(en) hebben een waarde nodig op deze installatie",
-		"%d row(s) skipped and %d reference(s) unresolved — see the groups below.": "%d rij(en) overgeslagen en %d verwijzing(en) onopgelost — zie de groepen hieronder.",
 		"%d shared": "%d gedeeld",
 		"%d shown": "%d weergegeven",
 		"%d waiting to sync": "%d wachten op synchronisatie",
@@ -27,10 +25,6 @@
 		"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:": "%s blijft gratis (AGPL) op je Nextcloud. Bugrapporten en ideeën op GitHub blijven welkom — dat is gratis open-source-zorg. Heeft jouw organisatie boekbare hulp op factuur nodig, kies dan hieronder een optie:",
 		"%s triggered the emergency action at %s. An incident was created — respond now.": "%s heeft de noodactie bij %s geactiveerd. Er is een incident aangemaakt — reageer nu.",
 		"%s — optional: your signature": "%s — optioneel: uw handtekening",
-		"(%d env-bound value(s) emptied)": "(%d installatiegebonden waarden geleegd)",
-		"(%d filtered)": "(%d gefilterd)",
-		"(%d secret(s) redacted)": "(%d geheimen gemaskeerd)",
-		"(%d unresolved ref)": "(%d onopgeloste verwijzingen)",
 		"(erased)": "(gewist)",
 		"(opens in a new tab)": "(opent in een nieuw tabblad)",
 		"(unknown — skipped)": "(onbekend — overgeslagen)",
@@ -854,7 +848,6 @@
 		"Verifying references": "Verwijzingen worden gecontroleerd",
 		"Waiting for the job…": "Wachten op de taak…",
 		"Walk order": "Loopvolgorde",
-		"Warning: %d row(s) will be permanently deleted, then the file data is loaded.": "Waarschuwing: %d rij(en) worden definitief verwijderd, daarna worden de bestandsgegevens geladen.",
 		"Wed": "Wo",
 		"Weekdays": "Weekdagen",
 		"Weekly": "Wekelijks",
@@ -950,6 +943,14 @@
 		"★ Important — included in the morning digest": "★ Belangrijk — opgenomen in het ochtendoverzicht",
 		"★ Important — remove flag": "★ Belangrijk — markering verwijderen",
 		"★ Mark as important — included in the morning digest": "★ Markeer als belangrijk — opgenomen in het ochtendoverzicht",
-		"☆ Mark as important": "☆ Markeer als belangrijk"
+		"☆ Mark as important": "☆ Markeer als belangrijk",
+		"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_": ["(1 installatiegebonden waarde geleegd)", "(%n installatiegebonden waarden geleegd)"],
+		"_(1 filtered)_::_(%n filtered)_": ["(1 gefilterd)", "(%n gefilterd)"],
+		"_(1 secret redacted)_::_(%n secrets redacted)_": ["(1 geheim gemaskeerd)", "(%n geheimen gemaskeerd)"],
+		"_(1 unresolved ref)_::_(%n unresolved refs)_": ["(1 onopgeloste verwijzing)", "(%n onopgeloste verwijzingen)"],
+		"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._": ["1 verwijzing onopgelost — zie de groepen hieronder.", "%n verwijzingen onopgelost — zie de groepen hieronder."],
+		"_1 row needs a value on this instance_::_%n rows need a value on this instance_": ["1 rij heeft een waarde nodig op deze installatie", "%n rijen hebben een waarde nodig op deze installatie"],
+		"_1 row skipped._::_%n rows skipped._": ["1 rij overgeslagen.", "%n rijen overgeslagen."],
+		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": ["Waarschuwing: 1 rij wordt definitief verwijderd, daarna worden de bestandsgegevens geladen.", "Waarschuwing: %n rijen worden definitief verwijderd, daarna worden de bestandsgegevens geladen."]
 	}
 }

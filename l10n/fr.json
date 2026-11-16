@@ -14,8 +14,6 @@
 		"%d open alert(s), %d open task(s)": "%d alertes ouvertes, %d tâches ouvertes",
 		"%d overdue": "%d en retard",
 		"%d registered": "%d enregistrées",
-		"%d row(s) need a value on this instance": "%d ligne(s) nécessitent une valeur sur cette instance",
-		"%d row(s) skipped and %d reference(s) unresolved — see the groups below.": "%d ligne(s) ignorée(s) et %d référence(s) non résolue(s) — voir les groupes ci-dessous.",
 		"%d shared": "%d partagés",
 		"%d shown": "%d affichés",
 		"%d waiting to sync": "%d en attente de synchronisation",
@@ -27,10 +25,6 @@
 		"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:": "%s reste gratuit (AGPL) sur votre Nextcloud. Les rapports de bugs et les idées sur GitHub restent les bienvenus — c’est l’entretien open source gratuit. Si votre organisation a besoin d’une aide réservable avec facture, choisissez une option ci-dessous :",
 		"%s triggered the emergency action at %s. An incident was created — respond now.": "%s a déclenché l’action d’urgence à %s. Un incident a été créé — réagissez maintenant.",
 		"%s — optional: your signature": "%s — facultatif : votre signature",
-		"(%d env-bound value(s) emptied)": "(%d valeur(s) liées à l’instance vidée(s))",
-		"(%d filtered)": "(%d filtrée(s))",
-		"(%d secret(s) redacted)": "(%d secret(s) masqué(s))",
-		"(%d unresolved ref)": "(%d référence(s) non résolue(s))",
 		"(erased)": "(effacé)",
 		"(opens in a new tab)": "(s’ouvre dans un nouvel onglet)",
 		"(unknown — skipped)": "(inconnu — ignoré)",
@@ -854,7 +848,6 @@
 		"Verifying references": "Vérification des références",
 		"Waiting for the job…": "En attente du traitement…",
 		"Walk order": "Ordre de passage",
-		"Warning: %d row(s) will be permanently deleted, then the file data is loaded.": "Avertissement : %d ligne(s) seront définitivement supprimées, puis les données du fichier seront chargées.",
 		"Wed": "Mer",
 		"Weekdays": "Jours de la semaine",
 		"Weekly": "Hebdomadaire",
@@ -950,6 +943,14 @@
 		"★ Important — included in the morning digest": "★ Important — inclus dans la synthèse du matin",
 		"★ Important — remove flag": "★ Important — retirer le marquage",
 		"★ Mark as important — included in the morning digest": "★ Marquer comme important — inclus dans la synthèse du matin",
-		"☆ Mark as important": "☆ Marquer comme important"
+		"☆ Mark as important": "☆ Marquer comme important",
+		"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_": ["(1 valeur liée à l’instance vidée)", "(%n valeurs liées à l’instance vidées)"],
+		"_(1 filtered)_::_(%n filtered)_": ["(1 filtrée)", "(%n filtrées)"],
+		"_(1 secret redacted)_::_(%n secrets redacted)_": ["(1 secret masqué)", "(%n secrets masqués)"],
+		"_(1 unresolved ref)_::_(%n unresolved refs)_": ["(1 référence non résolue)", "(%n références non résolues)"],
+		"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._": ["1 référence non résolue — voir les groupes ci-dessous.", "%n références non résolues — voir les groupes ci-dessous."],
+		"_1 row needs a value on this instance_::_%n rows need a value on this instance_": ["1 ligne nécessite une valeur sur cette instance", "%n lignes nécessitent une valeur sur cette instance"],
+		"_1 row skipped._::_%n rows skipped._": ["1 ligne ignorée.", "%n lignes ignorées."],
+		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": ["Avertissement : 1 ligne sera définitivement supprimée, puis les données du fichier seront chargées.", "Avertissement : %n lignes seront définitivement supprimées, puis les données du fichier seront chargées."]
 	}
 }

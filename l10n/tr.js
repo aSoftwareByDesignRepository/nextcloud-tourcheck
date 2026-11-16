@@ -15,8 +15,6 @@ OC.L10N.register(
 	"%d open alert(s), %d open task(s)" : "%d açık uyarı, %d açık görev",
 	"%d overdue" : "süresi geçmiş %d",
 	"%d registered" : "%d kayıtlı",
-	"%d row(s) need a value on this instance" : "%d satırın bu örnekte bir değere ihtiyacı var",
-	"%d row(s) skipped and %d reference(s) unresolved — see the groups below." : "%d satır atlandı ve %d başvuru çözümlenemedi — aşağıdaki gruplara bakın.",
 	"%d shared" : "%d paylaşılan",
 	"%d shown" : "%d gösteriliyor",
 	"%d waiting to sync" : "eşitleme bekleyen %d",
@@ -28,10 +26,6 @@ OC.L10N.register(
 	"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:" : "%s, Nextcloud'unuzda ücretsiz kalır (AGPL). GitHub'da hata bildirimleri ve fikirler her zaman beklenir — bu, ücretsiz açık kaynak desteğidir. Kurumunuzun faturalandırılabilir, rezerve edilebilir yardıma ihtiyacı varsa aşağıdaki seçeneklerden birini seçin:",
 	"%s triggered the emergency action at %s. An incident was created — respond now." : "%s, %s konumunda acil durum eylemini tetikledi. Bir olay oluşturuldu — şimdi müdahale edin.",
 	"%s — optional: your signature" : "%s — isteğe bağlı: imzanız",
-	"(%d env-bound value(s) emptied)" : "(%d örneğe bağlı değer boşaltıldı)",
-	"(%d filtered)" : "(%d filtrelendi)",
-	"(%d secret(s) redacted)" : "(%d sır gizlendi)",
-	"(%d unresolved ref)" : "(%d çözümlenemeyen başvuru)",
 	"(erased)" : "(silinmiş)",
 	"(opens in a new tab)" : "(yeni sekmede açılır)",
 	"(unknown — skipped)" : "(bilinmiyor — atlandı)",
@@ -855,7 +849,6 @@ OC.L10N.register(
 	"Verifying references" : "Başvurular doğrulanıyor",
 	"Waiting for the job…" : "İş bekleniyor…",
 	"Walk order" : "Kontrol sırası",
-	"Warning: %d row(s) will be permanently deleted, then the file data is loaded." : "Uyarı: %d satır kalıcı olarak silinecek, ardından dosya verileri yüklenecek.",
 	"Wed" : "Çar",
 	"Weekdays" : "Hafta günleri",
 	"Weekly" : "Haftalık",
@@ -951,7 +944,14 @@ OC.L10N.register(
 	"★ Important — included in the morning digest" : "★ Önemli — sabah özetine dahil",
 	"★ Important — remove flag" : "★ Önemli — işareti kaldır",
 	"★ Mark as important — included in the morning digest" : "★ Önemli olarak işaretle — sabah özetine dahil",
-	"☆ Mark as important" : "☆ Önemli olarak işaretle"
-	},
-	"nplurals=2; plural=(n != 1);"
+	"☆ Mark as important" : "☆ Önemli olarak işaretle",
+	"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_" : ["(1 örneğe bağlı değer boşaltıldı)","(%n örneğe bağlı değer boşaltıldı)"],
+	"_(1 filtered)_::_(%n filtered)_" : ["(1 filtrelendi)","(%n filtrelendi)"],
+	"_(1 secret redacted)_::_(%n secrets redacted)_" : ["(1 sır gizlendi)","(%n sır gizlendi)"],
+	"_(1 unresolved ref)_::_(%n unresolved refs)_" : ["(1 çözümlenemeyen başvuru)","(%n çözümlenemeyen başvuru)"],
+	"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._" : ["1 başvuru çözümlenemedi — aşağıdaki gruplara bakın.","%n başvuru çözümlenemedi — aşağıdaki gruplara bakın."],
+	"_1 row needs a value on this instance_::_%n rows need a value on this instance_" : ["1 satırın bu örnekte bir değere ihtiyacı var","%n satırın bu örnekte bir değere ihtiyacı var"],
+	"_1 row skipped._::_%n rows skipped._" : ["1 satır atlandı.","%n satır atlandı."],
+	"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._" : ["Uyarı: 1 satır kalıcı olarak silinecek, ardından dosya verileri yüklenecek.","Uyarı: %n satır kalıcı olarak silinecek, ardından dosya verileri yüklenecek."]
+	}
 );
