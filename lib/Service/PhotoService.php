@@ -24,9 +24,16 @@ class PhotoService
 	private const MAX_BYTES = 10 * 1024 * 1024;
 	private const MAX_PIXELS = 50_000_000;
 	private const MAX_AUDIO_BYTES = 5 * 1024 * 1024;
-	/** Voice-note allowlist — finfo probed, extension never trusted. */
+	/**
+	 * Voice-note allowlist — finfo probed, extension never trusted.
+	 * expo-audio writes ftyp=mp42, which libmagic labels video/mp4 (some
+	 * builds say application/mp4) even for an audio-only container — the
+	 * blob is attach-only evidence that is never served back, so the mp4
+	 * probe maps onto the same m4a treatment as the audio/* brands.
+	 */
 	private const AUDIO_MIME_EXT = [
 		'audio/mp4' => 'm4a', 'audio/x-m4a' => 'm4a', 'audio/m4a' => 'm4a',
+		'video/mp4' => 'm4a', 'application/mp4' => 'm4a',
 		'audio/mpeg' => 'mp3', 'audio/webm' => 'webm', 'video/webm' => 'webm',
 		'audio/ogg' => 'ogg', 'audio/x-caf' => 'caf', 'audio/aac' => 'aac',
 	];
@@ -147,7 +154,7 @@ class PhotoService
 
 	public function readAudio(int $siteId, int $fileId): ?ISimpleFile
 	{
-		foreach (self::AUDIO_MIME_EXT as $ext) {
+		foreach (array_unique(self::AUDIO_MIME_EXT) as $ext) {
 			try {
 				return $this->folder($siteId)->getFile($fileId . '.' . $ext);
 			} catch (\Throwable) {

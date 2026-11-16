@@ -137,4 +137,67 @@ final class PhotoStoreTest extends TestCase
 		$this->expectException(ValidationException::class);
 		$svc->store(7, $this->tmp);
 	}
+
+	/**
+	 * Minimal MP4 shell carrying the ftyp brand expo-audio emits on
+	 * Android — libmagic labels the container video/mp4 even when the
+	 * only track is audio (tck-avd-voice-note-server-mime-reject).
+	 */
+	private function writeMp42AudioShell(): void
+	{
+		$ftyp = pack('N', 24) . 'ftyp' . 'mp42' . pack('N', 0) . 'mp42isom';
+		$moov = pack('N', 116) . 'moov' . pack('N', 108) . 'mvhd' . str_repeat("\0", 100);
+		file_put_contents($this->tmp, $ftyp . $moov);
+	}
+
+	public function testStoresAudioProbedAsVideoMp4(): void
+	{
+		$this->writeMp42AudioShell();
+		$mime = (string)(new \finfo(FILEINFO_MIME_TYPE))->file($this->tmp);
+		self::assertSame('video/mp4', $mime, 'fixture must exercise the mp42 probe path');
+		[, $svc, $box] = $this->service();
+		$id = $svc->storeAudio(7, $this->tmp);
+		self::assertGreaterThan(0, $id);
+		self::assertArrayHasKey($id . '.m4a', $box->files);
+		// Audio is stored raw (no re-encode) — bytes must round-trip verbatim.
+		self::assertSame(file_get_contents($this->tmp), (string)$box->files[$id . '.m4a']);
+	}
+
+	public function testAudioGarbageRejected(): void
+	{
+		file_put_contents($this->tmp, 'this is not a voice recording');
+		[, $svc] = $this->service();
+		try {
+			$svc->storeAudio(7, $this->tmp);
+			self::fail('expected rejection');
+		} catch (ValidationException $e) {
+			self::assertSame('invalid', $e->fields['audio'] ?? null);
+		}
+	}
+
+	public function testAudioOversizeRejected(): void
+	{
+		file_put_contents($this->tmp, str_repeat("\0", 5 * 1024 * 1024 + 1));
+		[, $svc] = $this->service();
+		try {
+			$svc->storeAudio(7, $this->tmp);
+			self::fail('expected rejection');
+		} catch (ValidationException $e) {
+			// The byte cap fires before the MIME gate — a removed cap would
+			// surface 'invalid' instead and this assert would fail.
+			self::assertSame('too_large', $e->fields['audio'] ?? null);
+		}
+	}
+
+	public function testAudioEmptyRejected(): void
+	{
+		file_put_contents($this->tmp, '');
+		[, $svc] = $this->service();
+		try {
+			$svc->storeAudio(7, $this->tmp);
+			self::fail('expected rejection');
+		} catch (ValidationException $e) {
+			self::assertSame('empty', $e->fields['audio'] ?? null);
+		}
+	}
 }
