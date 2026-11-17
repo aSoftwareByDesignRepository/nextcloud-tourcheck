@@ -2,14 +2,14 @@
    (CheckFieldErrors.markValidationFields) from the server's localized
    `fields` map (WCAG 3.3.1/3.3.3). Synced from
    apps/_shared/field-errors/field-errors.css — tck = app prefix. */
-#app-content.tck-app .tck-input[aria-invalid="true"],
-#app-content.tck-app input[aria-invalid="true"],
-#app-content.tck-app select[aria-invalid="true"],
-#app-content.tck-app textarea[aria-invalid="true"] {
+:is(#app-content.tck-app, .tck-dialog) .tck-input[aria-invalid="true"],
+:is(#app-content.tck-app, .tck-dialog) input[aria-invalid="true"],
+:is(#app-content.tck-app, .tck-dialog) select[aria-invalid="true"],
+:is(#app-content.tck-app, .tck-dialog) textarea[aria-invalid="true"] {
 	border-color: var(--color-error-text, var(--tck-danger-ink, var(--color-error)));
 	box-shadow: 0 0 0 1px var(--color-error-text, var(--tck-danger-ink, var(--color-error)));
 }
-#app-content.tck-app .tck-field-error {
+:is(#app-content.tck-app, .tck-dialog) .tck-field-error {
 	margin: 0.25rem 0 0;
 	font-size: 0.875rem;
 	font-weight: 600;
