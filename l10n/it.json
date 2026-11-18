@@ -995,6 +995,20 @@
 		"★ Important — included in the morning digest": "★ Importante — incluso nel riepilogo mattutino",
 		"★ Important — remove flag": "★ Importante — rimuovi contrassegno",
 		"★ Mark as important — included in the morning digest": "★ Segna come importante — incluso nel riepilogo mattutino",
-		"☆ Mark as important": "☆ Segna come importante"
+		"☆ Mark as important": "☆ Segna come importante",
+		"1 setting": "1 impostazione",
+		"%n settings": "%n impostazioni",
+		"1 row": "1 riga",
+		"%n rows": "%n righe",
+		"_1 row_::_%n rows_": [
+			"1 riga",
+			"%n righe"
+		],
+		"_1 setting_::_%n settings_": [
+			"1 impostazione",
+			"%n impostazioni"
+		],
+		"This will update %1$s and %2$s — nothing is deleted.": "Verranno aggiornate %1$s e %2$s — non verrà eliminato nulla.",
+		"Import applied. %1$s and %2$s written.": "Importazione applicata. %1$s e %2$s scritte."
 	}
 }

@@ -957,6 +957,14 @@ OC.L10N.register(
 	"★ Important — included in the morning digest" : "★ Importante — incluído no resumo matinal",
 	"★ Important — remove flag" : "★ Importante — remover marcação",
 	"★ Mark as important — included in the morning digest" : "★ Sinalizar como importante — incluído no resumo matinal",
-	"☆ Mark as important" : "☆ Sinalizar como importante"
+	"☆ Mark as important" : "☆ Sinalizar como importante",
+	"1 setting" : "1 definição",
+	"%n settings" : "%n definições",
+	"1 row" : "1 linha",
+	"%n rows" : "%n linhas",
+	"_1 row_::_%n rows_" : ["1 linha","%n linhas"],
+	"_1 setting_::_%n settings_" : ["1 definição","%n definições"],
+	"This will update %1$s and %2$s — nothing is deleted." : "Isto irá atualizar %1$s e %2$s — nada será eliminado.",
+	"Import applied. %1$s and %2$s written." : "Importação aplicada. %1$s e %2$s escritas."
 	}
 );

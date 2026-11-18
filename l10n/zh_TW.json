@@ -995,6 +995,18 @@
 		"★ Important — included in the morning digest": "★ 重要——包含在晨報中",
 		"★ Important — remove flag": "★ 重要——移除標記",
 		"★ Mark as important — included in the morning digest": "★ 標記為重要——包含在晨報中",
-		"☆ Mark as important": "☆ 標記為重要"
+		"☆ Mark as important": "☆ 標記為重要",
+		"1 setting": "1 項設定",
+		"%n settings": "%n 項設定",
+		"1 row": "1 列",
+		"%n rows": "%n 列",
+		"_1 row_::_%n rows_": [
+			"%n 列"
+		],
+		"_1 setting_::_%n settings_": [
+			"%n 項設定"
+		],
+		"This will update %1$s and %2$s — nothing is deleted.": "這將更新 %1$s 與 %2$s——不會刪除任何內容。",
+		"Import applied. %1$s and %2$s written.": "匯入已套用。已寫入 %1$s 與 %2$s。"
 	}
 }
