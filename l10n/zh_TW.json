@@ -29,55 +29,42 @@
 		"(opens in a new tab)": "（在新標籤頁中開啟）",
 		"(unknown — skipped)": "（未知——已跳過）",
 		"_%n flagged item_::_%n flagged items_": [
-			"%n 個標記項目",
 			"%n 個標記項目"
 		],
 		"_%n incident_::_%n incidents_": [
-			"%n 起事件",
 			"%n 起事件"
 		],
 		"_%n logbook entry_::_%n logbook entries_": [
-			"%n 則日誌",
 			"%n 則日誌"
 		],
 		"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_": [
-			"（已清空 1 個實例綁定值）",
 			"（已清空 %n 個實例綁定值）"
 		],
 		"_(1 filtered)_::_(%n filtered)_": [
-			"（已篩選 1 項）",
 			"（已篩選 %n 項）"
 		],
 		"_(1 secret redacted)_::_(%n secrets redacted)_": [
-			"（已遮蔽 1 個密鑰）",
 			"（已遮蔽 %n 個密鑰）"
 		],
 		"_(1 unresolved ref)_::_(%n unresolved refs)_": [
-			"（1 個參照未解析）",
 			"（%n 個參照未解析）"
 		],
 		"_1 open alert_::_%n open alerts_": [
-			"1 個未處理告警",
 			"%n 個未處理告警"
 		],
 		"_1 open task_::_%n open tasks_": [
-			"1 個未處理任務",
 			"%n 個未處理任務"
 		],
 		"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._": [
-			"1 個參照未能解析——請查看下方群組。",
 			"%n 個參照未能解析——請查看下方群組。"
 		],
 		"_1 row needs a value on this instance_::_%n rows need a value on this instance_": [
-			"1 列需要在此實例上填寫值",
 			"%n 列需要在此實例上填寫值"
 		],
 		"_1 row skipped._::_%n rows skipped._": [
-			"已略過 1 列。",
 			"已略過 %n 列。"
 		],
 		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": [
-			"警告：1 列將被永久刪除，然後載入檔案資料。",
 			"警告：%n 列將被永久刪除，然後載入檔案資料。"
 		],
 		"A license key is stored, but this server cannot verify its signature with the vendor public key. The companion apps will reject the license until the key was signed with the matching vendor signing key. Re-apply a correctly signed license, or contact support if this persists after an app update.": "已儲存授權金鑰，但此伺服器無法使用供應商公鑰驗證其簽章。配套應用程式將拒絕該授權，直到金鑰使用相符的供應商簽章金鑰簽署。請重新套用簽章正確的授權；若應用程式更新後問題仍存在，請聯絡支援。",
@@ -384,7 +371,6 @@
 		"https:// URL with {z}, {x} and {y} placeholders — e.g. https://tile.openstreetmap.org/{z}/{x}/{y}.png": "含 {z}、{x}、{y} 佔位符的 https:// URL——例如 https://tile.openstreetmap.org/{z}/{x}/{y}.png",
 		"If something happens on a round, report it here.": "巡更中如發生情況，請在此報告。",
 		"Import": "匯入",
-		"Import applied. %d settings and %d rows written.": "匯入已套用。已寫入 %d 項設定與 %d 列。",
 		"Import configuration": "匯入配置",
 		"Import failed — nothing was changed.": "匯入失敗——未做任何更改。",
 		"Import preview": "匯入預覽",
@@ -879,7 +865,6 @@
 		"This server’s Nextcloud instance ID (for support / sales reference). Licenses are not instance-bound.": "此伺服器的 Nextcloud 執行個體 ID（供支援/銷售參考）。授權不綁定執行個體。",
 		"This station needs an active station license. Ask your administrator to apply or renew the license in the TourCheck settings.": "此站點裝置需要有效的站點授權。請讓管理員在 TourCheck 設定中應用或續訂授權。",
 		"This token is shown only once. Paste it into the companion app on the device.": "此權杖僅顯示一次。請將其貼上到裝置上的配套應用程式中。",
-		"This will update %d settings and %d rows — nothing is deleted.": "這將更新 %d 項設定與 %d 列資料——不會刪除任何內容。",
 		"Thu": "週四",
 		"Tile URL template": "瓦片 URL 模板",
 		"Time": "時間",
