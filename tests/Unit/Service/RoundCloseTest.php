@@ -65,11 +65,11 @@ final class RoundCloseTest extends TestCase
 		return $r;
 	}
 
-	private function pendingCp(int $id): RoundCheckpoint
+	private function pendingCp(int $id, int $roundId = 3): RoundCheckpoint
 	{
 		$c = new RoundCheckpoint();
 		$c->setId($id);
-		$c->setRoundId(3);
+		$c->setRoundId($roundId);
 		$c->setStatus('pending');
 		return $c;
 	}
@@ -283,6 +283,99 @@ final class RoundCloseTest extends TestCase
 		$this->rounds->method('find')->willReturn($this->round('skipped'));
 		$this->expectException(NotFoundException::class);
 		$this->svc->attach(7, 55, $this->now, 3, true);
+	}
+
+	public function testAttachPoolSingleCandidateResolves(): void
+	{
+		$round = $this->round('scheduled');
+		$rcp = $this->pendingCp(9);
+		$this->rounds->method('findAttachable')->willReturn([$round]);
+		$this->roundCps->method('findForRoundAndCheckpoint')->willReturnMap([
+			[3, 55, $rcp],
+		]);
+		[$r, $c] = $this->svc->attach(7, 55, $this->now);
+		self::assertSame($round, $r);
+		self::assertSame($rcp, $c);
+	}
+
+	public function testAttachPoolPrefersInWindowCandidate(): void
+	{
+		// Two attachable rounds — only the first checkpoint window contains
+		// client_ts, so the pool collapses before the active pass runs.
+		$inWin = $this->round('scheduled');
+		$outWin = $this->round('active');
+		$outWin->setId(4);
+		$rcpIn = $this->pendingCp(9);
+		$rcpOut = $this->pendingCp(10, 4);
+		$rcpOut->setEarliest((clone $this->now)->modify('+1 hour'));
+		$this->rounds->method('findAttachable')->willReturn([$inWin, $outWin]);
+		$this->roundCps->method('findForRoundAndCheckpoint')->willReturnMap([
+			[3, 55, $rcpIn],
+			[4, 55, $rcpOut],
+		]);
+		[$r, $c] = $this->svc->attach(7, 55, $this->now);
+		self::assertSame($inWin, $r);
+		self::assertSame($rcpIn, $c);
+	}
+
+	public function testAttachPoolPrefersSingleActiveRound(): void
+	{
+		// Two candidates still tied after the window pass — the one in
+		// progress is the truthful attribution for a live confirm.
+		$active = $this->round('active');
+		$scheduled = $this->round('scheduled');
+		$scheduled->setId(4);
+		$rcpA = $this->pendingCp(9);
+		$rcpB = $this->pendingCp(10, 4);
+		$this->rounds->method('findAttachable')->willReturn([$scheduled, $active]);
+		$this->roundCps->method('findForRoundAndCheckpoint')->willReturnMap([
+			[3, 55, $rcpA],
+			[4, 55, $rcpB],
+		]);
+		[$r, $c] = $this->svc->attach(7, 55, $this->now);
+		self::assertSame($active, $r);
+		self::assertSame($rcpA, $c);
+	}
+
+	public function testAttachPoolAmbiguousWithoutActiveRound(): void
+	{
+		// Two scheduled candidates and none in progress — a manager's
+		// scheduling conflict, never resolved by guessing.
+		$a = $this->round('scheduled');
+		$b = $this->round('missed');
+		$b->setId(4);
+		$this->rounds->method('findAttachable')->willReturn([$a, $b]);
+		$this->roundCps->method('findForRoundAndCheckpoint')->willReturnMap([
+			[3, 55, $this->pendingCp(9)],
+			[4, 55, $this->pendingCp(10, 4)],
+		]);
+		try {
+			$this->svc->attach(7, 55, $this->now);
+			self::fail('expected DomainException');
+		} catch (DomainException $e) {
+			self::assertSame('ambiguous_round', $e->errorCode);
+			self::assertSame(422, $e->httpStatus);
+		}
+	}
+
+	public function testAttachPoolAmbiguousWithTwoActiveRounds(): void
+	{
+		// Two simultaneous in-progress rounds covering the same checkpoint —
+		// a worker cannot attribute evidence, so it stays ambiguous.
+		$a = $this->round('active');
+		$b = $this->round('active');
+		$b->setId(4);
+		$this->rounds->method('findAttachable')->willReturn([$a, $b]);
+		$this->roundCps->method('findForRoundAndCheckpoint')->willReturnMap([
+			[3, 55, $this->pendingCp(9)],
+			[4, 55, $this->pendingCp(10, 4)],
+		]);
+		try {
+			$this->svc->attach(7, 55, $this->now);
+			self::fail('expected DomainException');
+		} catch (DomainException $e) {
+			self::assertSame('ambiguous_round', $e->errorCode);
+		}
 	}
 
 	public function testSkipRoutesThroughRecomputeAndJournals(): void

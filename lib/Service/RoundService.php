@@ -141,8 +141,9 @@ class RoundService
 	 * Candidates: non-terminal rounds on the site that contain the checkpoint,
 	 * whose [earliest-of-first-stop, window_end] envelope could contain
 	 * client_ts. Tie-breaks: explicit round_id > window containment >
-	 * soonest scheduled_start. >1 after all that → 422 AMBIGUOUS (companion
-	 * shows the picker — the ONLY time a worker picks a round).
+	 * single active round. >1 after all that → 422 AMBIGUOUS (a manager
+	 * resolves the overlapping schedule in the web app — workers never
+	 * attribute evidence by guessing).
 	 *
 	 * $forAttestation additionally admits 'skipped' checkpoints: a supervisor
 	 * countersign confirms paper-logged work the worker skipped on closeEarly
@@ -195,6 +196,15 @@ class RoundService
 		$pool = $inWindow !== [] ? $inWindow : $matching;
 		if (count($pool) === 1) {
 			return $pool[0];
+		}
+		// One more deterministic pass: a single in-progress round is the
+		// truthful attribution for a live confirm — overlapping
+		// merely-scheduled/missed candidates are the manager's scheduling
+		// conflict, not the worker's. 0 or >=2 actives stays ambiguous:
+		// attestation never guesses.
+		$active = array_values(array_filter($pool, static fn ($m) => $m[0]->getStatus() === Constants::ROUND_ACTIVE));
+		if (count($active) === 1) {
+			return $active[0];
 		}
 		usort($pool, static fn ($a, $b) => $a[0]->getScheduledStart() <=> $b[0]->getScheduledStart());
 		throw new DomainException(
