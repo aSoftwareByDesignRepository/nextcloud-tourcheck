@@ -17,6 +17,8 @@
 		"%d shown": "%d visade",
 		"%d waiting to sync": "%d väntar på synkronisering",
 		"%n on duty": "%n i tjänst",
+		"%n rows": "%n rader",
+		"%n settings": "%n inställningar",
 		"%s reported a critical incident at %s — respond immediately.": "%s rapporterade en kritisk incident vid %s — agera omedelbart.",
 		"%s severity": "Allvarlighetsgrad %s",
 		"%s signalled \"%s\" at %s.": "%s rapporterade ”%s” vid %s.",
@@ -28,6 +30,8 @@
 		"(erased)": "(raderad)",
 		"(opens in a new tab)": "(öppnas i en ny flik)",
 		"(unknown — skipped)": "(okänd — hoppades över)",
+		"1 row": "1 rad",
+		"1 setting": "1 inställning",
 		"_%n flagged item_::_%n flagged items_": [
 			"%n flaggat objekt",
 			"%n flaggade objekt"
@@ -75,6 +79,14 @@
 		"_1 row skipped._::_%n rows skipped._": [
 			"1 rad hoppades över.",
 			"%n rader hoppades över."
+		],
+		"_1 row_::_%n rows_": [
+			"1 rad",
+			"%n rader"
+		],
+		"_1 setting_::_%n settings_": [
+			"1 inställning",
+			"%n inställningar"
 		],
 		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": [
 			"Varning: 1 rad raderas permanent, sedan läses filens data in.",
@@ -384,6 +396,7 @@
 		"https:// URL with {z}, {x} and {y} placeholders — e.g. https://tile.openstreetmap.org/{z}/{x}/{y}.png": "https://-URL med platshållarna {z}, {x} och {y} — t.ex. https://tile.openstreetmap.org/{z}/{x}/{y}.png",
 		"If something happens on a round, report it here.": "Händer något på en rond, rapportera det här.",
 		"Import": "Importera",
+		"Import applied. %1$s and %2$s written.": "Importen har tillämpats. %1$s och %2$s skrivna.",
 		"Import configuration": "Importera konfiguration",
 		"Import failed — nothing was changed.": "Importen misslyckades — inget ändrades.",
 		"Import preview": "Förhandsgranskning av import",
@@ -878,6 +891,7 @@
 		"This server’s Nextcloud instance ID (for support / sales reference). Licenses are not instance-bound.": "Den här serverns Nextcloud-instans-ID (för support-/försäljningsreferens). Licenser är inte instansbundna.",
 		"This station needs an active station license. Ask your administrator to apply or renew the license in the TourCheck settings.": "Denna station kräver en aktiv stationslicens. Be er administratör att tillämpa eller förnya licensen i TourCheck-inställningarna.",
 		"This token is shown only once. Paste it into the companion app on the device.": "Denna token visas bara en gång. Klistra in den i kompanjonappen på enheten.",
+		"This will update %1$s and %2$s — nothing is deleted.": "Detta uppdaterar %1$s och %2$s — inget raderas.",
 		"Thu": "Tor",
 		"Tile URL template": "URL-mall för brickor",
 		"Time": "Tidpunkt",
@@ -993,20 +1007,6 @@
 		"★ Important — included in the morning digest": "★ Viktig — ingår i morgonsammanfattningen",
 		"★ Important — remove flag": "★ Viktig — ta bort flagga",
 		"★ Mark as important — included in the morning digest": "★ Markera som viktig — ingår i morgonsammanfattningen",
-		"☆ Mark as important": "☆ Markera som viktig",
-		"1 setting": "1 inställning",
-		"%n settings": "%n inställningar",
-		"1 row": "1 rad",
-		"%n rows": "%n rader",
-		"_1 row_::_%n rows_": [
-			"1 rad",
-			"%n rader"
-		],
-		"_1 setting_::_%n settings_": [
-			"1 inställning",
-			"%n inställningar"
-		],
-		"This will update %1$s and %2$s — nothing is deleted.": "Detta uppdaterar %1$s och %2$s — inget raderas.",
-		"Import applied. %1$s and %2$s written.": "Importen har tillämpats. %1$s och %2$s skrivna."
+		"☆ Mark as important": "☆ Markera som viktig"
 	}
 }

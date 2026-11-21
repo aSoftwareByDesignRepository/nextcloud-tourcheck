@@ -17,6 +17,8 @@
 		"%d shown": "%d gösteriliyor",
 		"%d waiting to sync": "eşitleme bekleyen %d",
 		"%n on duty": "%n görevli",
+		"%n rows": "%n satır",
+		"%n settings": "%n ayar",
 		"%s reported a critical incident at %s — respond immediately.": "%s, %s konumunda kritik bir olay bildirdi — hemen müdahale edin.",
 		"%s severity": "%s önem derecesi",
 		"%s signalled \"%s\" at %s.": "%s, %s konumunda \"%s\" sinyali verdi.",
@@ -28,6 +30,8 @@
 		"(erased)": "(silinmiş)",
 		"(opens in a new tab)": "(yeni sekmede açılır)",
 		"(unknown — skipped)": "(bilinmiyor — atlandı)",
+		"1 row": "1 satır",
+		"1 setting": "1 ayar",
 		"_%n flagged item_::_%n flagged items_": [
 			"%n işaretli öğe"
 		],
@@ -63,6 +67,12 @@
 		],
 		"_1 row skipped._::_%n rows skipped._": [
 			"%n satır atlandı."
+		],
+		"_1 row_::_%n rows_": [
+			"%n satır"
+		],
+		"_1 setting_::_%n settings_": [
+			"%n ayar"
 		],
 		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": [
 			"Uyarı: %n satır kalıcı olarak silinecek, ardından dosya verileri yüklenecek."
@@ -371,6 +381,7 @@
 		"https:// URL with {z}, {x} and {y} placeholders — e.g. https://tile.openstreetmap.org/{z}/{x}/{y}.png": "{z}, {x} ve {y} yer tutucularını içeren https:// URL'si — örn. https://tile.openstreetmap.org/{z}/{x}/{y}.png",
 		"If something happens on a round, report it here.": "Tur sırasında bir şey olursa buradan bildirin.",
 		"Import": "İçe aktar",
+		"Import applied. %1$s and %2$s written.": "İçe aktarma uygulandı. %1$s ve %2$s yazıldı.",
 		"Import configuration": "Yapılandırmayı içe aktar",
 		"Import failed — nothing was changed.": "İçe aktarma başarısız — hiçbir şey değiştirilmedi.",
 		"Import preview": "İçe aktarma önizlemesi",
@@ -865,6 +876,7 @@
 		"This server’s Nextcloud instance ID (for support / sales reference). Licenses are not instance-bound.": "Bu sunucunun Nextcloud örnek kimliği (destek / satış referansı için). Lisanslar örneğe bağlı değildir.",
 		"This station needs an active station license. Ask your administrator to apply or renew the license in the TourCheck settings.": "Bu istasyon, etkin bir istasyon lisansı gerektirir. Yöneticinizden TourCheck ayarlarında lisansı uygulamasını veya yenilemesini isteyin.",
 		"This token is shown only once. Paste it into the companion app on the device.": "Bu token yalnızca bir kez gösterilir. Cihazdaki eşlik uygulamasına yapıştır.",
+		"This will update %1$s and %2$s — nothing is deleted.": "Bu işlem %1$s ve %2$s güncelleyecek — hiçbir şey silinmeyecek.",
 		"Thu": "Per",
 		"Tile URL template": "Karo URL şablonu",
 		"Time": "Saat",
@@ -980,18 +992,6 @@
 		"★ Important — included in the morning digest": "★ Önemli — sabah özetine dahil",
 		"★ Important — remove flag": "★ Önemli — işareti kaldır",
 		"★ Mark as important — included in the morning digest": "★ Önemli olarak işaretle — sabah özetine dahil",
-		"☆ Mark as important": "☆ Önemli olarak işaretle",
-		"1 setting": "1 ayar",
-		"%n settings": "%n ayar",
-		"1 row": "1 satır",
-		"%n rows": "%n satır",
-		"_1 row_::_%n rows_": [
-			"%n satır"
-		],
-		"_1 setting_::_%n settings_": [
-			"%n ayar"
-		],
-		"This will update %1$s and %2$s — nothing is deleted.": "Bu işlem %1$s ve %2$s güncelleyecek — hiçbir şey silinmeyecek.",
-		"Import applied. %1$s and %2$s written.": "İçe aktarma uygulandı. %1$s ve %2$s yazıldı."
+		"☆ Mark as important": "☆ Önemli olarak işaretle"
 	}
 }
