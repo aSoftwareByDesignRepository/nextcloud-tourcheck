@@ -713,7 +713,7 @@ OC.L10N.register(
 	"Round" : "Runde",
 	"Round #%d" : "Runde #%d",
 	"Round attainment: %s %%" : "Rundenerfüllung: %s %%",
-	"Round closed" : "Runde abgeschlossen",
+	"Round closed" : "Runde geschlossen",
 	"Round completed" : "Runde abgeschlossen",
 	"Round created" : "Runde erstellt",
 	"Round for trail replay" : "Runde für Routen-Wiedergabe",

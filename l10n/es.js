@@ -465,7 +465,7 @@ OC.L10N.register(
 	"Monthly" : "Mensual",
 	"More Check apps" : "Más apps Check",
 	"More than 20 invalid checkpoint-token submissions in 5 minutes (scope: %s). Possible scanner misconfiguration or enumeration probing." : "Más de 20 tokens de checkpoint inválidos en 5 minutos (ámbito: %s).",
-	"More than 20 suspicious token scans in 5 minutes (rotated or inactive tags). Check whether old tags are still posted or tokens circulate." : "Más de 20 escaneos de tokens sospechosos en 5 minutos.",
+	"More than 20 suspicious token scans in 5 minutes (rotated or inactive tags). Check whether old tags are still posted or tokens circulate." : "Más de 20 escaneos de tokens sospechosos en 5 minutos (etiquetas rotadas o inactivas). Compruebe si las etiquetas antiguas siguen colocadas o si los tokens circulan.",
 	"Morning digest" : "Resumen matutino",
 	"Morning digest: %s" : "Resumen matutino: %s",
 	"Must be an https:// URL containing {z}, {x} and {y}." : "Debe ser una URL https:// que contenga {z}, {x} e {y}.",

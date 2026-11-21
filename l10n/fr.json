@@ -503,7 +503,7 @@
     "Monthly": "Mensuel",
     "More Check apps": "Plus d'applications Check",
     "More than 20 invalid checkpoint-token submissions in 5 minutes (scope: %s). Possible scanner misconfiguration or enumeration probing.": "Plus de 20 jetons de checkpoint invalides en 5 minutes (portée : %s).",
-    "More than 20 suspicious token scans in 5 minutes (rotated or inactive tags). Check whether old tags are still posted or tokens circulate.": "Plus de 20 scans de jetons suspects en 5 minutes (tags rotatés ou inactifs).",
+    "More than 20 suspicious token scans in 5 minutes (rotated or inactive tags). Check whether old tags are still posted or tokens circulate.": "Plus de 20 scans de jetons suspects en 5 minutes (tags rotatés ou inactifs). Vérifiez si les anciens tags sont toujours en place ou si des jetons circulent.",
     "Morning digest": "Synthèse du matin",
     "Morning digest: %s": "Synthèse du matin : %s",
     "Must be an https:// URL containing {z}, {x} and {y}.": "Doit être une URL https:// contenant {z}, {x} et {y}.",
