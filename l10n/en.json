@@ -17,6 +17,8 @@
 		"%d shown": "%d shown",
 		"%d waiting to sync": "%d waiting to sync",
 		"%n on duty": "%n on duty",
+		"%n rows": "%n rows",
+		"%n settings": "%n settings",
 		"%s reported a critical incident at %s — respond immediately.": "%s reported a critical incident at %s — respond immediately.",
 		"%s severity": "%s severity",
 		"%s signalled \"%s\" at %s.": "%s signalled \"%s\" at %s.",
@@ -28,6 +30,8 @@
 		"(erased)": "(erased)",
 		"(opens in a new tab)": "(opens in a new tab)",
 		"(unknown — skipped)": "(unknown — skipped)",
+		"1 row": "1 row",
+		"1 setting": "1 setting",
 		"_%n flagged item_::_%n flagged items_": [
 			"%n flagged item",
 			"%n flagged items"
@@ -75,6 +79,14 @@
 		"_1 row skipped._::_%n rows skipped._": [
 			"1 row skipped.",
 			"%n rows skipped."
+		],
+		"_1 row_::_%n rows_": [
+			"1 row",
+			"%n rows"
+		],
+		"_1 setting_::_%n settings_": [
+			"1 setting",
+			"%n settings"
 		],
 		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": [
 			"Warning: 1 row will be permanently deleted, then the file data is loaded.",
@@ -384,6 +396,7 @@
 		"https:// URL with {z}, {x} and {y} placeholders — e.g. https://tile.openstreetmap.org/{z}/{x}/{y}.png": "https:// URL with {z}, {x} and {y} placeholders — e.g. https://tile.openstreetmap.org/{z}/{x}/{y}.png",
 		"If something happens on a round, report it here.": "If something happens on a round, report it here.",
 		"Import": "Import",
+		"Import applied. %1$s and %2$s written.": "Import applied. %1$s and %2$s written.",
 		"Import configuration": "Import configuration",
 		"Import failed — nothing was changed.": "Import failed — nothing was changed.",
 		"Import preview": "Import preview",
@@ -878,6 +891,7 @@
 		"This server’s Nextcloud instance ID (for support / sales reference). Licenses are not instance-bound.": "This server’s Nextcloud instance ID (for support / sales reference). Licenses are not instance-bound.",
 		"This station needs an active station license. Ask your administrator to apply or renew the license in the TourCheck settings.": "This station needs an active station license. Ask your administrator to apply or renew the license in the TourCheck settings.",
 		"This token is shown only once. Paste it into the companion app on the device.": "This token is shown only once. Paste it into the companion app on the device.",
+		"This will update %1$s and %2$s — nothing is deleted.": "This will update %1$s and %2$s — nothing is deleted.",
 		"Thu": "Thu",
 		"Tile URL template": "Tile URL template",
 		"Time": "Time",
@@ -993,20 +1007,6 @@
 		"★ Important — included in the morning digest": "Important — appears in the morning digest",
 		"★ Important — remove flag": "Important — remove flag",
 		"★ Mark as important — included in the morning digest": "Mark as important — appears in the morning digest",
-		"☆ Mark as important": "Mark as important",
-		"1 setting": "1 setting",
-		"%n settings": "%n settings",
-		"1 row": "1 row",
-		"%n rows": "%n rows",
-		"_1 row_::_%n rows_": [
-			"1 row",
-			"%n rows"
-		],
-		"_1 setting_::_%n settings_": [
-			"1 setting",
-			"%n settings"
-		],
-		"This will update %1$s and %2$s — nothing is deleted.": "This will update %1$s and %2$s — nothing is deleted.",
-		"Import applied. %1$s and %2$s written.": "Import applied. %1$s and %2$s written."
+		"☆ Mark as important": "Mark as important"
 	}
 }
