@@ -8,11 +8,18 @@
 		try { return OC.L10N.translate('tourcheck', key) || key; } catch (e) { return key; }
 	}
 	/* OC.L10N.translate does not sprintf — positional %d/%s in a translated
-	 * string must be substituted here or users read raw placeholders. */
+	 * string must be substituted here or users read raw placeholders, and
+	 * the catalog's vsprintf '%%' escape must collapse to a single '%'
+	 * (transfer.js convention). */
 	function tf(key, vars) {
-		var str = t(key);
-		(vars || []).forEach(function (v) { str = str.replace(/%[ds]/, v === null || v === undefined ? '—' : String(v)); });
-		return str;
+		var list = vars || [];
+		var i = 0;
+		return t(key).replace(/%%|%(?:\d+\$)?[sd]/g, function (m) {
+			if (m === '%%') { return '%'; }
+			var idx = /^%(\d+)\$/.exec(m);
+			var v = idx ? list[+idx[1] - 1] : list[i++];
+			return (v === null || v === undefined) ? '—' : String(v);
+		});
 	}
 	/* Plural-aware translate — window.n resolves the _sg_::_pl_ combined
 	 * catalog key and substitutes %n. Singular msgids carry the literal '1'
