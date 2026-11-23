@@ -13,50 +13,64 @@
 
 Document security patrols, facility rounds and inspections on your own Nextcloud: QR/NFC checkpoints, kiosk sign-off for shared stations, supervisor attestation, an append-only hash-chained Wachbuch with external RFC 3161 timestamp anchoring, SLA reports and one-click claim bundles.
 
-**Free AGPL web app.** The native companion (worker + station modes) is licensed separately (`TCK2`). Web is never gated by the device licence.
+## Highlights
+
+- **Checkpoints that can't be faked** — QR/NFC scans and kiosk sign-off fix place and time
+- **Rounds with a plan** — walk-order checkpoints per site; due, active, missed and done at a glance
+- **A Wachbuch that holds up** — append-only, hash-chained journal with RFC 3161 timestamp anchoring
+- **Supervisor attestation** — second-eyes sign-off where contracts demand it
+- **Reports and claim bundles** — SLA reporting plus one-click evidence packs for clients
+- **Privacy by design** — GPS is opt-in per site, visible, and auto-purged; no covert tracking
 
 ## Clear limits
 
-- Not a scheduling/roster tool — rounds, not shifts
-- Not a time-tracking suite — presence evidence at checkpoints only
-- No covert tracking — GPS is opt-in per site, visible, and auto-purged
+- Not a scheduling or roster tool — rounds, not shifts.
+- Not a time-tracking suite — presence evidence at checkpoints only.
+
+**Free AGPL web app.** The native companion (worker and station modes) is licensed separately (`TCK2`); the web is never gated.
 
 ## Feedback welcome
 
-We improve this app with real-world use — open a GitHub Issue (https://github.com/aSoftwareByDesignRepository/nextcloud-tourcheck/issues) or write to info@software-by-design.de.
+Something rough, something missing? Open a GitHub Issue (https://github.com/aSoftwareByDesignRepository/nextcloud-tourcheck/issues) or write to info@software-by-design.de.
 
 ## Requirements
 
-- Nextcloud 32–35 · PHP 8.2+ · MySQL or PostgreSQL
+- Nextcloud 32–35
+- PHP 8.2–8.5
+- MySQL or PostgreSQL
 	]]></description>
 	<description lang="de"><![CDATA[
-# TourCheck — Rundgänge, Kontrollpunkte, Leistungsnachweise
+# TourCheck — Runden, Kontrollpunkte, Leistungsnachweis
 
-Wachrundgänge, Objektkontrollen und Inspektionen auf der eigenen Nextcloud dokumentieren: QR-/NFC-Kontrollpunkte, Kiosk-Sign-off an geteilten Stationen, Vorgesetzten-Attestierung, ein manipulationssicheres, hashverkettetes Wachbuch mit externem RFC-3161-Zeitstempel, SLA-Berichte und Claim-Bundles per Klick.
+Sicherheitsrundgänge, Objektkontrollen und Begehungen auf Ihrer eigenen Nextcloud dokumentieren: QR/NFC-Kontrollpunkte, Kiosk-Abmeldung an geteilten Stationen, Aufsichts-Bestätigung, ein append-only hash-verkettetes Wachbuch mit externem RFC-3161-Zeitstempel-Anker, SLA-Berichte und Claim-Bundles per Klick.
 
-**Kostenlose AGPL-Web-App.** Der native Companion (Worker- & Stations-Modus) wird separat lizenziert (`TCK2`). Das Web wird nie durch die Gerätelizenz gesperrt.
+## Highlights
+
+- **Kontrollpunkte ohne Tricks** — QR/NFC-Scans und Kiosk-Abmeldung fixieren Ort und Zeit
+- **Runden mit Plan** — Kontrollpunkte in Laufreihenfolge je Objekt; fällig, aktiv, verpasst, erledigt auf einen Blick
+- **Ein Wachbuch, das standhält** — append-only, hash-verkettetes Journal mit RFC-3161-Zeitstempel-Anker
+- **Aufsichts-Bestätigung** — Vier-Augen-Freigabe, wo der Vertrag sie verlangt
+- **Berichte und Claim-Bundles** — SLA-Reporting plus Beweispakete per Klick für Auftraggeber
+- **Privatsphäre by design** — GPS ist Opt-in je Objekt, sichtbar und auto-gelöscht; kein verdecktes Tracking
 
 ## Klare Grenzen
 
-- Kein Dienstplan — Runden, keine Schichten
-- Keine Zeiterfassung — nur Anwesenheitsnachweise an Kontrollpunkten
-- Keine verdeckte Überwachung — GPS nur opt-in pro Objekt, sichtbar, auto-gelöscht
+- Kein Dienstplan-Tool — Runden, keine Schichten.
+- Keine Zeiterfassungs-Suite — Anwesenheitsnachweise nur an Kontrollpunkten.
+
+**Kostenlose AGPL-Web-App.** Der native Companion (Worker- und Station-Modi) ist separat lizenziert (`TCK2`); die Web-App ist nie gesperrt.
 
 ## Feedback willkommen
 
-Wir verbessern diese App mit Praxis-Rückmeldungen — GitHub Issue (https://github.com/aSoftwareByDesignRepository/nextcloud-tourcheck/issues) oder info@software-by-design.de.
+Etwas hakt oder fehlt? Öffnen Sie ein GitHub Issue (https://github.com/aSoftwareByDesignRepository/nextcloud-tourcheck/issues) oder schreiben Sie an info@software-by-design.de.
 
 ## Voraussetzungen
 
-- Nextcloud 32–35 · PHP 8.2+ · MySQL oder PostgreSQL
+- Nextcloud 32–35
+- PHP 8.2–8.5
+- MySQL oder PostgreSQL
 	]]></description>
 
-	<screenshot>https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/01.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/02.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/03.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/04.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/05.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/06.png</screenshot>
 	<version>0.1.7</version>
 	<licence>agpl</licence>
 	<author mail="info@software-by-design.de" homepage="https://nextcloud.software-by-design.de/">Software by Design GbR</author>
@@ -66,6 +80,12 @@ Wir verbessern diese App mit Praxis-Rückmeldungen — GitHub Issue (https://git
 	<website>https://nextcloud.software-by-design.de/</website>
 	<bugs>https://github.com/aSoftwareByDesignRepository/nextcloud-tourcheck/issues</bugs>
 	<repository type="git">https://github.com/aSoftwareByDesignRepository/nextcloud-tourcheck.git</repository>
+	<screenshot>https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/01.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/02.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/03.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/04.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/05.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-tourcheck/main/screenshots/appstore/06.png</screenshot>
 	<dependencies>
 		<nextcloud min-version="32" max-version="35"/>
 		<php min-version="8.2" max-version="8.5"/>
