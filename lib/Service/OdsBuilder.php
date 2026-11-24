@@ -9,7 +9,7 @@ namespace OCA\TourCheck\Service;
  * Pure formatter: takes [{name, columns: [header...], rows: [[cell...]]}]
  * and returns the binary package. No formula-injection concern: ODS
  * formulas are declared via table:formula attributes, never inferred
- * from cell text (same guarantee as the PrivacyCheck writer this follows).
+ * from cell text (same guarantee as the the privacy register app writer this follows).
  */
 class OdsBuilder
 {
@@ -18,7 +18,7 @@ class OdsBuilder
 	/**
 	 * @param list<array{name: string, columns: list<string>, rows: list<list<mixed>>}> $sheets
 	 */
-	public function build(array $sheets, string $generator = 'PrivacyCheck'): string
+	public function build(array $sheets, string $generator = 'the privacy register app'): string
 	{
 		$tmp = tempnam(sys_get_temp_dir(), 'tck-ods-');
 		if ($tmp === false) {

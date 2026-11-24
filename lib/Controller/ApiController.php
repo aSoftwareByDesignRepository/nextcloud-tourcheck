@@ -924,7 +924,7 @@ class ApiController extends Controller
 	 * NH-15 / suite flange F11: versioned drive-segments read facade.
 	 * Round-to-round legs only (completed → next started, same worker, same
 	 * day, different sites), allow-listed fields, generic purpose —
-	 * MobilityCheck turns them into confirmable Fahrtenbuch drafts.
+	 * the mobility app turns them into confirmable Fahrtenbuch drafts.
 	 * Planner-scope: segments are org-level data, not per-site.
 	 */
 	#[NoAdminRequired]

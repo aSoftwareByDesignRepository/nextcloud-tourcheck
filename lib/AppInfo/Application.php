@@ -110,7 +110,7 @@ class Application extends App implements IBootstrap
 		// unpreparable — the server drops it on fetch (silent dead alerts).
 		$context->registerNotifierService(\OCA\TourCheck\Notification\Notifier::class);
 
-		// Suite flange F11 — advertise check:drive-segments to MobilityCheck.
+		// Suite flange F11 — advertise check:drive-segments to the mobility app.
 		$context->registerCapability(\OCA\TourCheck\Capabilities::class);
 
 		// F17: round status + link candidates for DutyCheck's shift↔round link.

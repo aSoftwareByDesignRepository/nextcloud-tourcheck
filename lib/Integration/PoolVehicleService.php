@@ -10,7 +10,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * NH-15b / F11(b): read-only pool-vehicle badge ("today's car") sourced
- * from MobilityCheck's versioned facade on the same instance. Fail-closed
+ * from the mobility app's versioned facade on the same instance. Fail-closed
  * by construction: MC absent/disabled, facade missing/too old, or any
  * error → null badge, never an error surfaced to the worker.
  * Allow-listed fields only (label, plate, pickup/return window) — no

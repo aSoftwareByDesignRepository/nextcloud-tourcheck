@@ -8,7 +8,7 @@ use OCP\Capabilities\IPublicCapability;
 use OCP\IURLGenerator;
 
 /**
- * Suite flange advertisement (F11): MobilityCheck capability-detects
+ * Suite flange advertisement (F11): the mobility app capability-detects
  * `check.drive-segments` before pulling. Versioned so the contract can
  * evolve without silent consumer breakage.
  */
