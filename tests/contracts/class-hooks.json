@@ -1,0 +1,18 @@
+{
+	"tck-app--capture": "page-variant marker on .tck-app root; layout owned by .tck-shell--capture/.tck-capture",
+	"tck-app--denied": "page-variant marker on .tck-app root; layout owned by .tck-empty-state",
+	"tck-app--kiosk": "page-variant marker on .tck-app root; layout owned by .tck-kiosk",
+	"tck-app--live": "page-variant marker on .tck-app root; layout owned by .tck-main--live/.tck-live",
+	"tck-app--portal": "page-variant marker on .tck-app root; layout owned by .tck-portal",
+	"tck-brand__icon": "icon wrapper inside styled .tck-brand; glyph sized via .tck-brand__icon-svg",
+	"tck-brand__text": "text wrapper inside styled .tck-brand; parts styled via __title/__subtitle/__role",
+	"tck-breadcrumb__brand": "brand crumb link inside styled .tck-breadcrumb ol; styled via .tck-breadcrumb a",
+	"tck-capture__action": "JS mount for corrective actions (data-tck-corrective); children emitted as styled .tck-btn/links",
+	"tck-capture__confirm": "JS-toggled confirm panel (data-tck-confirm + .tck-hidden); children styled via __cpname + .tck-btn",
+	"tck-coach__state": "state icon wrapper inside styled .tck-coach__step; glyph sized via .tck-icon",
+	"tck-kiosk__stage": "JS stage-switch container (data-tck-stage=grid|pin|sign|confirm + .tck-hidden); children carry styling",
+	"tck-section": "redundant marker on styled .tck-card (settings transfer sections)",
+	"tck-skip-link--nav": "second skip-link target (#app-navigation); identical chrome as base .tck-skip-link",
+	"tck-table-actions": "generic action-group marker on styled .tck-license-table-actions",
+	"tck-transfer-report": "marker on styled .tck-dialog; verdict styled via .tck-transfer-report__verdict"
+}

@@ -50,6 +50,7 @@
 .tck-breadcrumb ol { display: flex; gap: var(--tck-space-2); list-style: none; margin: 0; padding: 0; font-size: var(--tck-fs-sm); }
 .tck-breadcrumb a { color: var(--color-text-maxcontrast); }
 .tck-breadcrumb__current { color: var(--color-main-text); font-weight: 600; }
+.tck-breadcrumb__sep { color: var(--color-text-maxcontrast); }
 .tck-page-header__main { display: flex; align-items: center; gap: var(--tck-space-4); margin-top: var(--tck-space-3); flex-wrap: wrap; }
 /* Icon well (§2.2): tint-info box, not a bare svg. */
 .tck-page-header__icon {
@@ -72,6 +73,8 @@
 	border: 1px solid var(--tck-form-border); border-radius: var(--tck-radius-sm);
 	background: var(--color-main-background); color: var(--color-main-text);
 }
+.tck-nav-toggle__icon { display: inline-flex; }
+.tck-nav-toggle__icon svg { width: var(--tck-icon-md); height: var(--tck-icon-md); stroke: currentColor; }
 
 /* --- scope strip --- */
 .tck-scope-strip { display: flex; align-items: center; gap: var(--tck-space-3); margin-top: var(--tck-space-4); padding: var(--tck-space-2) var(--tck-space-3); border: 1px solid var(--color-border); border-radius: var(--tck-radius-md); background: var(--color-background-hover); }
@@ -96,6 +99,9 @@
 .tck-nav__link:hover { background: var(--color-background-hover); }
 .tck-nav__item--active > .tck-nav__link { background: var(--tck-tint-info); font-weight: 600; }
 .tck-nav__icon svg { width: var(--tck-icon-md); height: var(--tck-icon-md); stroke: currentColor; }
+/* Text flex child: without flex+min-width a long label can't shrink below
+   min-content and clips the link at narrow widths. */
+.tck-nav__label { flex: 1; min-width: 0; overflow-wrap: break-word; }
 .tck-nav__sub { list-style: none; margin: 0; padding: 0 0 0 var(--tck-space-7); }
 .tck-nav__sublink { display: block; min-height: var(--tck-touch); line-height: var(--tck-touch); color: var(--color-main-text); border-radius: var(--tck-radius-sm); padding: 0 var(--tck-space-3); }
 .tck-nav__subitem--active .tck-nav__sublink { font-weight: 600; background: var(--color-primary-light); }
@@ -204,6 +210,21 @@
 .tck-copy-row { display: flex; gap: var(--tck-space-2); align-items: center; }
 .tck-copy-row__text { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; padding: var(--tck-space-2); background: var(--color-main-background); border: 1px solid var(--color-border); border-radius: var(--tck-radius-sm); font-size: var(--tck-fs-sm); }
 .tck-card { border: 1px solid var(--color-border); border-radius: var(--tck-radius-md); padding: var(--tck-space-4); }
+/* Pairing QR mount (stations settings): fixed light quiet zone — the vendored
+   svg emits black modules with no background, so the canvas must stay
+   black-on-white in every theme or the code stops scanning. */
+.tck-pair-qr {
+	width: 12rem; max-width: 100%; padding: var(--tck-space-3);
+	background: var(--tck-qr-canvas); border-radius: var(--tck-radius-md);
+	/* forced-colors would repaint the light canvas and kill scannability */
+	forced-color-adjust: none;
+}
+.tck-pair-qr svg { display: block; width: 100%; height: auto; }
+
+/* --- guest surface (kiosk-license, rendered without app chrome) --- */
+.tck-guest-shell { display: flex; justify-content: center; padding: var(--tck-space-7) var(--tck-space-4); }
+.tck-guest-card { width: 100%; max-width: 34rem; background: var(--color-main-background); }
+.tck-guest-card h1 { margin-top: 0; }
 .tck-deflist { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: var(--tck-space-3); margin: 0 0 var(--tck-space-3); }
 .tck-deflist dt { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); }
 .tck-deflist dd { margin: 0; font-weight: 600; }
@@ -265,6 +286,9 @@
 .tck-capture { width: 100%; max-width: 32rem; display: flex; flex-direction: column; gap: var(--tck-space-5); }
 .tck-capture__title { font-size: var(--tck-fs-2xl); margin: var(--tck-space-4) 0 0; }
 .tck-capture__progress { font-size: var(--tck-fs-lg); font-weight: 600; }
+/* Scanbox owns its vertical rhythm: one spacing owner per axis. */
+.tck-scanbox { display: flex; flex-direction: column; gap: var(--tck-space-2); }
+.tck-scanbox .tck-field-hint, .tck-scanbox .tck-field-error { margin: 0; }
 .tck-scanbox__label { font-weight: 600; }
 /* #app-content.tck-app scope: core `#app-content input` min-height/padding must
  * not shrink the primary scan surface below its 64px worker-facing target. */
@@ -307,6 +331,7 @@
 .tck-live { width: 100%; max-width: 36rem; display: flex; flex-direction: column; gap: var(--tck-space-4); }
 .tck-live__title { font-size: var(--tck-fs-2xl); margin: var(--tck-space-4) 0 0; }
 .tck-live__lead { color: var(--color-text-maxcontrast); }
+.tck-live__last { margin: 0; color: var(--color-text-maxcontrast); font-size: var(--tck-fs-sm); }
 .tck-live__foot { font-size: var(--tck-fs-sm); color: var(--color-text-maxcontrast); text-align: center; margin-top: var(--tck-space-6); }
 
 /* --- toasts (app-owned, dedup kind+text) --- */

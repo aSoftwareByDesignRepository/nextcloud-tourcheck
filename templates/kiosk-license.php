@@ -1,9 +1,11 @@
 <?php
 /** @var \OCP\IL10N $l */
+style('tourcheck', 'tck-tokens');
+style('tourcheck', 'tck');
 $reason = $_['reason'] ?? 'license_required';
 ?>
 <div class="tck-guest-shell">
-	<main class="tck-guest-card" aria-labelledby="tck-kl-title">
+	<main class="tck-card tck-guest-card" aria-labelledby="tck-kl-title">
 		<h1 id="tck-kl-title"><?php p($l->t('Station not licensed')); ?></h1>
 		<?php if ($reason === 'no_device'): ?>
 			<p><?php p($l->t('The station device limit for this license is reached. Remove a station or upgrade the license to activate this device.')); ?></p>

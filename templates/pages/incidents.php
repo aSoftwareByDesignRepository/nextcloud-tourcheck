@@ -64,11 +64,9 @@ $pills = [
 				<label for="tck-inc-note"><?php p($l->t('Note (optional)')); ?></label>
 				<textarea id="tck-inc-note" name="note" class="tck-select" rows="3" maxlength="8000"></textarea>
 			</div>
-			<div class="tck-field">
-				<label class="tck-check" for="tck-inc-imp">
-					<input type="checkbox" id="tck-inc-imp" name="important" value="1">
-					<span><?php p($l->t('★ Mark as important — included in the morning digest')); ?></span>
-				</label>
+			<div class="tck-field tck-field--check">
+				<input type="checkbox" id="tck-inc-imp" name="important" value="1">
+				<label for="tck-inc-imp"><?php p($l->t('★ Mark as important — included in the morning digest')); ?></label>
 			</div>
 			<div class="tck-form-actions">
 				<button type="submit" class="tck-btn tck-btn--primary"><?php p($l->t('Report incident')); ?></button>

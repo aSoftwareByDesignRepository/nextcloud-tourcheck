@@ -95,6 +95,12 @@ body {
 	--tck-notif-fg-warning: var(--color-warning-text, var(--color-warning));
 	--tck-notif-fg-success: var(--color-success-text, var(--color-success));
 	--tck-notif-fg-danger: var(--color-error-text, var(--color-error));
+
+	/*
+	 * QR / barcode canvas must stay light for scannability in every theme.
+	 * This is the only intentional non-theme surface in TourCheck feature CSS.
+	 */
+	--tck-qr-canvas: #ffffff;
 }
 
 /* Bright accent fills on dark themes fail AA with white/black ink — darken fill + use main-text. */
