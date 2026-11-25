@@ -11,7 +11,7 @@ use OCP\IDBConnection;
 /**
  * NH-15 / suite flange F11 — `check:drive-segments` read facade.
  *
- * the mobility app pulls these and turns them into Fahrtenbuch DRAFTS the
+ * The mobility app pulls these and turns them into Fahrtenbuch DRAFTS the
  * driver confirms (km/Tachostand are never auto-final). A segment exists
  * only between two consecutive rounds the same worker engaged in on one
  * day: departure = completed_at of round N, arrival = started_at of the
