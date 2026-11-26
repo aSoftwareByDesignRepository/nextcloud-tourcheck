@@ -6,28 +6,28 @@
 <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
 	<id>tourcheck</id>
 	<name>TourCheck</name>
-	<summary>Rounds &amp; checkpoint documentation — QR/NFC/kiosk capture, append-only Wachbuch, evidence-grade reports</summary>
-	<summary lang="de">Rundgänge &amp; Kontrollpunkte dokumentieren — QR/NFC/Kiosk-Erfassung, revisionssicheres Wachbuch, prüffeste Berichte</summary>
+	<summary>Rounds &amp; checkpoint documentation: QR/NFC/kiosk capture, append-only Wachbuch, evidence-grade reports</summary>
+	<summary lang="de">Rundgänge &amp; Kontrollpunkte dokumentieren: QR/NFC/Kiosk-Erfassung, revisionssicheres Wachbuch, prüffeste Berichte</summary>
 	<description><![CDATA[
-# TourCheck — rounds, checkpoints, proof of service
+# TourCheck: rounds, checkpoints, proof of service
 
 Document security patrols, facility rounds and inspections on your own Nextcloud: QR/NFC checkpoints, kiosk sign-off for shared stations, supervisor attestation, an append-only hash-chained Wachbuch with external RFC 3161 timestamp anchoring, SLA reports and one-click claim bundles.
 
 ## Highlights
 
-- **Checkpoints that can't be faked** — QR/NFC scans and kiosk sign-off fix place and time
-- **Rounds with a plan** — walk-order checkpoints per site; due, active, missed and done at a glance
-- **A Wachbuch that holds up** — append-only, hash-chained journal with RFC 3161 timestamp anchoring
-- **Supervisor attestation** — second-eyes sign-off where contracts demand it
-- **Reports and claim bundles** — SLA reporting plus one-click evidence packs for clients
-- **Privacy by design** — GPS is opt-in per site, visible, and auto-purged; no covert tracking
+- **Checkpoints that can't be faked**: QR/NFC scans and kiosk sign-off fix place and time
+- **Rounds with a plan**: walk-order checkpoints per site; due, active, missed and done at a glance
+- **A Wachbuch that holds up**: append-only, hash-chained journal with RFC 3161 timestamp anchoring
+- **Supervisor attestation**: second-eyes sign-off where contracts demand it
+- **Reports and claim bundles**: SLA reporting plus one-click evidence packs for clients
+- **Privacy by design**: GPS is opt-in per site, visible, and auto-purged; no covert tracking
 
 ## Clear limits
 
-- Not a scheduling or roster tool — rounds, not shifts.
-- Not a time-tracking suite — presence evidence at checkpoints only.
+- Not a scheduling or roster tool: rounds, not shifts.
+- Not a time-tracking suite: presence evidence at checkpoints only.
 
-**Free AGPL web app.** The native companion (worker and station modes) is licensed separately (`TCK2`); the web is never gated.
+**Free AGPL web app.** The native companion (worker and station modes) is licensed separately; the web is never gated.
 
 ## Feedback welcome
 
@@ -40,25 +40,25 @@ Something rough, something missing? Open a GitHub Issue (https://github.com/aSof
 - MySQL or PostgreSQL
 	]]></description>
 	<description lang="de"><![CDATA[
-# TourCheck — Runden, Kontrollpunkte, Leistungsnachweis
+# TourCheck: Runden, Kontrollpunkte, Leistungsnachweis
 
 Sicherheitsrundgänge, Objektkontrollen und Begehungen auf Ihrer eigenen Nextcloud dokumentieren: QR/NFC-Kontrollpunkte, Kiosk-Abmeldung an geteilten Stationen, Aufsichts-Bestätigung, ein append-only hash-verkettetes Wachbuch mit externem RFC-3161-Zeitstempel-Anker, SLA-Berichte und Claim-Bundles per Klick.
 
 ## Highlights
 
-- **Kontrollpunkte ohne Tricks** — QR/NFC-Scans und Kiosk-Abmeldung fixieren Ort und Zeit
-- **Runden mit Plan** — Kontrollpunkte in Laufreihenfolge je Objekt; fällig, aktiv, verpasst, erledigt auf einen Blick
-- **Ein Wachbuch, das standhält** — append-only, hash-verkettetes Journal mit RFC-3161-Zeitstempel-Anker
-- **Aufsichts-Bestätigung** — Vier-Augen-Freigabe, wo der Vertrag sie verlangt
-- **Berichte und Claim-Bundles** — SLA-Reporting plus Beweispakete per Klick für Auftraggeber
-- **Privatsphäre by design** — GPS ist Opt-in je Objekt, sichtbar und auto-gelöscht; kein verdecktes Tracking
+- **Kontrollpunkte ohne Tricks**: QR/NFC-Scans und Kiosk-Abmeldung fixieren Ort und Zeit
+- **Runden mit Plan**: Kontrollpunkte in Laufreihenfolge je Objekt; fällig, aktiv, verpasst, erledigt auf einen Blick
+- **Ein Wachbuch, das standhält**: append-only, hash-verkettetes Journal mit RFC-3161-Zeitstempel-Anker
+- **Aufsichts-Bestätigung**: Vier-Augen-Freigabe, wo der Vertrag sie verlangt
+- **Berichte und Claim-Bundles**: SLA-Reporting plus Beweispakete per Klick für Auftraggeber
+- **Privatsphäre by design**: GPS ist Opt-in je Objekt, sichtbar und auto-gelöscht; kein verdecktes Tracking
 
 ## Klare Grenzen
 
-- Kein Dienstplan-Tool — Runden, keine Schichten.
-- Keine Zeiterfassungs-Suite — Anwesenheitsnachweise nur an Kontrollpunkten.
+- Kein Dienstplan-Tool: Runden, keine Schichten.
+- Keine Zeiterfassungs-Suite: Anwesenheitsnachweise nur an Kontrollpunkten.
 
-**Kostenlose AGPL-Web-App.** Der native Companion (Worker- und Station-Modi) ist separat lizenziert (`TCK2`); die Web-App ist nie gesperrt.
+**Kostenlose AGPL-Web-App.** Der native Companion (Worker- und Station-Modi) ist separat lizenziert; die Web-App ist nie gesperrt.
 
 ## Feedback willkommen
 
