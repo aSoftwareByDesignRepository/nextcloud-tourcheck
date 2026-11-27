@@ -569,7 +569,7 @@ OC.L10N.register(
 	"Objects, checkpoints, and plans." : "物件、檢查點和計劃。",
 	"Off = only the groups and users below (plus admins) can open the app." : "關閉 = 僅下方組和使用者（加管理員）可開啟應用。",
 	"Official mobile & terminal licenses" : "官方行動端與終端授權",
-	"OK" : "OK",
+	"OK" : "確定",
 	"OK — a longer passphrase is safer." : "好——更長的密碼短語更安全。",
 	"oldest %d h" : "最早 %d 小時",
 	"On duty today" : "今日在崗",

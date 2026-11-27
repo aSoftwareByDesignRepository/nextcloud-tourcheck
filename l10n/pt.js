@@ -160,7 +160,7 @@ OC.L10N.register(
 	"Center longitude" : "Longitude do centro",
 	"Chain head" : "Cabeça da cadeia",
 	"Chained" : "Encadeado",
-	"Check Partner" : "Check Partner",
+	"Check Partner" : "Parceiro Check",
 	"check-in every %d min" : "check-in a cada %d min",
 	"Check-in every (minutes, optional)" : "Check-in a cada (minutos, opcional)",
 	"Checked at" : "Verificado às",

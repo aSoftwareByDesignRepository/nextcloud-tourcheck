@@ -569,7 +569,7 @@ OC.L10N.register(
 	"Objects, checkpoints, and plans." : "Объекты, контрольные точки и планы.",
 	"Off = only the groups and users below (plus admins) can open the app." : "Выкл. = приложение могут открывать только группы и пользователи ниже (плюс администраторы).",
 	"Official mobile & terminal licenses" : "Официальные лицензии для мобильных устройств и терминалов",
-	"OK" : "OK",
+	"OK" : "Хорошо.",
 	"OK — a longer passphrase is safer." : "Подойдёт, но более длинная парольная фраза надёжнее.",
 	"oldest %d h" : "старшие %d ч",
 	"On duty today" : "На смене сегодня",
