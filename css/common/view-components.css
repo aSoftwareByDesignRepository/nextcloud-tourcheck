@@ -206,6 +206,9 @@ button.tck-stat-tile:hover, button.tck-stat-tile:focus-visible {
 	flex-wrap: wrap;
 	margin: 0 0 var(--tck-space-3, 12px);
 }
+/* Inside a gap'd flex panel the head's own margin doubles the spacing —
+   the parent's gap already supplies the rhythm. */
+.tck-panel > .tck-list-head { margin-bottom: 0; }
 .tck-list-head__title { margin: 0; font-size: var(--tck-fs-lg, 1.125rem); font-weight: 600; }
 .tck-list-head__count { color: var(--tck-muted, var(--color-text-maxcontrast)); font-size: var(--tck-fs-sm, 0.875rem); font-variant-numeric: var(--tck-tab-num, tabular-nums); }
 .tck-list-head__actions { margin-inline-start: auto; display: flex; gap: var(--tck-space-2, 8px); flex-wrap: wrap; }
